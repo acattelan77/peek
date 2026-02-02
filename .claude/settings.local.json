@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcodebuild -list:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(hdiutil create:*)",
+      "Bash(ls:*)",
+      "Bash(sips:*)",
+      "Bash(find:*)",
+      "Bash(open:*)"
+    ]
+  }
+}
