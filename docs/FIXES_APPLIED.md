@@ -207,6 +207,11 @@ All critical and high-priority issues resolved. App is stable and secure for dis
 
 ## Changelog
 
+**v1.0.2** (2026-02-02)
+- Added auto icon-only fallback when the menu bar is cramped
+- Adjusted meeting urgency to show the next meeting after a short late window
+- Prevented popover double-toggle on click
+
 **v1.0.1** (2026-01-23)
 - Fixed potential crash in notification snooze
 - Added settings import version validation
@@ -218,10 +223,10 @@ All critical and high-priority issues resolved. App is stable and secure for dis
 
 ## Sign-Off
 
-**Fixes Applied By**: Claude (AI Assistant)
-**Date**: 2026-01-23
-**Build Status**: ✅ SUCCESS
-**Test Status**: ✅ PASSED
-**Deployment**: ✅ APPROVED
+**Fixes Applied By**: Codex (AI Assistant)
+**Date**: 2026-02-02
+**Build Status**: ⚠️ NOT RUN
+**Test Status**: ⚠️ NOT RUN
+**Deployment**: N/A
 
-All fixes have been applied, tested, and verified. Codebase is production-ready.
+Changes applied; build and tests not run for this update.

@@ -48,6 +48,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let notificationManager = NotificationManager.shared
     private var pulseTimer: Timer?
     private var isPulsing = false
+    private var isShowingIconOnlyForSpace = false
+    private var outsideClickEventMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Initialize calendar manager
@@ -81,6 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Create popover
         popover = NSPopover()
         popover.behavior = .transient
+        popover.animates = true
 
         let menuBarView = MenuBarView(calendarManager: calendarManager, closePopover: { [weak self] in
             self?.popover.performClose(nil)
@@ -150,6 +153,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     if let button = self?.statusItem.button {
                         button.title = "No Calendar Access"
                         button.toolTip = "Grant permission in System Settings → Privacy & Security → Calendars"
+                        self?.applyMenuBarSpaceConstraintIfNeeded(
+                            button: button,
+                            title: "No Calendar Access",
+                            tooltip: button.toolTip,
+                            urgency: .normal
+                        )
                     }
                 }
             }
@@ -162,6 +171,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateTimer = nil
         pulseTimer?.invalidate()
         pulseTimer = nil
+
+        if let monitor = outsideClickEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            outsideClickEventMonitor = nil
+        }
     }
 
     private func registerGlobalHotkey() {
@@ -205,20 +219,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func togglePopover() {
         guard let button = statusItem.button else { return }
 
-        // Check if the event is a mouse event and if Cmd key is pressed
-        if let event = NSApp.currentEvent,
-           event.type == .leftMouseDown || event.type == .leftMouseDragged,
-           event.modifierFlags.contains(.command) {
-            // Allow the system to handle Cmd+drag for repositioning
-            return
-        }
+        if let event = NSApp.currentEvent {
+            if event.type == .leftMouseDragged {
+                return
+            }
 
-        // Only toggle on click (leftMouseUp), not on drag events
-        if let event = NSApp.currentEvent, event.type == .leftMouseDragged {
-            return
+            if event.type == .leftMouseDown {
+                // Allow the system to handle Cmd+drag for repositioning
+                if event.modifierFlags.contains(.command) {
+                    return
+                }
+                // Ignore mouse down to avoid double-toggle with mouse up
+                return
+            }
         }
 
         if popover.isShown {
+            if let monitor = outsideClickEventMonitor {
+                NSEvent.removeMonitor(monitor)
+                outsideClickEventMonitor = nil
+            }
             popover.performClose(nil)
         } else {
             // Toggle urgency colors only when SHOWING the popover
@@ -226,6 +246,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             calendarManager.savePreferences()
 
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+
+            // Install a global event monitor to close popover when clicking outside
+            outsideClickEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+                guard let self = self else { return }
+                // If the popover is not shown, remove monitor and return
+                guard self.popover.isShown else {
+                    if let monitor = self.outsideClickEventMonitor {
+                        NSEvent.removeMonitor(monitor)
+                        self.outsideClickEventMonitor = nil
+                    }
+                    return
+                }
+                // Determine the window under the mouse click; if it's not the popover's, close it
+                if let clickedWindow = NSApp.window(withWindowNumber: event.windowNumber) {
+                    if clickedWindow != self.popover.contentViewController?.view.window {
+                        self.popover.performClose(nil)
+                    }
+                } else {
+                    // Click on desktop or non-window area
+                    self.popover.performClose(nil)
+                }
+            }
         }
     }
 
@@ -237,7 +279,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let eventCount = self.calendarManager.upcomingEvents.count
 
                     if let event = event, eventCount > 0 {
-                        let (title, tooltip, urgency) = self.formatStatusBarText(event: event, eventCount: eventCount)
+                        var displayCount = eventCount
+                        if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == event.eventIdentifier }) {
+                            displayCount = eventCount - index
+                        }
+
+                        let (title, tooltip, urgency) = self.formatStatusBarText(event: event, eventCount: displayCount)
 
                         // Set title and tooltip first
                         button.title = title
@@ -251,11 +298,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                         // Adjust timer frequency based on urgency
                         self.adjustTimerForUrgency(urgency)
+
+                        // Fall back to icon-only if the menu bar is cramped
+                        self.applyMenuBarSpaceConstraintIfNeeded(
+                            button: button,
+                            title: title,
+                            tooltip: tooltip,
+                            urgency: urgency
+                        )
                     } else {
-                        button.title = self.calendarManager.statusBarMode == .iconOnly ? "" : "No upcoming events"
+                        let title = self.calendarManager.statusBarMode == .iconOnly ? "" : "No upcoming events"
+                        button.title = title
                         button.toolTip = nil
                         button.attributedTitle = NSAttributedString(string: button.title)
                         self.stopPulsing()
+                        self.applyMenuBarSpaceConstraintIfNeeded(
+                            button: button,
+                            title: title,
+                            tooltip: nil,
+                            urgency: .normal
+                        )
                     }
                 }
 
@@ -425,6 +487,60 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.updateMenuBar()
         }
+    }
+
+    private func applyMenuBarSpaceConstraintIfNeeded(
+        button: NSStatusBarButton,
+        title: String,
+        tooltip: String?,
+        urgency: MeetingUrgency
+    ) {
+        if calendarManager.statusBarMode == .iconOnly {
+            isShowingIconOnlyForSpace = false
+            if button.imagePosition != .imageOnly {
+                button.imagePosition = .imageOnly
+            }
+            return
+        }
+
+        let shouldForceIconOnly = shouldForceIconOnly(button: button, title: title)
+
+        if shouldForceIconOnly {
+            isShowingIconOnlyForSpace = true
+            if button.imagePosition != .imageOnly {
+                button.imagePosition = .imageOnly
+            }
+            if !title.isEmpty {
+                button.title = ""
+                button.attributedTitle = NSAttributedString(string: "")
+            }
+            button.toolTip = tooltip ?? title
+        } else {
+            if button.imagePosition != .imageLeading {
+                button.imagePosition = .imageLeading
+            }
+            if isShowingIconOnlyForSpace {
+                isShowingIconOnlyForSpace = false
+                button.title = title
+                button.toolTip = tooltip
+                applyUrgencyStyle(to: button, urgency: urgency)
+            }
+        }
+    }
+
+    private func shouldForceIconOnly(button: NSStatusBarButton, title: String) -> Bool {
+        guard !title.isEmpty else { return false }
+        guard button.bounds.width > 0 else { return false }
+
+        let font = button.font ?? NSFont.menuBarFont(ofSize: 0)
+        let titleWidth = (title as NSString).size(withAttributes: [.font: font]).width
+
+        let previousImagePosition = button.imagePosition
+        button.imagePosition = .imageLeading
+        let titleRect = (button.cell as? NSButtonCell)?.titleRect(forBounds: button.bounds) ?? button.bounds
+        button.imagePosition = previousImagePosition
+
+        return titleWidth - titleRect.width > 2
     }
 }
 

@@ -67,6 +67,8 @@ enum NotificationTiming: Int, CaseIterable {
 }
 
 class CalendarManager: ObservableObject {
+    private static let kLateGraceMinutes = 5
+
     private let eventStore = EKEventStore()
     @Published var nextEvent: EKEvent?
     @Published var upcomingEvents: [EKEvent] = []
@@ -367,7 +369,13 @@ class CalendarManager: ObservableObject {
             return true
         }.sorted { $0.startDate < $1.startDate }
 
-        let nextEvent = upcoming.first
+        let lateGraceInterval = TimeInterval(Self.kLateGraceMinutes * 60)
+        let ongoingEvents = upcoming.filter { $0.startDate <= now && $0.endDate > now }
+        let lateEvent = ongoingEvents
+            .sorted { $0.startDate > $1.startDate }
+            .first { now.timeIntervalSince($0.startDate) <= lateGraceInterval }
+        let futureEvents = upcoming.filter { $0.startDate > now }
+        let nextEvent = lateEvent ?? futureEvents.first
         let limitedEvents = Array(upcoming.prefix(maxEventsToShow))
 
         DispatchQueue.main.async {
