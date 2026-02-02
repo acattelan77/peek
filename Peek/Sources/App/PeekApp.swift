@@ -50,6 +50,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isPulsing = false
     private var isShowingIconOnlyForSpace = false
     private var outsideClickEventMonitor: Any?
+    private var refreshWorkItem: DispatchWorkItem?
+    private var lastScheduledEventSignature: [String] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Initialize calendar manager
@@ -119,25 +121,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Observe notification settings changes
         calendarManager.$notificationsEnabled
-            .sink { [weak self] _ in
-                self?.rescheduleNotifications()
+            .sink { [weak self] isEnabled in
+                guard let self = self else { return }
+                if isEnabled {
+                    self.notificationManager.checkPermission { granted in
+                        if granted {
+                            self.maybeRescheduleNotifications(force: true)
+                        } else {
+                            self.notificationManager.requestPermission { permissionGranted in
+                                if permissionGranted {
+                                    self.maybeRescheduleNotifications(force: true)
+                                } else {
+                                    DispatchQueue.main.async {
+                                        self.calendarManager.notificationsEnabled = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    self.maybeRescheduleNotifications(force: true)
+                }
             }
             .store(in: &cancellables)
 
         calendarManager.$notificationTiming
             .sink { [weak self] _ in
-                self?.rescheduleNotifications()
+                self?.maybeRescheduleNotifications(force: true)
             }
             .store(in: &cancellables)
 
         // Register global hotkey (Cmd+Shift+C)
         registerGlobalHotkey()
 
+        // Observe app activation to refresh permissions and events
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppDidBecomeActive),
+            name: NSApplication.didBecomeActiveNotification,
+            object: nil
+        )
+
+        // Observe EventKit changes to refresh UI and notifications
+        calendarManager.startObservingChanges { [weak self] in
+            self?.scheduleRefresh(debounce: 1.0)
+        }
+
         // Request calendar access and start monitoring
         calendarManager.requestAccess { [weak self] granted, error in
             if granted {
-                self?.updateMenuBar()
-                self?.startTimer()
+                self?.handleCalendarAccessChange(granted: true, shouldRefresh: true)
 
                 // Request notification permissions if notifications are enabled
                 self?.notificationManager.requestPermission { notificationGranted in
@@ -150,16 +183,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     print("Calendar access error: \(error.localizedDescription)")
                 }
                 DispatchQueue.main.async {
-                    if let button = self?.statusItem.button {
-                        button.title = "No Calendar Access"
-                        button.toolTip = "Grant permission in System Settings → Privacy & Security → Calendars"
-                        self?.applyMenuBarSpaceConstraintIfNeeded(
-                            button: button,
-                            title: "No Calendar Access",
-                            tooltip: button.toolTip,
-                            urgency: .normal
-                        )
-                    }
+                    self?.handleCalendarAccessChange(granted: false, shouldRefresh: false)
                 }
             }
         }
@@ -175,6 +199,52 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let monitor = outsideClickEventMonitor {
             NSEvent.removeMonitor(monitor)
             outsideClickEventMonitor = nil
+        }
+
+        calendarManager.stopObservingChanges()
+
+    }
+
+    @objc private func handleAppDidBecomeActive() {
+        let granted = calendarManager.refreshAuthorizationStatus()
+        handleCalendarAccessChange(granted: granted, shouldRefresh: true)
+    }
+
+    private func handleCalendarAccessChange(granted: Bool, shouldRefresh: Bool) {
+        if granted {
+            if updateTimer == nil {
+                startTimer()
+            }
+            if shouldRefresh {
+                scheduleRefresh(debounce: 0.1)
+            }
+        } else {
+            updateTimer?.invalidate()
+            updateTimer = nil
+            showNoCalendarAccess()
+            notificationManager.clearAllPendingNotifications()
+        }
+    }
+
+    private func scheduleRefresh(debounce: TimeInterval) {
+        refreshWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.updateMenuBar()
+        }
+        refreshWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + debounce, execute: workItem)
+    }
+
+    private func showNoCalendarAccess() {
+        if let button = statusItem.button {
+            button.title = "No Calendar Access"
+            button.toolTip = "Grant permission in System Settings → Privacy & Security → Calendars"
+            applyMenuBarSpaceConstraintIfNeeded(
+                button: button,
+                title: "No Calendar Access",
+                tooltip: button.toolTip,
+                urgency: .normal
+            )
         }
     }
 
@@ -321,8 +391,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
 
-                // Schedule notifications for upcoming events
-                self.rescheduleNotifications()
+                self.maybeRescheduleNotifications(force: false)
             }
         }
     }
@@ -410,15 +479,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func rescheduleNotifications() {
         guard calendarManager.notificationsEnabled else {
-            // Clear all notifications if disabled
-            notificationManager.scheduleNotifications(for: [], timing: .none)
+            // Clear all pending notifications if disabled
+            notificationManager.clearAllPendingNotifications()
             return
         }
 
+        let eventsToSchedule = calendarManager.allUpcomingEvents.isEmpty
+            ? calendarManager.upcomingEvents
+            : calendarManager.allUpcomingEvents
+
         notificationManager.scheduleNotifications(
-            for: calendarManager.upcomingEvents,
+            for: eventsToSchedule,
             timing: calendarManager.notificationTiming
         )
+    }
+
+    private func currentNotificationEventSignature() -> [String] {
+        let events = calendarManager.allUpcomingEvents.isEmpty
+            ? calendarManager.upcomingEvents
+            : calendarManager.allUpcomingEvents
+
+        return events.compactMap { event in
+            guard let id = event.eventIdentifier else { return nil }
+            let startTime = event.startDate.timeIntervalSince1970
+            return "\(id)|\(startTime)"
+        }
+    }
+
+    private func maybeRescheduleNotifications(force: Bool) {
+        if !force && !calendarManager.notificationsEnabled {
+            return
+        }
+        let signature = currentNotificationEventSignature()
+        if force || signature != lastScheduledEventSignature {
+            lastScheduledEventSignature = signature
+            rescheduleNotifications()
+        }
     }
 
     private func formatStatusBarText(event: EKEvent, eventCount: Int) -> (String, String?, MeetingUrgency) {

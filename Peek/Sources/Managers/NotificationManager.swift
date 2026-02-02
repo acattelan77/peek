@@ -8,6 +8,9 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private let notificationCenter = UNUserNotificationCenter.current()
     private var hasNotificationPermission = false
+    private let eventNotificationIdentifierPrefix = "event:"
+    private let eventIDKey = "eventID"
+    private let snoozeFlagKey = "isSnooze"
 
     override private init() {
         super.init()
@@ -44,75 +47,82 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     // MARK: - Notification Scheduling
 
+    func clearAllPendingNotifications() {
+        notificationCenter.removeAllPendingNotificationRequests()
+    }
+
     func scheduleNotifications(for events: [EKEvent], timing: NotificationTiming) {
         guard hasNotificationPermission, timing != .none else { return }
+        removePendingEventNotifications(excludingSnoozed: true) { [weak self] in
+            guard let self = self else { return }
 
-        // Cancel existing notifications
-        notificationCenter.removeAllPendingNotificationRequests()
+            let now = Date()
+            let minutesBefore = TimeInterval(timing.rawValue * 60)
 
-        let now = Date()
-        let minutesBefore = TimeInterval(timing.rawValue * 60)
+            for event in events {
+                guard let eventID = event.eventIdentifier else { continue }
+                let identifier = "\(self.eventNotificationIdentifierPrefix)\(eventID)"
 
-        for event in events {
-            // Only schedule for future events that haven't started
-            guard event.startDate > now else { continue }
+                // Only schedule for future events that haven't started
+                guard event.startDate > now else { continue }
 
-            // Calculate notification time
-            let notificationTime = event.startDate.addingTimeInterval(-minutesBefore)
+                // Calculate notification time
+                let notificationTime = event.startDate.addingTimeInterval(-minutesBefore)
 
-            // Only schedule if notification time is in the future
-            guard notificationTime > now else { continue }
+                // Only schedule if notification time is in the future
+                guard notificationTime > now else { continue }
 
-            let content = UNMutableNotificationContent()
-            content.title = event.title ?? "Upcoming Event"
-            content.body = formatEventDetails(event, minutesBefore: timing.rawValue)
-            content.sound = .default
-            content.userInfo = ["eventID": event.eventIdentifier as Any]
+                let content = UNMutableNotificationContent()
+                content.title = event.title ?? "Upcoming Event"
+                content.body = formatEventDetails(event, minutesBefore: timing.rawValue)
+                content.sound = .default
+                content.userInfo = [self.eventIDKey: eventID]
 
-            // Add actions if meeting URL is detected
-            if let meetingURL = extractMeetingURL(from: event) {
-                content.userInfo["meetingURL"] = meetingURL.absoluteString
+                // Add actions if meeting URL is detected
+                if let meetingURL = extractMeetingURL(from: event) {
+                    content.userInfo["meetingURL"] = meetingURL.absoluteString
 
-                let joinAction = UNNotificationAction(
-                    identifier: "JOIN_MEETING",
-                    title: "Join Meeting",
-                    options: .foreground
+                    let joinAction = UNNotificationAction(
+                        identifier: "JOIN_MEETING",
+                        title: "Join Meeting",
+                        options: .foreground
+                    )
+                    let snoozeAction = UNNotificationAction(
+                        identifier: "SNOOZE",
+                        title: "Snooze (5 min)",
+                        options: []
+                    )
+
+                    let category = UNNotificationCategory(
+                        identifier: "EVENT_NOTIFICATION",
+                        actions: [joinAction, snoozeAction],
+                        intentIdentifiers: [],
+                        options: []
+                    )
+
+                    notificationCenter.setNotificationCategories([category])
+                    content.categoryIdentifier = "EVENT_NOTIFICATION"
+                }
+
+                // Create trigger
+                let triggerDate = Calendar.current.dateComponents(
+                    [.year, .month, .day, .hour, .minute, .second],
+                    from: notificationTime
                 )
-                let snoozeAction = UNNotificationAction(
-                    identifier: "SNOOZE",
-                    title: "Snooze (5 min)",
-                    options: []
+                let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+
+                // Create request
+                let request = UNNotificationRequest(
+                    identifier: identifier,
+                    content: content,
+                    trigger: trigger
                 )
 
-                let category = UNNotificationCategory(
-                    identifier: "EVENT_NOTIFICATION",
-                    actions: [joinAction, snoozeAction],
-                    intentIdentifiers: [],
-                    options: []
-                )
-
-                notificationCenter.setNotificationCategories([category])
-                content.categoryIdentifier = "EVENT_NOTIFICATION"
-            }
-
-            // Create trigger
-            let triggerDate = Calendar.current.dateComponents(
-                [.year, .month, .day, .hour, .minute, .second],
-                from: notificationTime
-            )
-            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-
-            // Create request
-            let request = UNNotificationRequest(
-                identifier: event.eventIdentifier,
-                content: content,
-                trigger: trigger
-            )
-
-            // Schedule notification
-            notificationCenter.add(request) { error in
-                if let error = error {
-                    print("Error scheduling notification: \(error.localizedDescription)")
+                // Schedule notification
+                notificationCenter.add(request) { error in
+                    if let error = error {
+                        print("Error scheduling notification: \(error.localizedDescription)")
+                    }
                 }
             }
         }
@@ -163,6 +173,36 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
 
         return nil
+    }
+
+    private func removePendingEventNotifications(excludingSnoozed: Bool, completion: (() -> Void)? = nil) {
+        notificationCenter.getPendingNotificationRequests { [weak self] requests in
+            guard let self = self else { return }
+
+            let identifiersToRemove = requests.compactMap { request -> String? in
+                if excludingSnoozed {
+                    if (request.content.userInfo[self.snoozeFlagKey] as? Bool) == true {
+                        return nil
+                    }
+                }
+
+                if request.identifier.hasPrefix(self.eventNotificationIdentifierPrefix) {
+                    return request.identifier
+                }
+
+                if request.content.userInfo[self.eventIDKey] != nil {
+                    return request.identifier
+                }
+
+                return nil
+            }
+
+            if !identifiersToRemove.isEmpty {
+                self.notificationCenter.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
+            }
+
+            completion?()
+        }
     }
 
     private func findURLInText(_ text: String, patterns: [String]) -> URL? {
@@ -233,6 +273,9 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 completionHandler()
                 return
             }
+            var userInfo = content.userInfo
+            userInfo[self.snoozeFlagKey] = true
+            content.userInfo = userInfo
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 300, repeats: false)
             let request = UNNotificationRequest(
                 identifier: UUID().uuidString,

@@ -70,8 +70,12 @@ class CalendarManager: ObservableObject {
     private static let kLateGraceMinutes = 5
 
     private let eventStore = EKEventStore()
+    private let fetchQueue = DispatchQueue(label: "Peek.CalendarManager.fetch")
+    private var eventStoreChangedObserver: NSObjectProtocol?
     @Published var nextEvent: EKEvent?
     @Published var upcomingEvents: [EKEvent] = []
+    private(set) var allUpcomingEvents: [EKEvent] = []
+    private var hasCustomCalendarSelection: Bool = false
     @Published var hasCalendarAccess = false
     @Published var enabledCalendarIDs: Set<String> = []
     @Published var lookaheadDays: Int = 7
@@ -89,6 +93,7 @@ class CalendarManager: ObservableObject {
 
     private let defaults = UserDefaults.standard
     private let enabledCalendarsKey = "enabledCalendarIDs"
+    private let hasCustomCalendarsKey = "hasCustomCalendarSelection"
     private let lookaheadDaysKey = "lookaheadDays"
     private let maxEventsKey = "maxEventsToShow"
     private let hideAllDayKey = "hideAllDayEvents"
@@ -110,10 +115,12 @@ class CalendarManager: ObservableObject {
     func loadEnabledCalendars() {
         if let savedIDs = defaults.array(forKey: enabledCalendarsKey) as? [String] {
             enabledCalendarIDs = Set(savedIDs)
+            hasCustomCalendarSelection = defaults.object(forKey: hasCustomCalendarsKey) as? Bool ?? true
         } else {
             // First launch: enable all calendars by default
             let allCalendars = getAllCalendars()
             enabledCalendarIDs = Set(allCalendars.map { $0.calendarIdentifier })
+            hasCustomCalendarSelection = false
             saveEnabledCalendars()
         }
     }
@@ -177,6 +184,7 @@ class CalendarManager: ObservableObject {
 
     func saveEnabledCalendars() {
         defaults.set(Array(enabledCalendarIDs), forKey: enabledCalendarsKey)
+        defaults.set(hasCustomCalendarSelection, forKey: hasCustomCalendarsKey)
     }
 
     func toggleCalendar(_ calendarID: String) {
@@ -185,6 +193,7 @@ class CalendarManager: ObservableObject {
         } else {
             enabledCalendarIDs.insert(calendarID)
         }
+        hasCustomCalendarSelection = true
         saveEnabledCalendars()
     }
 
@@ -195,6 +204,7 @@ class CalendarManager: ObservableObject {
     func exportSettings() -> [String: Any] {
         return [
             "enabledCalendarIDs": Array(enabledCalendarIDs),
+            "hasCustomCalendarSelection": hasCustomCalendarSelection,
             "lookaheadDays": lookaheadDays,
             "maxEventsToShow": maxEventsToShow,
             "hideAllDayEvents": hideAllDayEvents,
@@ -220,6 +230,10 @@ class CalendarManager: ObservableObject {
 
         if let calendars = settings["enabledCalendarIDs"] as? [String] {
             enabledCalendarIDs = Set(calendars)
+            hasCustomCalendarSelection = true
+        }
+        if let hasCustomSelection = settings["hasCustomCalendarSelection"] as? Bool {
+            hasCustomCalendarSelection = hasCustomSelection
         }
         if let lookahead = settings["lookaheadDays"] as? Int {
             lookaheadDays = lookahead
@@ -285,107 +299,172 @@ class CalendarManager: ObservableObject {
         }
     }
 
+    @discardableResult
+    func refreshAuthorizationStatus() -> Bool {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        let granted: Bool
+        if #available(macOS 14.0, *) {
+            granted = status == .fullAccess || status == .authorized
+        } else {
+            granted = status == .authorized
+        }
+
+        DispatchQueue.main.async {
+            self.hasCalendarAccess = granted
+            if !granted {
+                self.nextEvent = nil
+                self.upcomingEvents = []
+                self.allUpcomingEvents = []
+            }
+        }
+
+        return granted
+    }
+
+    func startObservingChanges(_ handler: @escaping () -> Void) {
+        stopObservingChanges()
+        eventStoreChangedObserver = NotificationCenter.default.addObserver(
+            forName: .EKEventStoreChanged,
+            object: eventStore,
+            queue: nil
+        ) { _ in
+            handler()
+        }
+    }
+
+    func stopObservingChanges() {
+        if let observer = eventStoreChangedObserver {
+            NotificationCenter.default.removeObserver(observer)
+            eventStoreChangedObserver = nil
+        }
+    }
+
     func fetchNextEvent(completion: @escaping (EKEvent?) -> Void) {
         guard hasCalendarAccess else {
             completion(nil)
             return
         }
+        let enabledCalendarIDs = self.enabledCalendarIDs
+        let hasCustomCalendarSelection = self.hasCustomCalendarSelection
+        let lookaheadDays = self.lookaheadDays
+        let maxEventsToShow = self.maxEventsToShow
+        let hideAllDayEvents = self.hideAllDayEvents
+        let hideDeclinedEvents = self.hideDeclinedEvents
+        let filterKeywords = self.filterKeywords
 
-        // Get calendars based on user's enabled selections
-        let allCalendars = eventStore.calendars(for: .event)
-        let calendars: [EKCalendar]
+        fetchQueue.async { [weak self] in
+            guard let self = self else { return }
 
-        if enabledCalendarIDs.isEmpty {
-            // If no calendars are selected yet, use all calendars
-            calendars = allCalendars
-        } else {
-            // Filter to only enabled calendars
-            calendars = allCalendars.filter { calendar in
-                enabledCalendarIDs.contains(calendar.calendarIdentifier)
-            }
-        }
+            // Get calendars based on user's enabled selections
+            let allCalendars = self.eventStore.calendars(for: .event)
+            let calendars: [EKCalendar]
 
-        guard !calendars.isEmpty else {
-            completion(nil)
-            return
-        }
-
-        // Get current time
-        let now = Date()
-
-        // Create start and end dates - look ahead based on user preference
-        let calendar = Calendar.current
-        guard let endDate = calendar.date(byAdding: .day, value: lookaheadDays, to: now) else {
-            completion(nil)
-            return
-        }
-
-        // Create predicate for events in the next 7 days
-        let predicate = eventStore.predicateForEvents(
-            withStart: now,
-            end: endDate,
-            calendars: calendars
-        )
-
-        // Fetch events
-        let events = eventStore.events(matching: predicate)
-
-        // Find upcoming events (events that haven't ended yet)
-        let upcoming = events.filter { event in
-            // Filter out events that have ended
-            guard event.endDate > now else { return false }
-
-            // Filter all-day events if enabled
-            if hideAllDayEvents && event.isAllDay {
-                return false
+            if enabledCalendarIDs.isEmpty {
+                if hasCustomCalendarSelection {
+                    calendars = []
+                } else {
+                    // First launch (no selection yet): use all calendars
+                    calendars = allCalendars
+                }
+            } else {
+                // Filter to only enabled calendars
+                calendars = allCalendars.filter { calendar in
+                    enabledCalendarIDs.contains(calendar.calendarIdentifier)
+                }
             }
 
-            // Filter declined events if enabled
-            if hideDeclinedEvents {
-                // Check if current user has declined this event
-                if let attendees = event.attendees {
-                    for attendee in attendees where attendee.isCurrentUser {
-                        if attendee.participantStatus == .declined {
+            guard !calendars.isEmpty else {
+                DispatchQueue.main.async {
+                    self.nextEvent = nil
+                    self.upcomingEvents = []
+                    self.allUpcomingEvents = []
+                    completion(nil)
+                }
+                return
+            }
+
+            // Get current time
+            let now = Date()
+
+            // Create start and end dates - look ahead based on user preference
+            let calendar = Calendar.current
+            guard let endDate = calendar.date(byAdding: .day, value: lookaheadDays, to: now) else {
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+                return
+            }
+
+            // Create predicate for events in the next N days
+            let predicate = self.eventStore.predicateForEvents(
+                withStart: now,
+                end: endDate,
+                calendars: calendars
+            )
+
+            // Fetch events
+            let events = self.eventStore.events(matching: predicate)
+
+            // Find upcoming events (events that haven't ended yet)
+            let upcoming = events.filter { event in
+                // Filter out events that have ended
+                guard event.endDate > now else { return false }
+
+                // Filter all-day events if enabled
+                if hideAllDayEvents && event.isAllDay {
+                    return false
+                }
+
+                // Filter declined events if enabled
+                if hideDeclinedEvents {
+                    // Check if current user has declined this event
+                    if let attendees = event.attendees {
+                        for attendee in attendees where attendee.isCurrentUser {
+                            if attendee.participantStatus == .declined {
+                                return false
+                            }
+                        }
+                    }
+                }
+
+                // Filter by keywords if specified
+                if !filterKeywords.isEmpty {
+                    let keywords = filterKeywords.lowercased().components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                    let titleLower = (event.title ?? "").lowercased()
+                    let notesLower = (event.notes ?? "").lowercased()
+
+                    // Event must NOT contain any of the keywords to be shown
+                    for keyword in keywords where !keyword.isEmpty {
+                        if titleLower.contains(keyword) || notesLower.contains(keyword) {
                             return false
                         }
                     }
                 }
+
+                return true
+            }.sorted { $0.startDate < $1.startDate }
+
+            let lateGraceInterval = TimeInterval(Self.kLateGraceMinutes * 60)
+            let ongoingEvents = upcoming.filter { $0.startDate <= now && $0.endDate > now }
+            let lateEvent = ongoingEvents
+                .sorted { $0.startDate > $1.startDate }
+                .first { now.timeIntervalSince($0.startDate) <= lateGraceInterval }
+            let futureEvents = upcoming.filter { $0.startDate > now }
+            let nextEvent = lateEvent ?? futureEvents.first
+            let limitedEvents = Array(upcoming.prefix(maxEventsToShow))
+
+            DispatchQueue.main.async {
+                self.nextEvent = nextEvent
+                self.upcomingEvents = limitedEvents
+                self.allUpcomingEvents = upcoming
+                completion(nextEvent)
             }
-
-            // Filter by keywords if specified
-            if !filterKeywords.isEmpty {
-                let keywords = filterKeywords.lowercased().components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                let titleLower = (event.title ?? "").lowercased()
-                let notesLower = (event.notes ?? "").lowercased()
-
-                // Event must NOT contain any of the keywords to be shown
-                for keyword in keywords where !keyword.isEmpty {
-                    if titleLower.contains(keyword) || notesLower.contains(keyword) {
-                        return false
-                    }
-                }
-            }
-
-            return true
-        }.sorted { $0.startDate < $1.startDate }
-
-        let lateGraceInterval = TimeInterval(Self.kLateGraceMinutes * 60)
-        let ongoingEvents = upcoming.filter { $0.startDate <= now && $0.endDate > now }
-        let lateEvent = ongoingEvents
-            .sorted { $0.startDate > $1.startDate }
-            .first { now.timeIntervalSince($0.startDate) <= lateGraceInterval }
-        let futureEvents = upcoming.filter { $0.startDate > now }
-        let nextEvent = lateEvent ?? futureEvents.first
-        let limitedEvents = Array(upcoming.prefix(maxEventsToShow))
-
-        DispatchQueue.main.async {
-            self.nextEvent = nextEvent
-            self.upcomingEvents = limitedEvents
-            completion(nextEvent)
         }
     }
 
     func getAllCalendars() -> [EKCalendar] {
-        return eventStore.calendars(for: .event)
+        return fetchQueue.sync {
+            eventStore.calendars(for: .event)
+        }
     }
 }
