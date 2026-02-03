@@ -471,9 +471,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             newInterval = Self.kUpdateInterval
         }
 
-        // Only restart timer if interval changed
-        if updateTimer?.timeInterval != newInterval {
+        // Only restart timer if interval changed, and notifications are enabled
+        if calendarManager.notificationsEnabled, updateTimer?.timeInterval != newInterval {
             startTimer(interval: newInterval)
+        } else if !calendarManager.notificationsEnabled, updateTimer?.timeInterval != Self.kUpdateInterval {
+            startTimer(interval: Self.kUpdateInterval)
         }
     }
 

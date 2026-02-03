@@ -169,7 +169,9 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
 
         if let url = event.url {
-            return url
+            if isURLSafe(url) {
+                return url
+            }
         }
 
         return nil
