@@ -319,20 +319,6 @@ struct EventDetailView: View {
                 .padding(.top, 4)
             }
 
-            // Ask Claude button
-            Button(action: {
-                openClaudeWithMeetingContext()
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 11))
-                    Text("Ask Claude about this meeting")
-                        .font(.caption)
-                }
-                .foregroundColor(.purple)
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 4)
         }
         .padding(8)
         .background(
@@ -444,64 +430,6 @@ struct EventDetailView: View {
         }
     }
 
-    private func openClaudeWithMeetingContext() {
-        // Sanitize inputs to prevent injection
-        let meetingTitle = sanitizeForURL(event.title ?? "Untitled Event")
-        let meetingTime = Self.dateFormatter.string(from: event.startDate)
-
-        var prompt = """
-        I have an upcoming meeting and need your help preparing for it. Please search my Gmail and Google Drive for relevant information.
-
-        Meeting Details:
-        - Title: \(meetingTitle)
-        - Date/Time: \(meetingTime)
-        """
-
-        if let location = event.location, !location.isEmpty {
-            let sanitizedLocation = sanitizeForURL(location)
-            prompt += "\n- Location: \(sanitizedLocation)"
-        }
-
-        if let notes = event.notes, !notes.isEmpty {
-            // Limit notes length and sanitize
-            let limitedNotes = String(notes.prefix(500))
-            let sanitizedNotes = sanitizeForURL(limitedNotes)
-            prompt += "\n- Notes: \(sanitizedNotes)"
-        }
-
-        prompt += """
-
-
-        Please help me with:
-        1. Search my Gmail for recent emails about this meeting or topic
-        2. Find relevant documents in my Google Drive
-        3. Provide a brief summary of key context I should know
-        4. Suggest any preparation steps or documents I should review
-
-        """
-
-        // URL encode the prompt with length validation
-        guard prompt.count < 2000,
-              let encodedPrompt = prompt.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://claude.ai/new?q=\(encodedPrompt)"),
-              encodedPrompt.count < 8000 else {
-            return
-        }
-
-        NSWorkspace.shared.open(url)
-    }
-
-    private func sanitizeForURL(_ input: String) -> String {
-        // Remove potentially dangerous characters and limit length
-        let allowed = CharacterSet.alphanumerics
-            .union(.whitespaces)
-            .union(CharacterSet(charactersIn: ".,!?-:;()@"))
-
-        return input.unicodeScalars
-            .filter { allowed.contains($0) }
-            .map { String($0) }
-            .joined()
-    }
 }
 
 // MARK: - Event Context Menu
