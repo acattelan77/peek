@@ -1,6 +1,7 @@
 import SwiftUI
 import EventKit
 import ServiceManagement
+import Foundation
 
 struct PreferencesView: View {
     @ObservedObject var calendarManager: CalendarManager
@@ -32,13 +33,13 @@ struct PreferencesView: View {
         VStack(spacing: 0) {
             // Custom tab bar
             HStack(spacing: 0) {
-                TabButton(title: "Calendars", isSelected: selectedTab == 0) {
+                TabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 0) {
                     selectedTab = 0
                 }
-                TabButton(title: "Filters", isSelected: selectedTab == 1) {
+                TabButton(title: NSLocalizedString("Filters", comment: "Preferences tab title"), isSelected: selectedTab == 1) {
                     selectedTab = 1
                 }
-                TabButton(title: "General", isSelected: selectedTab == 2) {
+                TabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 2) {
                     selectedTab = 2
                 }
             }
@@ -88,8 +89,8 @@ struct PreferencesView: View {
     private func exportSettings() {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.json]
-        savePanel.nameFieldStringValue = "PeekSettings.json"
-        savePanel.title = "Export Peek Settings"
+        savePanel.nameFieldStringValue = NSLocalizedString("PeekSettings.json", comment: "Default export file name")
+        savePanel.title = NSLocalizedString("Export Peek Settings", comment: "Export settings panel title")
 
         savePanel.begin { response in
             if response == .OK, let url = savePanel.url {
@@ -108,7 +109,7 @@ struct PreferencesView: View {
         let openPanel = NSOpenPanel()
         openPanel.allowedContentTypes = [.json]
         openPanel.allowsMultipleSelection = false
-        openPanel.title = "Import Peek Settings"
+        openPanel.title = NSLocalizedString("Import Peek Settings", comment: "Import settings panel title")
 
         openPanel.begin { response in
             if response == .OK, let url = openPanel.urls.first {
@@ -294,7 +295,7 @@ struct GeneralTab: View {
                                 Image(systemName: calendarManager.statusBarMode == mode ? "circle.fill" : "circle")
                                     .foregroundColor(calendarManager.statusBarMode == mode ? .accentColor : .secondary)
                                     .font(.system(size: 12))
-                                Text(mode.rawValue)
+                                Text(mode.displayName)
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
@@ -321,7 +322,7 @@ struct GeneralTab: View {
                                 Image(systemName: calendarManager.appearanceMode == mode ? "circle.fill" : "circle")
                                     .foregroundColor(calendarManager.appearanceMode == mode ? .accentColor : .secondary)
                                     .font(.system(size: 12))
-                                Text(mode.rawValue)
+                                Text(mode.displayName)
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
@@ -459,15 +460,15 @@ struct CalendarCheckboxRow: View {
     private func calendarTypeDescription(_ type: EKCalendarType) -> String {
         switch type {
         case .local:
-            return "Local"
+            return NSLocalizedString("Local", comment: "Calendar type: local")
         case .calDAV:
-            return "CalDAV"
+            return NSLocalizedString("CalDAV", comment: "Calendar type: CalDAV")
         case .exchange:
-            return "Exchange"
+            return NSLocalizedString("Exchange", comment: "Calendar type: Exchange")
         case .subscription:
-            return "Subscription"
+            return NSLocalizedString("Subscription", comment: "Calendar type: subscription")
         case .birthday:
-            return "Birthday"
+            return NSLocalizedString("Birthday", comment: "Calendar type: birthday")
         @unknown default:
             return ""
         }

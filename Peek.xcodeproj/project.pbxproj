@@ -11,6 +11,8 @@
 		1A0000030000000000000001 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000040000000000000001 /* CalendarManager.swift */; };
 		1A0000050000000000000001 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000060000000000000001 /* MenuBarView.swift */; };
 		1A0000070000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000080000000000000001 /* Assets.xcassets */; };
+		1A0000340000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000300000000000000001 /* Localizable.strings */; };
+		1A0000350000000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000320000000000000001 /* InfoPlist.strings */; };
 		1A0000110000000000000002 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000120000000000000002 /* PreferencesView.swift */; };
 		356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356A21502F22CFCE0059351D /* NotificationManager.swift */; };
 /* End PBXBuildFile section */
@@ -24,6 +26,8 @@
 		1A0000090000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A0000120000000000000002 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		1A0000290000000000000001 /* Peek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peek.entitlements; sourceTree = "<group>"; };
+		1A0000310000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1A0000330000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		356A21502F22CFCE0059351D /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,6 +99,8 @@
 			isa = PBXGroup;
 			children = (
 				1A0000080000000000000001 /* Assets.xcassets */,
+				1A0000300000000000000001 /* Localizable.strings */,
+				1A0000320000000000000001 /* InfoPlist.strings */,
 				1A0000090000000000000001 /* Info.plist */,
 				1A0000290000000000000001 /* Peek.entitlements */,
 			);
@@ -110,6 +116,25 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXVariantGroup section */
+		1A0000300000000000000001 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1A0000310000000000000001 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		1A0000320000000000000001 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1A0000330000000000000001 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXNativeTarget section */
 		1A0000140000000000000001 /* Peek */ = {
@@ -168,6 +193,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A0000070000000000000001 /* Assets.xcassets in Resources */,
+				1A0000340000000000000001 /* Localizable.strings in Resources */,
+				1A0000350000000000000001 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

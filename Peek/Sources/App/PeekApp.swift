@@ -74,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Set font to match system menu bar font for proper alignment
             button.font = NSFont.menuBarFont(ofSize: 0)
 
-            button.title = "Loading..."
+            button.title = NSLocalizedString("Loading...", comment: "Status bar initial loading title")
             button.action = #selector(togglePopover)
             button.target = self
 
@@ -243,12 +243,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showNoCalendarAccess() {
         if let button = statusItem.button {
-            button.title = "No Calendar Access"
-            button.toolTip = "Grant permission in System Settings → Privacy & Security → Calendars"
+            let title = NSLocalizedString("No Calendar Access", comment: "Status bar title when calendar access denied")
+            let tooltip = NSLocalizedString(
+                "Grant permission in System Settings → Privacy & Security → Calendars",
+                comment: "Tooltip when calendar access denied"
+            )
+            button.title = title
+            button.toolTip = tooltip
             applyMenuBarSpaceConstraintIfNeeded(
                 button: button,
-                title: "No Calendar Access",
-                tooltip: button.toolTip,
+                title: title,
+                tooltip: tooltip,
                 urgency: .normal
             )
         }
@@ -388,7 +393,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         urgency: urgency
                     )
                 } else {
-                    let title = self.calendarManager.statusBarMode == .iconOnly ? "" : "No upcoming events"
+                    let title = self.calendarManager.statusBarMode == .iconOnly
+                        ? ""
+                        : NSLocalizedString("No upcoming events", comment: "Status bar title when no events")
                     button.title = title
                     button.toolTip = nil
                     button.attributedTitle = NSAttributedString(string: button.title)
@@ -541,16 +548,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Icon only mode
         if mode == .iconOnly {
-            return ("", event.title, urgency)
+            let tooltipTitle = event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title")
+            return ("", tooltipTitle, urgency)
         }
 
-        let eventTitle = event.title ?? "Untitled Event"
+        let eventTitle = event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title")
         let maxTitleLength = 20
         let truncatedTitle = eventTitle.count > maxTitleLength
             ? String(eventTitle.prefix(maxTitleLength)) + "..."
             : eventTitle
 
-        let countSuffix = (eventCount > 1 && showCount) ? " (+\(eventCount - 1))" : ""
+        let countSuffix = (eventCount > 1 && showCount)
+            ? String(
+                format: NSLocalizedString(" (+%d)", comment: "Suffix showing additional event count"),
+                eventCount - 1
+            )
+            : ""
 
         var timeString: String
 
@@ -563,16 +576,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 if hours > 24 {
                     let days = hours / 24
-                    timeString = "\(days)d"
+                    let format = NSLocalizedString("%dd", comment: "Abbreviated days")
+                    timeString = String(format: format, days)
                 } else if hours > 0 {
-                    timeString = "\(hours)h \(minutes)m"
+                    let format = NSLocalizedString("%dh %dm", comment: "Abbreviated hours and minutes")
+                    timeString = String(format: format, hours, minutes)
                 } else if minutes > 0 {
-                    timeString = "\(minutes)m"
+                    let format = NSLocalizedString("%dm", comment: "Abbreviated minutes")
+                    timeString = String(format: format, minutes)
                 } else {
-                    timeString = "NOW!"
+                    timeString = NSLocalizedString("NOW!", comment: "Status bar label when event is now")
                 }
             } else {
-                timeString = "NOW!"
+                timeString = NSLocalizedString("NOW!", comment: "Status bar label when event is now")
             }
         } else {
             // Actual time mode
@@ -581,8 +597,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             timeString = formatter.string(from: event.startDate)
         }
 
-        let title = "\(timeString) - \(truncatedTitle)\(countSuffix)"
-        let tooltip = eventTitle.count > maxTitleLength ? "\(timeString) - \(eventTitle)" : nil
+        let titleFormat = NSLocalizedString("%@ - %@%@", comment: "Status bar title format: time - title (+count)")
+        let title = String(format: titleFormat, timeString, truncatedTitle, countSuffix)
+        let tooltip = eventTitle.count > maxTitleLength
+            ? String(format: NSLocalizedString("%@ - %@", comment: "Status bar tooltip format: time - title"), timeString, eventTitle)
+            : nil
 
         return (title, tooltip, urgency)
     }
