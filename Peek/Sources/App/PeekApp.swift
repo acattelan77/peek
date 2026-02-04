@@ -87,9 +87,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
         popover.animates = true
 
-        let menuBarView = MenuBarView(calendarManager: calendarManager, closePopover: { [weak self] in
-            self?.popover.performClose(nil)
-        })
+        let menuBarView = MenuBarView(
+            calendarManager: calendarManager,
+            closePopover: { [weak self] in
+                self?.popover.performClose(nil)
+            },
+            refreshStatusBar: { [weak self] event in
+                self?.applyMenuBar(event: event)
+            }
+        )
 
         popover.contentViewController = NSHostingController(rootView: menuBarView)
 
@@ -343,56 +349,60 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateMenuBar() {
         calendarManager.fetchNextEvent { [weak self] event in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                if let button = self.statusItem.button {
-                    let eventCount = self.calendarManager.upcomingEvents.count
+            self?.applyMenuBar(event: event)
+        }
+    }
 
-                    if let event = event, eventCount > 0 {
-                        var displayCount = eventCount
-                        if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == event.eventIdentifier }) {
-                            displayCount = eventCount - index
-                        }
+    private func applyMenuBar(event: EKEvent?) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if let button = self.statusItem.button {
+                let eventCount = self.calendarManager.upcomingEvents.count
 
-                        let (title, tooltip, urgency) = self.formatStatusBarText(event: event, eventCount: displayCount)
-
-                        // Set title and tooltip first
-                        button.title = title
-                        button.toolTip = tooltip
-
-                        // Apply color based on urgency (AFTER setting title)
-                        self.applyUrgencyStyle(to: button, urgency: urgency)
-
-                        // Handle pulsing animation for imminent meetings
-                        self.updatePulsingState(urgency: urgency)
-
-                        // Adjust timer frequency based on urgency
-                        self.adjustTimerForUrgency(urgency)
-
-                        // Fall back to icon-only if the menu bar is cramped
-                        self.applyMenuBarSpaceConstraintIfNeeded(
-                            button: button,
-                            title: title,
-                            tooltip: tooltip,
-                            urgency: urgency
-                        )
-                    } else {
-                        let title = self.calendarManager.statusBarMode == .iconOnly ? "" : "No upcoming events"
-                        button.title = title
-                        button.toolTip = nil
-                        button.attributedTitle = NSAttributedString(string: button.title)
-                        self.stopPulsing()
-                        self.applyMenuBarSpaceConstraintIfNeeded(
-                            button: button,
-                            title: title,
-                            tooltip: nil,
-                            urgency: .normal
-                        )
+                if let event = event, eventCount > 0 {
+                    var displayCount = eventCount
+                    if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == event.eventIdentifier }) {
+                        displayCount = eventCount - index
                     }
-                }
 
-                self.maybeRescheduleNotifications(force: false)
+                    let (title, tooltip, urgency) = self.formatStatusBarText(event: event, eventCount: displayCount)
+
+                    // Set title and tooltip first
+                    button.title = title
+                    button.toolTip = tooltip
+
+                    // Apply color based on urgency (AFTER setting title)
+                    self.applyUrgencyStyle(to: button, urgency: urgency)
+
+                    // Handle pulsing animation for imminent meetings
+                    self.updatePulsingState(urgency: urgency)
+
+                    // Adjust timer frequency based on urgency
+                    self.adjustTimerForUrgency(urgency)
+
+                    // Fall back to icon-only if the menu bar is cramped
+                    self.applyMenuBarSpaceConstraintIfNeeded(
+                        button: button,
+                        title: title,
+                        tooltip: tooltip,
+                        urgency: urgency
+                    )
+                } else {
+                    let title = self.calendarManager.statusBarMode == .iconOnly ? "" : "No upcoming events"
+                    button.title = title
+                    button.toolTip = nil
+                    button.attributedTitle = NSAttributedString(string: button.title)
+                    self.stopPulsing()
+                    self.applyMenuBarSpaceConstraintIfNeeded(
+                        button: button,
+                        title: title,
+                        tooltip: nil,
+                        urgency: .normal
+                    )
+                }
             }
+
+            self.maybeRescheduleNotifications(force: false)
         }
     }
 

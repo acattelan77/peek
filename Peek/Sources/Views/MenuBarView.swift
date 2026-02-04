@@ -11,7 +11,12 @@ struct MenuBarView: View {
     @State private var showingPreferences = false
     @State private var selectedEventIndex: Int = 0
     @State private var eventMonitor: Any?
+    @State private var isRefreshing = false
+    @State private var showRefreshConfirmation = false
     var closePopover: (() -> Void)?
+    var refreshStatusBar: ((EKEvent?) -> Void)? = nil
+    private let refreshFeedbackMinDuration: TimeInterval = 0.4
+    private let refreshConfirmationDuration: TimeInterval = 0.9
 
     private var preferredColorScheme: ColorScheme? {
         switch calendarManager.appearanceMode {
@@ -22,6 +27,19 @@ struct MenuBarView: View {
         case .dark:
             return .dark
         }
+    }
+
+    private var refreshHelpText: String {
+        if !calendarManager.hasCalendarAccess {
+            return "No calendar access"
+        }
+        if isRefreshing {
+            return "Refreshing..."
+        }
+        if showRefreshConfirmation {
+            return "Refreshed"
+        }
+        return "Refresh"
     }
 
     var body: some View {
@@ -96,14 +114,27 @@ struct MenuBarView: View {
                 Spacer()
 
                 Button(action: {
-                    calendarManager.fetchNextEvent { _ in }
+                    performRefresh()
                 }) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 16))
-                        .foregroundColor(.secondary)
+                    ZStack {
+                        if isRefreshing {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .controlSize(.small)
+                        } else if showRefreshConfirmation {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .font(.system(size: 16))
+                    .frame(width: 16, height: 16)
                 }
                 .buttonStyle(.plain)
-                .help("Refresh")
+                .disabled(isRefreshing || !calendarManager.hasCalendarAccess)
+                .help(refreshHelpText)
 
                 Button(action: {
                     let calendarURL = URL(fileURLWithPath: "/System/Applications/Calendar.app")
@@ -175,6 +206,29 @@ struct MenuBarView: View {
         }
 
         return event
+    }
+
+    private func performRefresh() {
+        guard !isRefreshing else { return }
+
+        isRefreshing = true
+        showRefreshConfirmation = false
+        let startTime = Date()
+
+        calendarManager.fetchNextEvent { event in
+            refreshStatusBar?(event)
+
+            let elapsed = Date().timeIntervalSince(startTime)
+            let delay = max(0, refreshFeedbackMinDuration - elapsed)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                isRefreshing = false
+                showRefreshConfirmation = true
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + refreshConfirmationDuration) {
+                    showRefreshConfirmation = false
+                }
+            }
+        }
     }
 }
 
