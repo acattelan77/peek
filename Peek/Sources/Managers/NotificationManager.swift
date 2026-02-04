@@ -73,7 +73,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 guard notificationTime > now else { continue }
 
                 let content = UNMutableNotificationContent()
-                content.title = event.title ?? "Upcoming Event"
+                content.title = event.title ?? NSLocalizedString("Upcoming Event", comment: "Notification title fallback")
                 content.body = formatEventDetails(event, minutesBefore: timing.rawValue)
                 content.sound = .default
                 content.userInfo = [self.eventIDKey: eventID]
@@ -84,12 +84,15 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
                     let joinAction = UNNotificationAction(
                         identifier: "JOIN_MEETING",
-                        title: "Join Meeting",
+                        title: NSLocalizedString("Join Meeting", comment: "Notification action to join meeting"),
                         options: .foreground
                     )
                     let snoozeAction = UNNotificationAction(
                         identifier: "SNOOZE",
-                        title: "Snooze (5 min)",
+                        title: String(
+                            format: NSLocalizedString("Snooze (%d min)", comment: "Notification action to snooze"),
+                            5
+                        ),
                         options: []
                     )
 
@@ -135,10 +138,12 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         formatter.timeStyle = .short
         let timeString = formatter.string(from: event.startDate)
 
-        var details = "Starts at \(timeString)"
+        let baseFormat = NSLocalizedString("Starts at %@", comment: "Notification body: start time")
+        var details = String(format: baseFormat, timeString)
 
         if let location = event.location, !location.isEmpty {
-            details += " • \(location)"
+            let withLocationFormat = NSLocalizedString("Starts at %@ • %@", comment: "Notification body: start time with location")
+            details = String(format: withLocationFormat, timeString, location)
         }
 
         return details

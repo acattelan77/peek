@@ -7,12 +7,34 @@ enum StatusBarDisplayMode: String, CaseIterable {
     case timeUntil = "Time Until"
     case actualTime = "Actual Time"
     case iconOnly = "Icon Only"
+
+    var displayName: String {
+        switch self {
+        case .timeUntil:
+            return NSLocalizedString("Time Until", comment: "Status bar display mode: time remaining")
+        case .actualTime:
+            return NSLocalizedString("Actual Time", comment: "Status bar display mode: event start time")
+        case .iconOnly:
+            return NSLocalizedString("Icon Only", comment: "Status bar display mode: icon only")
+        }
+    }
 }
 
 enum AppearanceMode: String, CaseIterable {
     case auto = "Auto"
     case light = "Light"
     case dark = "Dark"
+
+    var displayName: String {
+        switch self {
+        case .auto:
+            return NSLocalizedString("Auto", comment: "Appearance mode: automatic")
+        case .light:
+            return NSLocalizedString("Light", comment: "Appearance mode: light")
+        case .dark:
+            return NSLocalizedString("Dark", comment: "Appearance mode: dark")
+        }
+    }
 }
 
 enum HotkeyOption: String, CaseIterable {
@@ -53,15 +75,15 @@ enum NotificationTiming: Int, CaseIterable {
     var displayName: String {
         switch self {
         case .none:
-            return "Disabled"
+            return NSLocalizedString("Disabled", comment: "Notification timing: disabled")
         case .fiveMinutes:
-            return "5 minutes before"
+            return NSLocalizedString("5 minutes before", comment: "Notification timing: 5 minutes before")
         case .tenMinutes:
-            return "10 minutes before"
+            return NSLocalizedString("10 minutes before", comment: "Notification timing: 10 minutes before")
         case .fifteenMinutes:
-            return "15 minutes before"
+            return NSLocalizedString("15 minutes before", comment: "Notification timing: 15 minutes before")
         case .thirtyMinutes:
-            return "30 minutes before"
+            return NSLocalizedString("30 minutes before", comment: "Notification timing: 30 minutes before")
         }
     }
 }

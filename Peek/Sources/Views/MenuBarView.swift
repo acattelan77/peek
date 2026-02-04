@@ -1,5 +1,6 @@
 import SwiftUI
 import EventKit
+import Foundation
 
 struct MenuBarView: View {
     // Key codes
@@ -31,15 +32,15 @@ struct MenuBarView: View {
 
     private var refreshHelpText: String {
         if !calendarManager.hasCalendarAccess {
-            return "No calendar access"
+            return NSLocalizedString("No Calendar Access", comment: "Refresh help text when calendar access is missing")
         }
         if isRefreshing {
-            return "Refreshing..."
+            return NSLocalizedString("Refreshing...", comment: "Refresh help text while refreshing")
         }
         if showRefreshConfirmation {
-            return "Refreshed"
+            return NSLocalizedString("Refreshed", comment: "Refresh help text after refresh completes")
         }
-        return "Refresh"
+        return NSLocalizedString("Refresh", comment: "Help text: Refresh")
     }
 
     var body: some View {
@@ -109,7 +110,7 @@ struct MenuBarView: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("Preferences")
+                .help(NSLocalizedString("Preferences", comment: "Help text: Preferences"))
 
                 Spacer()
 
@@ -145,7 +146,7 @@ struct MenuBarView: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("Open Calendar")
+                .help(NSLocalizedString("Open Calendar", comment: "Help text: Open Calendar"))
 
                 Spacer()
 
@@ -157,7 +158,7 @@ struct MenuBarView: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("Quit Peek")
+                .help(NSLocalizedString("Quit Peek", comment: "Help text: Quit Peek"))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -254,7 +255,7 @@ struct EventDetailView: View {
 
     private static let compactDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
         return formatter
     }()
 
@@ -266,7 +267,7 @@ struct EventDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Event title with badge for first event
             HStack(alignment: .top, spacing: 6) {
-                Text(event.title ?? "Untitled Event")
+                Text(event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback title for untitled events"))
                     .font(.headline)
                     .lineLimit(2)
                     .foregroundColor(isSelected ? .accentColor : .primary)
@@ -304,7 +305,7 @@ struct EventDetailView: View {
                             .cornerRadius(3)
                     }
                 } else {
-                    Text("\(Self.compactDateFormatter.string(from: event.startDate)) • \(Self.timeFormatter.string(from: event.startDate)) - \(Self.timeFormatter.string(from: event.endDate))")
+                    Text(timeRangeText(start: event.startDate, end: event.endDate))
                         .font(.subheadline)
                 }
 
@@ -470,17 +471,27 @@ struct EventDetailView: View {
         return false
     }
 
+    private func timeRangeText(start: Date, end: Date) -> String {
+        let dateText = Self.compactDateFormatter.string(from: start)
+        let startTime = Self.timeFormatter.string(from: start)
+        let endTime = Self.timeFormatter.string(from: end)
+        let format = NSLocalizedString("%@ • %@ - %@", comment: "Event time range: date • start - end")
+        return String(format: format, dateText, startTime, endTime)
+    }
+
     private func timeUntilEvent(_ date: Date) -> String {
         let interval = date.timeIntervalSince(Date())
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
 
         if hours > 0 {
-            return "Starts in \(hours)h \(minutes)m"
+            let format = NSLocalizedString("Starts in %dh %dm", comment: "Time until event with hours and minutes")
+            return String(format: format, hours, minutes)
         } else if minutes > 0 {
-            return "Starts in \(minutes)m"
+            let format = NSLocalizedString("Starts in %dm", comment: "Time until event with minutes")
+            return String(format: format, minutes)
         } else {
-            return "Starting now"
+            return NSLocalizedString("Starting now", comment: "Time until event when starting now")
         }
     }
 
