@@ -79,7 +79,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 content.userInfo = [self.eventIDKey: eventID]
 
                 // Add actions if meeting URL is detected
-                if let meetingURL = extractMeetingURL(from: event) {
+                if let meetingURL = MeetingURLDetector.extract(from: event) {
                     content.userInfo["meetingURL"] = meetingURL.absoluteString
 
                     let joinAction = UNNotificationAction(
@@ -149,39 +149,6 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         return details
     }
 
-    private func extractMeetingURL(from event: EKEvent) -> URL? {
-        let patterns = [
-            "https://[a-zA-Z0-9.-]+\\.zoom\\.us/j/[0-9]+",
-            "https://meet\\.google\\.com/[a-z-]+",
-            "https://teams\\.microsoft\\.com/l/meetup-join/[^\\s]+",
-            "https://[a-zA-Z0-9.-]+\\.webex\\.com/[^\\s]+",
-            "https://[a-zA-Z0-9.-]+\\.gotomeeting\\.com/[^\\s]+",
-            "https://whereby\\.com/[a-z0-9-]+",
-            "https://discord\\.gg/[a-zA-Z0-9]+",
-            "https://discord\\.com/[^\\s]+"
-        ]
-
-        if let notes = event.notes?.prefix(2000) {
-            if let url = findURLInText(String(notes), patterns: patterns) {
-                return url
-            }
-        }
-
-        if let location = event.location?.prefix(500) {
-            if let url = findURLInText(String(location), patterns: patterns) {
-                return url
-            }
-        }
-
-        if let url = event.url {
-            if isURLSafe(url) {
-                return url
-            }
-        }
-
-        return nil
-    }
-
     private func removePendingEventNotifications(excludingSnoozed: Bool, completion: (() -> Void)? = nil) {
         notificationCenter.getPendingNotificationRequests { [weak self] requests in
             guard let self = self else { return }
@@ -212,55 +179,6 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    private func findURLInText(_ text: String, patterns: [String]) -> URL? {
-        for pattern in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
-                continue
-            }
-
-            if let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
-               let range = Range(match.range, in: text) {
-                let urlString = String(text[range])
-                if let url = URL(string: urlString), isURLSafe(url) {
-                    return url
-                }
-            }
-        }
-        return nil
-    }
-
-    private func isURLSafe(_ url: URL) -> Bool {
-        // Only allow https URLs from known meeting providers
-        guard let scheme = url.scheme?.lowercased(), scheme == "https" else {
-            return false
-        }
-
-        guard let host = url.host?.lowercased() else {
-            return false
-        }
-
-        // Allowlist of trusted meeting domains
-        let trustedDomains = [
-            "zoom.us",
-            "meet.google.com",
-            "teams.microsoft.com",
-            "webex.com",
-            "gotomeeting.com",
-            "whereby.com",
-            "discord.gg",
-            "discord.com"
-        ]
-
-        // Check if host matches or is subdomain of trusted domains
-        for domain in trustedDomains {
-            if host == domain || host.hasSuffix(".\(domain)") {
-                return true
-            }
-        }
-
-        return false
-    }
-
     // MARK: - UNUserNotificationCenterDelegate
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
@@ -270,7 +188,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         case "JOIN_MEETING":
             if let urlString = userInfo["meetingURL"] as? String,
                let url = URL(string: urlString),
-               isURLSafe(url) {
+               MeetingURLDetector.isURLSafe(url) {
                 NSWorkspace.shared.open(url)
             }
 

@@ -239,28 +239,8 @@ struct EventDetailView: View {
     var isSelected: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
-    // Cached formatters for performance
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
-    private static let compactDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("MMM d")
-        return formatter
-    }()
-
     private var meetingURL: URL? {
-        extractMeetingURL(from: event)
+        MeetingURLDetector.extract(from: event)
     }
 
     var body: some View {
@@ -294,7 +274,7 @@ struct EventDetailView: View {
 
                 if event.isAllDay {
                     HStack(spacing: 6) {
-                        Text("\(Self.compactDateFormatter.string(from: event.startDate))")
+                        Text(EventTimeFormatter.compactDateText(for: event.startDate))
                             .font(.subheadline)
                         Text("ALL DAY")
                             .font(.system(size: 10, weight: .semibold))
@@ -305,7 +285,7 @@ struct EventDetailView: View {
                             .cornerRadius(3)
                     }
                 } else {
-                    Text(timeRangeText(start: event.startDate, end: event.endDate))
+                    Text(EventTimeFormatter.timeRangeText(start: event.startDate, end: event.endDate))
                         .font(.subheadline)
                 }
 
@@ -313,7 +293,7 @@ struct EventDetailView: View {
 
                 // Time until event - inline for first event (not for all-day events)
                 if isFirst && event.startDate > Date() && !event.isAllDay {
-                    Text(timeUntilEvent(event.startDate))
+                    Text(EventTimeFormatter.timeUntilText(target: event.startDate))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -346,7 +326,7 @@ struct EventDetailView: View {
             // Meeting join button (if URL detected)
             if let meetingURL = meetingURL {
                 Button(action: {
-                    if isURLSafe(meetingURL) {
+                    if MeetingURLDetector.isURLSafe(meetingURL) {
                         NSWorkspace.shared.open(meetingURL)
                     }
                 }) {
@@ -386,115 +366,6 @@ struct EventDetailView: View {
         .cornerRadius(6)
     }
 
-    private func extractMeetingURL(from event: EKEvent) -> URL? {
-        // Simplified, safer URL patterns (reduced ReDoS risk)
-        let patterns = [
-            "https://[a-zA-Z0-9.-]+\\.zoom\\.us/j/[0-9]+",
-            "https://meet\\.google\\.com/[a-z-]+",
-            "https://teams\\.microsoft\\.com/l/meetup-join/[^\\s]+",
-            "https://[a-zA-Z0-9.-]+\\.webex\\.com/[^\\s]+",
-            "https://[a-zA-Z0-9.-]+\\.gotomeeting\\.com/[^\\s]+",
-            "https://whereby\\.com/[a-z0-9-]+",
-            "https://discord\\.gg/[a-zA-Z0-9]+",
-            "https://discord\\.com/[^\\s]+"
-        ]
-
-        // Check event notes (limit length to prevent ReDoS)
-        if let notes = event.notes?.prefix(2000) {
-            if let url = findURLInText(String(notes), patterns: patterns) {
-                return url
-            }
-        }
-
-        // Check event location (limit length)
-        if let location = event.location?.prefix(500) {
-            if let url = findURLInText(String(location), patterns: patterns) {
-                return url
-            }
-        }
-
-        // Check event URL property
-        if let url = event.url, isURLSafe(url) {
-            return url
-        }
-
-        return nil
-    }
-
-    private func findURLInText(_ text: String, patterns: [String]) -> URL? {
-        for pattern in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
-                continue
-            }
-
-            // Use firstMatch with limited range for safety
-            if let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
-               let range = Range(match.range, in: text) {
-                let urlString = String(text[range])
-                if let url = URL(string: urlString), isURLSafe(url) {
-                    return url
-                }
-            }
-        }
-        return nil
-    }
-
-    private func isURLSafe(_ url: URL) -> Bool {
-        // Only allow https URLs from known meeting providers
-        guard let scheme = url.scheme?.lowercased(), scheme == "https" else {
-            return false
-        }
-
-        guard let host = url.host?.lowercased() else {
-            return false
-        }
-
-        // Allowlist of trusted meeting domains
-        let trustedDomains = [
-            "zoom.us",
-            "meet.google.com",
-            "teams.microsoft.com",
-            "webex.com",
-            "gotomeeting.com",
-            "whereby.com",
-            "discord.gg",
-            "discord.com"
-        ]
-
-        // Check if host matches or is subdomain of trusted domains
-        for domain in trustedDomains {
-            if host == domain || host.hasSuffix(".\(domain)") {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    private func timeRangeText(start: Date, end: Date) -> String {
-        let dateText = Self.compactDateFormatter.string(from: start)
-        let startTime = Self.timeFormatter.string(from: start)
-        let endTime = Self.timeFormatter.string(from: end)
-        let format = NSLocalizedString("%@ • %@ - %@", comment: "Event time range: date • start - end")
-        return String(format: format, dateText, startTime, endTime)
-    }
-
-    private func timeUntilEvent(_ date: Date) -> String {
-        let interval = date.timeIntervalSince(Date())
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-
-        if hours > 0 {
-            let format = NSLocalizedString("Starts in %dh %dm", comment: "Time until event with hours and minutes")
-            return String(format: format, hours, minutes)
-        } else if minutes > 0 {
-            let format = NSLocalizedString("Starts in %dm", comment: "Time until event with minutes")
-            return String(format: format, minutes)
-        } else {
-            return NSLocalizedString("Starting now", comment: "Time until event when starting now")
-        }
-    }
-
 }
 
 // MARK: - Event Context Menu
@@ -502,7 +373,7 @@ struct EventContextMenu: View {
     let event: EKEvent
 
     private var meetingURL: URL? {
-        extractMeetingURL(from: event)
+        MeetingURLDetector.extract(from: event)
     }
 
     var body: some View {
@@ -533,80 +404,4 @@ struct EventContextMenu: View {
         }
     }
 
-    private func extractMeetingURL(from event: EKEvent) -> URL? {
-        let patterns = [
-            "https://[a-zA-Z0-9.-]+\\.zoom\\.us/j/[0-9]+",
-            "https://meet\\.google\\.com/[a-z-]+",
-            "https://teams\\.microsoft\\.com/l/meetup-join/[^\\s]+",
-            "https://[a-zA-Z0-9.-]+\\.webex\\.com/[^\\s]+",
-            "https://[a-zA-Z0-9.-]+\\.gotomeeting\\.com/[^\\s]+",
-            "https://whereby\\.com/[a-z0-9-]+",
-            "https://discord\\.gg/[a-zA-Z0-9]+",
-            "https://discord\\.com/[^\\s]+"
-        ]
-
-        if let notes = event.notes?.prefix(2000) {
-            if let url = findURLInText(String(notes), patterns: patterns) {
-                return url
-            }
-        }
-
-        if let location = event.location?.prefix(500) {
-            if let url = findURLInText(String(location), patterns: patterns) {
-                return url
-            }
-        }
-
-        if let url = event.url, isURLSafe(url) {
-            return url
-        }
-
-        return nil
-    }
-
-    private func findURLInText(_ text: String, patterns: [String]) -> URL? {
-        for pattern in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
-                continue
-            }
-
-            if let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
-               let range = Range(match.range, in: text) {
-                let urlString = String(text[range])
-                if let url = URL(string: urlString), isURLSafe(url) {
-                    return url
-                }
-            }
-        }
-        return nil
-    }
-
-    private func isURLSafe(_ url: URL) -> Bool {
-        guard let scheme = url.scheme?.lowercased(), scheme == "https" else {
-            return false
-        }
-
-        guard let host = url.host?.lowercased() else {
-            return false
-        }
-
-        let trustedDomains = [
-            "zoom.us",
-            "meet.google.com",
-            "teams.microsoft.com",
-            "webex.com",
-            "gotomeeting.com",
-            "whereby.com",
-            "discord.gg",
-            "discord.com"
-        ]
-
-        for domain in trustedDomains {
-            if host == domain || host.hasSuffix(".\(domain)") {
-                return true
-            }
-        }
-
-        return false
-    }
 }

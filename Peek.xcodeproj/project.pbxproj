@@ -14,8 +14,31 @@
 		1A0000340000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000300000000000000001 /* Localizable.strings */; };
 		1A0000350000000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000320000000000000001 /* InfoPlist.strings */; };
 		1A0000110000000000000002 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000120000000000000002 /* PreferencesView.swift */; };
+		1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000490000000000000001 /* MeetingURLDetectorTests.swift */; };
+		1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00004A0000000000000001 /* EventTimeFormatterTests.swift */; };
+		1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00004B0000000000000001 /* MeetingUrgencyTests.swift */; };
+		1A0000610000000000000001 /* MeetingURLDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000600000000000000001 /* MeetingURLDetector.swift */; };
+		1A0000630000000000000001 /* EventTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000620000000000000001 /* EventTimeFormatter.swift */; };
+		1A0000690000000000000001 /* MeetingUrgency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000680000000000000001 /* MeetingUrgency.swift */; };
+		1A00006A0000000000000001 /* MeetingUrgency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000680000000000000001 /* MeetingUrgency.swift */; };
+		1A00006B0000000000000001 /* MeetingURLDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000600000000000000001 /* MeetingURLDetector.swift */; };
+		1A00006C0000000000000001 /* EventTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000620000000000000001 /* EventTimeFormatter.swift */; };
+		1A0000700000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
+		1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006E0000000000000001 /* EventCandidate+EventKit.swift */; };
+		1A0000720000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
+		1A0000730000000000000001 /* EventPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006F0000000000000001 /* EventPipelineTests.swift */; };
 		356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356A21502F22CFCE0059351D /* NotificationManager.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1A0000500000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0000180000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A0000140000000000000001 /* Peek */;
+			remoteInfo = Peek;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1A0000000000000000000001 /* Peek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Peek.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -25,6 +48,16 @@
 		1A0000080000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A0000090000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A0000120000000000000002 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		1A0000470000000000000001 /* PeekTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PeekTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0000490000000000000001 /* MeetingURLDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingURLDetectorTests.swift; sourceTree = "<group>"; };
+		1A00004A0000000000000001 /* EventTimeFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTimeFormatterTests.swift; sourceTree = "<group>"; };
+		1A00004B0000000000000001 /* MeetingUrgencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingUrgencyTests.swift; sourceTree = "<group>"; };
+		1A0000600000000000000001 /* MeetingURLDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingURLDetector.swift; sourceTree = "<group>"; };
+		1A0000620000000000000001 /* EventTimeFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTimeFormatter.swift; sourceTree = "<group>"; };
+		1A0000680000000000000001 /* MeetingUrgency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingUrgency.swift; sourceTree = "<group>"; };
+		1A00006D0000000000000001 /* EventPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipeline.swift; sourceTree = "<group>"; };
+		1A00006E0000000000000001 /* EventCandidate+EventKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventCandidate+EventKit.swift"; sourceTree = "<group>"; };
+		1A00006F0000000000000001 /* EventPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipelineTests.swift; sourceTree = "<group>"; };
 		1A0000290000000000000001 /* Peek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peek.entitlements; sourceTree = "<group>"; };
 		1A0000310000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1A0000330000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -39,6 +72,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A0000450000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -46,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				1A0000120000000000000001 /* Peek */,
+				1A0000480000000000000001 /* PeekTests */,
 				1A0000130000000000000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +105,7 @@
 			children = (
 				1A0000250000000000000001 /* App */,
 				1A0000260000000000000001 /* Managers */,
+				1A0000640000000000000001 /* Utilities */,
 				1A0000270000000000000001 /* Views */,
 			);
 			path = Sources;
@@ -95,6 +137,29 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		1A0000480000000000000001 /* PeekTests */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000490000000000000001 /* MeetingURLDetectorTests.swift */,
+				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
+				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
+				1A00006F0000000000000001 /* EventPipelineTests.swift */,
+			);
+			path = PeekTests;
+			sourceTree = "<group>";
+		};
+		1A0000640000000000000001 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				1A00006D0000000000000001 /* EventPipeline.swift */,
+				1A00006E0000000000000001 /* EventCandidate+EventKit.swift */,
+				1A0000600000000000000001 /* MeetingURLDetector.swift */,
+				1A0000620000000000000001 /* EventTimeFormatter.swift */,
+				1A0000680000000000000001 /* MeetingUrgency.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 		1A0000280000000000000001 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -111,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				1A0000000000000000000001 /* Peek.app */,
+				1A0000470000000000000001 /* PeekTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -154,6 +220,24 @@
 			productReference = 1A0000000000000000000001 /* Peek.app */;
 			productType = "com.apple.product-type.application";
 		};
+		1A0000400000000000000001 /* PeekTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A0000430000000000000001 /* Build configuration list for PBXNativeTarget "PeekTests" */;
+			buildPhases = (
+				1A0000440000000000000001 /* Sources */,
+				1A0000450000000000000001 /* Frameworks */,
+				1A0000460000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1A00004F0000000000000001 /* PBXTargetDependency */,
+			);
+			name = PeekTests;
+			productName = PeekTests;
+			productReference = 1A0000470000000000000001 /* PeekTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -166,6 +250,10 @@
 				TargetAttributes = {
 					1A0000140000000000000001 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					1A0000400000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = 1A0000140000000000000001;
 					};
 				};
 			};
@@ -183,6 +271,7 @@
 			projectRoot = "";
 			targets = (
 				1A0000140000000000000001 /* Peek */,
+				1A0000400000000000000001 /* PeekTests */,
 			);
 		};
 /* End PBXProject section */
@@ -198,7 +287,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A0000460000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1A00004F0000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A0000140000000000000001 /* Peek */;
+			targetProxy = 1A0000500000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1A0000160000000000000001 /* Sources */ = {
@@ -208,8 +312,28 @@
 				1A0000010000000000000001 /* PeekApp.swift in Sources */,
 				1A0000030000000000000001 /* CalendarManager.swift in Sources */,
 				356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */,
+				1A0000700000000000000001 /* EventPipeline.swift in Sources */,
+				1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */,
+				1A0000610000000000000001 /* MeetingURLDetector.swift in Sources */,
+				1A0000630000000000000001 /* EventTimeFormatter.swift in Sources */,
+				1A0000690000000000000001 /* MeetingUrgency.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
 				1A0000110000000000000002 /* PreferencesView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0000440000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */,
+				1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */,
+				1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */,
+				1A0000730000000000000001 /* EventPipelineTests.swift in Sources */,
+				1A0000720000000000000001 /* EventPipeline.swift in Sources */,
+				1A00006B0000000000000001 /* MeetingURLDetector.swift in Sources */,
+				1A00006C0000000000000001 /* EventTimeFormatter.swift in Sources */,
+				1A00006A0000000000000001 /* MeetingUrgency.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,6 +524,51 @@
 			};
 			name = Release;
 		};
+		1A0000410000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleName = "$(PRODUCT_NAME)";
+				INFOPLIST_KEY_NSPrincipalClass = "NSApplication";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peek.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1A0000420000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleName = "$(PRODUCT_NAME)";
+				INFOPLIST_KEY_NSPrincipalClass = "NSApplication";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peek.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -408,6 +577,15 @@
 			buildConfigurations = (
 				1A0000220000000000000001 /* Debug */,
 				1A0000230000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A0000430000000000000001 /* Build configuration list for PBXNativeTarget "PeekTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0000410000000000000001 /* Debug */,
+				1A0000420000000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
