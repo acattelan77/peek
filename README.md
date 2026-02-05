@@ -88,11 +88,7 @@ On first launch (before selecting calendars), Peek shows events from all availab
 
 ## Docs
 
-- `docs/ROADMAP.md`
-- `docs/SECURITY.md`
-- `docs/IMPLEMENTATION.md`
-- `docs/CODE_ANALYSIS.md`
-- `docs/FIXES_APPLIED.md`
+- `docs/PROJECT_STATUS.md`
 
 ## Troubleshooting
 
