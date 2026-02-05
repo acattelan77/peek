@@ -427,59 +427,24 @@ class CalendarManager: ObservableObject {
             // Fetch events
             let events = self.eventStore.events(matching: predicate)
 
-            // Find upcoming events (events that haven't ended yet)
-            let upcoming = events.filter { event in
-                // Filter out events that have ended
-                guard event.endDate > now else { return false }
-
-                // Filter all-day events if enabled
-                if hideAllDayEvents && event.isAllDay {
-                    return false
-                }
-
-                // Filter declined events if enabled
-                if hideDeclinedEvents {
-                    // Check if current user has declined this event
-                    if let attendees = event.attendees {
-                        for attendee in attendees where attendee.isCurrentUser {
-                            if attendee.participantStatus == .declined {
-                                return false
-                            }
-                        }
-                    }
-                }
-
-                // Filter by keywords if specified
-                if !filterKeywords.isEmpty {
-                    let keywords = filterKeywords.lowercased().components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                    let titleLower = (event.title ?? "").lowercased()
-                    let notesLower = (event.notes ?? "").lowercased()
-
-                    // Event must NOT contain any of the keywords to be shown
-                    for keyword in keywords where !keyword.isEmpty {
-                        if titleLower.contains(keyword) || notesLower.contains(keyword) {
-                            return false
-                        }
-                    }
-                }
-
-                return true
-            }.sorted { $0.startDate < $1.startDate }
-
-            let lateGraceInterval = TimeInterval(Self.kLateGraceMinutes * 60)
-            let ongoingEvents = upcoming.filter { $0.startDate <= now && $0.endDate > now }
-            let lateEvent = ongoingEvents
-                .sorted { $0.startDate > $1.startDate }
-                .first { now.timeIntervalSince($0.startDate) <= lateGraceInterval }
-            let futureEvents = upcoming.filter { $0.startDate > now }
-            let nextEvent = lateEvent ?? futureEvents.first
-            let limitedEvents = Array(upcoming.prefix(maxEventsToShow))
+            let settings = EventFilterSettings(
+                hideAllDayEvents: hideAllDayEvents,
+                hideDeclinedEvents: hideDeclinedEvents,
+                filterKeywords: filterKeywords
+            )
+            let result = EventPipeline.filterAndSelect(
+                events: events,
+                now: now,
+                settings: settings,
+                maxEvents: maxEventsToShow,
+                lateGraceMinutes: Self.kLateGraceMinutes
+            )
 
             DispatchQueue.main.async {
-                self.nextEvent = nextEvent
-                self.upcomingEvents = limitedEvents
-                self.allUpcomingEvents = upcoming
-                completion(nextEvent)
+                self.nextEvent = result.nextEvent
+                self.upcomingEvents = result.limitedEvents
+                self.allUpcomingEvents = result.upcomingEvents
+                completion(result.nextEvent)
             }
         }
     }
