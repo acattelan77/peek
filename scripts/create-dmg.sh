@@ -4,6 +4,8 @@
 APP_NAME="Peek"
 DMG_NAME="Peek-Installer"
 BUILD_DIR="build/Release"
+OUTPUT_DIR="artifacts"
+DMG_PATH="${OUTPUT_DIR}/${DMG_NAME}.dmg"
 
 # Build the app
 echo "Building ${APP_NAME}..."
@@ -21,9 +23,10 @@ ln -s /Applications "${TMP_DMG_DIR}/Applications"
 
 # Create the DMG
 echo "Creating DMG..."
-hdiutil create -volname "${APP_NAME}" -srcfolder "${TMP_DMG_DIR}" -ov -format UDZO "${DMG_NAME}.dmg"
+mkdir -p "${OUTPUT_DIR}"
+hdiutil create -volname "${APP_NAME}" -srcfolder "${TMP_DMG_DIR}" -ov -format UDZO "${DMG_PATH}"
 
 # Clean up
 rm -rf "${TMP_DMG_DIR}"
 
-echo "DMG created: ${DMG_NAME}.dmg"
+echo "DMG created: ${DMG_PATH}"

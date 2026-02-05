@@ -1,14 +1,18 @@
 # Peek
 
-Peek is a macOS menu bar app that shows your upcoming calendar events from the macOS Calendar app.
+Peek is a lightweight macOS menu bar calendar companion. It shows your upcoming events from the macOS Calendar app, highlights urgency as meeting time approaches, and provides one-click join links for common meeting providers.
+
+## About This Repo
+
+This repository contains the macOS app source, resources, tests, build scripts, and documentation needed to build and distribute Peek. Local build outputs are written to `artifacts/` and ignored.
 
 ## Features
 
 - Quick event overview from the menu bar
-- Visual meeting status with color and pulsing alerts
-  - Orange: 2 to 10 minutes away
-  - Red + pulsing: less than 2 minutes away
-  - Click the menu bar icon to toggle colors on or off
+- Visual meeting urgency cues
+- Orange when 2 to 10 minutes away
+- Red with pulsing when less than 2 minutes away
+- Toggle urgency colors by clicking the menu bar icon
 - Join buttons for common meeting links (Zoom, Google Meet, Teams, Webex, GoToMeeting, Whereby, Discord)
 - Event details: title, date, time, location, calendar, time until start
 - Calendar selection with saved preferences
@@ -33,13 +37,21 @@ Peek is a macOS menu bar app that shows your upcoming calendar events from the m
 
 These scripts live in `scripts/`:
 
-- Build unsigned app:
-  - `./scripts/build-unsigned.sh`
-- Build and create DMG:
-  - `./scripts/create-dmg.sh`
-  - `./scripts/create-simple-dmg.sh`
+- Build unsigned app: `./scripts/build-unsigned.sh`
+- Build and create DMG: `./scripts/create-dmg.sh`
+- Build and create simple DMG: `./scripts/create-simple-dmg.sh`
 
-Note: some scripts may require sudo and create DMGs in the repo root.
+Note: some scripts may require sudo. DMGs are created in `artifacts/`.
+
+### Option 3: CLI
+
+```bash
+# Build
+xcodebuild -scheme "Peek" -configuration Debug build
+
+# Test
+xcodebuild -scheme "Peek" -destination "platform=macOS" test
+```
 
 ## Usage
 
@@ -67,11 +79,12 @@ On first launch (before selecting calendars), Peek shows events from all availab
 
 ## Project Structure
 
-- `Peek/Sources`: Swift source code
-- `Peek/Resources`: assets, Info.plist, entitlements
-- `docs`: design and planning docs
-- `scripts`: build and DMG helpers
-- `artifacts`: generated DMGs and build outputs
+- `Peek/`: app source and resources
+- `Peek.xcodeproj`: Xcode project
+- `PeekTests/`: unit tests
+- `docs/`: design and planning docs
+- `scripts/`: build and DMG helpers
+- `artifacts/`: local build outputs (ignored)
 
 ## Docs
 
