@@ -10,7 +10,7 @@ This document replaces the previous ROADMAP, IMPLEMENTATION, and SECURITY docs. 
 
 - App runs as a menu bar status item with a popover UI for event details.
 - Calendar access is via EventKit, with user-selectable calendars and persisted preferences.
-- Build and packaging scripts live in `scripts/`; local outputs go to `artifacts/` and are ignored.
+- Build and packaging scripts live in `scripts/`; local outputs go to `build/` and `artifacts/` and are ignored.
 
 ## Done
 
@@ -27,6 +27,7 @@ This document replaces the previous ROADMAP, IMPLEMENTATION, and SECURITY docs. 
 - Preferences for appearance, hotkey, status bar mode, and notification behavior.
 - Export and import of settings (JSON) with version validation.
 - Basic unit tests under `PeekTests/`.
+- GitHub Actions CI for unsigned macOS build and unit tests.
 
 ## Removed or Descoped
 
@@ -46,7 +47,7 @@ This document replaces the previous ROADMAP, IMPLEMENTATION, and SECURITY docs. 
 - Analytics and reporting.
 - External integrations (email, contacts, Slack/Teams, task managers).
 - Accessibility improvements (VoiceOver, keyboard-only navigation, adjustable font sizes).
-- Expanded test coverage and CI automation.
+- Expanded test coverage.
 
 ## Security Posture
 
