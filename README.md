@@ -4,7 +4,7 @@ Peek is a lightweight macOS menu bar calendar companion. It shows your upcoming 
 
 ## About This Repo
 
-This repository contains the macOS app source, resources, tests, build scripts, and documentation needed to build and distribute Peek. Local build outputs are written to `artifacts/` and ignored.
+This repository contains the macOS app source, resources, tests, build scripts, and documentation needed to build and distribute Peek. Local build outputs are written to `build/` and `artifacts/` and are ignored.
 
 ## Features
 
@@ -41,16 +41,18 @@ These scripts live in `scripts/`:
 - Build and create DMG: `./scripts/create-dmg.sh`
 - Build and create simple DMG: `./scripts/create-simple-dmg.sh`
 
-Note: some scripts may require sudo. DMGs are created in `artifacts/`.
+Optional install: `./scripts/build-unsigned.sh --install` (requires sudo to copy into `/Applications`). DMGs are created in `artifacts/`.
 
 ### Option 3: CLI
 
 ```bash
 # Build
-xcodebuild -scheme "Peek" -configuration Debug build
+xcodebuild -scheme "Peek" -configuration Debug -derivedDataPath ./build \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
 
 # Test
-xcodebuild -scheme "Peek" -destination "platform=macOS" test
+xcodebuild -scheme "Peek" -destination "platform=macOS" -derivedDataPath ./build \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" test
 ```
 
 ## Usage
@@ -84,6 +86,7 @@ On first launch (before selecting calendars), Peek shows events from all availab
 - `PeekTests/`: unit tests
 - `docs/`: design and planning docs
 - `scripts/`: build and DMG helpers
+- `build/`: local Xcode derived data/output (ignored)
 - `artifacts/`: local build outputs (ignored)
 
 ## Docs
@@ -114,4 +117,4 @@ Issues and pull requests are welcome. If you plan to make larger changes, open a
 
 ## Security
 
-See `docs/SECURITY.md` for reporting guidance.
+See the **Security Posture** section in `docs/PROJECT_STATUS.md`.
