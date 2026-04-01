@@ -27,6 +27,8 @@
 		1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006E0000000000000001 /* EventCandidate+EventKit.swift */; };
 		1A0000720000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
 		1A0000730000000000000001 /* EventPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006F0000000000000001 /* EventPipelineTests.swift */; };
+		1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
+		1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356A21502F22CFCE0059351D /* NotificationManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +60,7 @@
 		1A00006D0000000000000001 /* EventPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipeline.swift; sourceTree = "<group>"; };
 		1A00006E0000000000000001 /* EventCandidate+EventKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventCandidate+EventKit.swift"; sourceTree = "<group>"; };
 		1A00006F0000000000000001 /* EventPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipelineTests.swift; sourceTree = "<group>"; };
+		1A0000760000000000000001 /* AppBehaviorSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBehaviorSupport.swift; sourceTree = "<group>"; };
 		1A0000290000000000000001 /* Peek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peek.entitlements; sourceTree = "<group>"; };
 		1A0000310000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1A0000330000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -151,6 +154,7 @@
 		1A0000640000000000000001 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
 				1A00006D0000000000000001 /* EventPipeline.swift */,
 				1A00006E0000000000000001 /* EventCandidate+EventKit.swift */,
 				1A0000600000000000000001 /* MeetingURLDetector.swift */,
@@ -312,6 +316,7 @@
 				1A0000010000000000000001 /* PeekApp.swift in Sources */,
 				1A0000030000000000000001 /* CalendarManager.swift in Sources */,
 				356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */,
+				1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */,
 				1A0000700000000000000001 /* EventPipeline.swift in Sources */,
 				1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */,
 				1A0000610000000000000001 /* MeetingURLDetector.swift in Sources */,
@@ -330,6 +335,7 @@
 				1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */,
 				1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */,
 				1A0000730000000000000001 /* EventPipelineTests.swift in Sources */,
+				1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */,
 				1A0000720000000000000001 /* EventPipeline.swift in Sources */,
 				1A00006B0000000000000001 /* MeetingURLDetector.swift in Sources */,
 				1A00006C0000000000000001 /* EventTimeFormatter.swift in Sources */,
@@ -469,7 +475,7 @@
 				CODE_SIGN_ENTITLEMENTS = Peek/Resources/Peek.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
 				ENABLE_APP_SANDBOX = YES;
@@ -485,7 +491,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peek.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -500,7 +506,7 @@
 				CODE_SIGN_ENTITLEMENTS = Peek/Resources/Peek.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
 				ENABLE_APP_SANDBOX = YES;
@@ -516,7 +522,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peek.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

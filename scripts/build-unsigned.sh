@@ -7,16 +7,14 @@ APP_NAME="Peek"
 BUILD_DIR="build/Build/Products/Release"
 APP_PATH="${BUILD_DIR}/${APP_NAME}.app"
 
-echo "Building ${APP_NAME} (unsigned)..."
+echo "Building ${APP_NAME} (local ad-hoc signed)..."
 
-# Build without code signing
+# Use local ad-hoc signing so sandbox entitlements still work outside Xcode.
 xcodebuild \
   -scheme "${APP_NAME}" \
   -configuration Release \
   -derivedDataPath ./build \
-  CODE_SIGN_IDENTITY="" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGN_IDENTITY=- \
   clean build
 
 if [ ! -d "${APP_PATH}" ]; then

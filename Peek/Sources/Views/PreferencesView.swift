@@ -1,6 +1,5 @@
 import SwiftUI
 import EventKit
-import ServiceManagement
 import Foundation
 
 struct PreferencesView: View {
@@ -8,10 +7,15 @@ struct PreferencesView: View {
     @Environment(\.dismiss) var dismiss
     @State private var launchAtLogin: Bool
     @State private var selectedTab = 0
+    private let launchAtLoginController: any LaunchAtLoginControlling
 
-    init(calendarManager: CalendarManager) {
+    init(
+        calendarManager: CalendarManager,
+        launchAtLoginController: any LaunchAtLoginControlling = SystemLaunchAtLoginController()
+    ) {
         self.calendarManager = calendarManager
-        _launchAtLogin = State(initialValue: UserDefaults.standard.bool(forKey: "launchAtLogin"))
+        self.launchAtLoginController = launchAtLoginController
+        _launchAtLogin = State(initialValue: launchAtLoginController.currentValue)
     }
 
     private var availableCalendars: [EKCalendar] {
@@ -53,7 +57,11 @@ struct PreferencesView: View {
                 } else if selectedTab == 1 {
                     FiltersTab(calendarManager: calendarManager)
                 } else {
-                    GeneralTab(calendarManager: calendarManager, launchAtLogin: $launchAtLogin)
+                    GeneralTab(
+                        calendarManager: calendarManager,
+                        launchAtLogin: $launchAtLogin,
+                        launchAtLoginController: launchAtLoginController
+                    )
                 }
             }
 
@@ -228,26 +236,35 @@ struct FiltersTab: View {
 struct GeneralTab: View {
     @ObservedObject var calendarManager: CalendarManager
     @Binding var launchAtLogin: Bool
+    let launchAtLoginController: any LaunchAtLoginControlling
+    @State private var launchAtLoginErrorMessage: String?
+
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { launchAtLogin },
+            set: { newValue in
+                let result = LaunchAtLoginCoordinator.apply(
+                    requestedValue: newValue,
+                    controller: launchAtLoginController
+                )
+                launchAtLogin = result.effectiveValue
+                UserDefaults.standard.set(result.effectiveValue, forKey: "launchAtLogin")
+                launchAtLoginErrorMessage = result.errorMessage
+            }
+        )
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Launch at Login
-                Toggle("Launch at Login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { newValue in
-                        UserDefaults.standard.set(newValue, forKey: "launchAtLogin")
+                Toggle("Launch at Login", isOn: launchAtLoginBinding)
 
-                        if #available(macOS 13.0, *) {
-                            if newValue {
-                                try? SMAppService.mainApp.register()
-                            } else {
-                                try? SMAppService.mainApp.unregister()
-                            }
-                        } else {
-                            let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-                            SMLoginItemSetEnabled(bundleIdentifier as CFString, newValue)
-                        }
-                    }
+                if let launchAtLoginErrorMessage {
+                    Text(launchAtLoginErrorMessage)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
 
                 Divider()
 
