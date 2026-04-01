@@ -279,3 +279,121 @@ final class EventPipelineTests: XCTestCase {
         XCTAssertEqual(result.limitedEvents, [first, second])
     }
 }
+
+final class AppDelegateLogicTests: XCTestCase {
+    func testUpdateIntervalMatchesUrgencyLevel() {
+        XCTAssertEqual(StatusBarRefreshPolicy.interval(for: .critical), 5)
+        XCTAssertEqual(StatusBarRefreshPolicy.interval(for: .urgent), 5)
+        XCTAssertEqual(StatusBarRefreshPolicy.interval(for: .normal), 60)
+    }
+}
+
+final class NotificationManagerSignatureTests: XCTestCase {
+    func testNotificationContentSignatureChangesWhenTitleChanges() {
+        let startDate = Date(timeIntervalSince1970: 1_000)
+        let original = NotificationContentSignature.make(
+            eventID: "event-1",
+            startDate: startDate,
+            title: "Team Sync",
+            location: "Room A",
+            meetingURLString: nil
+        )
+        let updated = NotificationContentSignature.make(
+            eventID: "event-1",
+            startDate: startDate,
+            title: "Executive Sync",
+            location: "Room A",
+            meetingURLString: nil
+        )
+
+        XCTAssertNotEqual(original, updated)
+    }
+
+    func testNotificationContentSignatureChangesWhenLocationOrMeetingLinkChanges() {
+        let startDate = Date(timeIntervalSince1970: 1_000)
+        let original = NotificationContentSignature.make(
+            eventID: "event-1",
+            startDate: startDate,
+            title: "Team Sync",
+            location: "Room A",
+            meetingURLString: "https://meet.google.com/abc-defg-hij"
+        )
+        let relocated = NotificationContentSignature.make(
+            eventID: "event-1",
+            startDate: startDate,
+            title: "Team Sync",
+            location: "Room B",
+            meetingURLString: "https://meet.google.com/abc-defg-hij"
+        )
+        let relinked = NotificationContentSignature.make(
+            eventID: "event-1",
+            startDate: startDate,
+            title: "Team Sync",
+            location: "Room A",
+            meetingURLString: "https://acme.zoom.us/j/123456789"
+        )
+
+        XCTAssertNotEqual(original, relocated)
+        XCTAssertNotEqual(original, relinked)
+    }
+}
+
+final class LaunchAtLoginCoordinatorTests: XCTestCase {
+    private final class TestLaunchAtLoginController: LaunchAtLoginControlling {
+        var currentValue: Bool
+        var errorToThrow: Error?
+        var mutatesCurrentValue = true
+
+        init(currentValue: Bool) {
+            self.currentValue = currentValue
+        }
+
+        func setEnabled(_ enabled: Bool) throws {
+            if let errorToThrow {
+                throw errorToThrow
+            }
+
+            if mutatesCurrentValue {
+                currentValue = enabled
+            }
+        }
+    }
+
+    private struct TestError: LocalizedError {
+        let message: String
+
+        var errorDescription: String? {
+            message
+        }
+    }
+
+    func testLaunchAtLoginCoordinatorAppliesSuccessfulChanges() {
+        let controller = TestLaunchAtLoginController(currentValue: false)
+
+        let result = LaunchAtLoginCoordinator.apply(requestedValue: true, controller: controller)
+
+        XCTAssertEqual(result, LaunchAtLoginUpdateResult(effectiveValue: true, errorMessage: nil))
+    }
+
+    func testLaunchAtLoginCoordinatorRollsBackWhenControllerThrows() {
+        let controller = TestLaunchAtLoginController(currentValue: false)
+        controller.errorToThrow = TestError(message: "Registration failed")
+
+        let result = LaunchAtLoginCoordinator.apply(requestedValue: true, controller: controller)
+
+        XCTAssertEqual(
+            result,
+            LaunchAtLoginUpdateResult(effectiveValue: false, errorMessage: "Registration failed")
+        )
+    }
+
+    func testLaunchAtLoginCoordinatorReportsMismatchWhenSystemStateDoesNotChange() {
+        let controller = TestLaunchAtLoginController(currentValue: false)
+        controller.mutatesCurrentValue = false
+
+        let result = LaunchAtLoginCoordinator.apply(requestedValue: true, controller: controller)
+
+        XCTAssertEqual(result.effectiveValue, false)
+        XCTAssertEqual(result.errorMessage, "macOS did not enable Launch at Login for Peek.")
+    }
+}

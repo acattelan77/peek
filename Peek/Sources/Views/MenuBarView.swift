@@ -170,6 +170,9 @@ struct MenuBarView: View {
             PreferencesView(calendarManager: calendarManager)
         }
         .onAppear {
+            if let existingMonitor = eventMonitor {
+                NSEvent.removeMonitor(existingMonitor)
+            }
             eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 self.handleKeyPress(event)
             }
@@ -189,6 +192,15 @@ struct MenuBarView: View {
     }
 
     private func handleKeyPress(_ event: NSEvent) -> NSEvent? {
+        if showingPreferences || NSApp.keyWindow?.attachedSheet != nil {
+            return event
+        }
+
+        if let textView = NSApp.keyWindow?.firstResponder as? NSTextView,
+           textView.isFieldEditor || textView.isEditable {
+            return event
+        }
+
         // Esc key to close popover
         if event.keyCode == Self.kEscapeKeyCode {
             closePopover?()
