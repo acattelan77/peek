@@ -18,15 +18,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Build the app
+# Build the app with ad-hoc signing so runtime entitlements remain available.
 echo "Building ${APP_NAME}..."
 xcodebuild \
   -scheme "${APP_NAME}" \
   -configuration Release \
   -derivedDataPath ./build \
-  CODE_SIGN_IDENTITY="" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGN_IDENTITY=- \
   clean build
 
 if [ ! -d "${APP_PATH}" ]; then

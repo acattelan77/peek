@@ -18,8 +18,7 @@ struct PeekApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     // Constants
     private static let kHotKeyID: UInt32 = 1
-    private static let kUpdateInterval: TimeInterval = 60 // seconds
-    private static let kUrgentUpdateInterval: TimeInterval = 5 // Update every 5 seconds when meeting is close
+    private static let kUpdateInterval = StatusBarRefreshPolicy.normalInterval
 
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
@@ -83,8 +82,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Observe changes to enabled calendars and refresh when changed
         calendarManager.$enabledCalendarIDs
+            .dropFirst()
             .sink { [weak self] _ in
-                self?.updateMenuBar()
+                self?.scheduleRefresh(debounce: 0.05)
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$lookaheadDays
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.scheduleRefresh(debounce: 0.05)
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$maxEventsToShow
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.scheduleRefresh(debounce: 0.05)
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$hideAllDayEvents
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.scheduleRefresh(debounce: 0.05)
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$hideDeclinedEvents
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.scheduleRefresh(debounce: 0.05)
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$filterKeywords
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.scheduleRefresh(debounce: 0.25)
             }
             .store(in: &cancellables)
 
@@ -310,6 +345,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
 
+            // Make sure to remove any existing monitor before creating a new one to prevent leaks
+            if let monitor = outsideClickEventMonitor {
+                NSEvent.removeMonitor(monitor)
+                outsideClickEventMonitor = nil
+            }
+
             // Install a global event monitor to close popover when clicking outside
             outsideClickEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
                 guard let self = self else { return }
@@ -382,6 +423,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     button.toolTip = nil
                     button.attributedTitle = NSAttributedString(string: button.title)
                     self.stopPulsing()
+                    self.adjustTimerForUrgency(.normal)
                     self.applyMenuBarSpaceConstraintIfNeeded(
                         button: button,
                         title: title,
@@ -461,20 +503,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func adjustTimerForUrgency(_ urgency: MeetingUrgency) {
-        let newInterval: TimeInterval
-
-        switch urgency {
-        case .critical, .urgent:
-            newInterval = Self.kUrgentUpdateInterval
-        case .normal:
-            newInterval = Self.kUpdateInterval
-        }
-
-        // Only restart timer if interval changed, and notifications are enabled
-        if calendarManager.notificationsEnabled, updateTimer?.timeInterval != newInterval {
+        let newInterval = StatusBarRefreshPolicy.interval(for: urgency)
+        if updateTimer?.timeInterval != newInterval {
             startTimer(interval: newInterval)
-        } else if !calendarManager.notificationsEnabled, updateTimer?.timeInterval != Self.kUpdateInterval {
-            startTimer(interval: Self.kUpdateInterval)
         }
     }
 
@@ -500,11 +531,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             ? calendarManager.upcomingEvents
             : calendarManager.allUpcomingEvents
 
-        return events.compactMap { event in
-            guard let id = event.eventIdentifier else { return nil }
-            let startTime = event.startDate.timeIntervalSince1970
-            return "\(id)|\(startTime)"
-        }
+        return events.compactMap(NotificationContentSignature.make(for:))
     }
 
     private func maybeRescheduleNotifications(force: Bool) {
