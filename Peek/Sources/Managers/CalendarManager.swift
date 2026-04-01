@@ -361,6 +361,10 @@ class CalendarManager: ObservableObject {
         }
     }
 
+    deinit {
+        stopObservingChanges()
+    }
+
     func fetchNextEvent(completion: @escaping (EKEvent?) -> Void) {
         guard hasCalendarAccess else {
             completion(nil)
