@@ -1,7 +1,7 @@
 # Workstream: PEEK-108 accessibility
 
 - Roadmap ID: PEEK-108
-- Status: Active
+- Status: Complete
 - Owner: Agent
 - Branch/worktree: codex/peek-108-accessibility
 - Last updated: 2026-07-15
@@ -39,16 +39,19 @@ Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-st
 ## Progress
 
 - [x] Create workstream and branch
-- [ ] Make Preferences radio rows keyboard-activatable
-- [ ] Add VoiceOver labels and hints to Preferences
-- [ ] Add VoiceOver labels and Dynamic Type to MenuBar popover
-- [ ] Add status-item accessibility label
-- [ ] Bump version and update docs
-- [ ] Run build and tests
+- [x] Make Preferences radio rows keyboard-activatable
+- [x] Add VoiceOver labels and hints to Preferences
+- [x] Add VoiceOver labels and Dynamic Type to MenuBar popover
+- [x] Add status-item accessibility label
+- [x] Bump version and update docs
+- [x] Run build and tests
 
 ## Validation
 
-- Not run yet.
+- `bash scripts/check-version.sh` passed.
+- `xcodebuild -scheme Peek -configuration Debug ... build` succeeded.
+- `xcodebuild -scheme Peek -destination "platform=macOS" ... test` passed: 63 tests, 0 failures.
+- `git diff --check` clean.
 
 ## Decisions and open questions
 
@@ -56,4 +59,4 @@ Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-st
 
 ## Exact next action
 
-Edit `PreferencesView.swift` to convert radio option rows into focusable/activatable buttons.
+Workstream complete. No further action required; PEEK-106 or PEEK-107 are the next ready roadmap items.
