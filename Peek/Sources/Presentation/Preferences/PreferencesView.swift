@@ -7,6 +7,7 @@ struct PreferencesView: View {
     @Environment(\.dismiss) var dismiss
     @State private var launchAtLogin: Bool
     @State private var selectedTab = 0
+    @State private var importExportFeedback: (message: String, isError: Bool)?
     private let launchAtLoginController: any LaunchAtLoginControlling
 
     init(
@@ -67,6 +68,19 @@ struct PreferencesView: View {
 
             Divider()
 
+            if let feedback = importExportFeedback {
+                HStack(spacing: 4) {
+                    Image(systemName: feedback.isError ? "xmark.circle.fill" : "checkmark.circle.fill")
+                        .accessibilityHidden(true)
+                    Text(feedback.message)
+                        .font(.caption)
+                }
+                .foregroundColor(feedback.isError ? .red : .green)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+            }
+
             // Bottom buttons
             HStack {
                 Button("Export Settings...") {
@@ -111,8 +125,15 @@ struct PreferencesView: View {
                 do {
                     let jsonData = try JSONSerialization.data(withJSONObject: settings, options: .prettyPrinted)
                     try jsonData.write(to: url)
+                    self.importExportFeedback = (
+                        NSLocalizedString("Settings exported successfully.", comment: "Export settings success message"),
+                        false
+                    )
                 } catch {
-                    print("Failed to export settings: \(error)")
+                    self.importExportFeedback = (
+                        String(format: NSLocalizedString("Export failed: %@", comment: "Export settings error message format"), error.localizedDescription),
+                        true
+                    )
                 }
             }
         }
@@ -129,10 +150,30 @@ struct PreferencesView: View {
                 do {
                     let jsonData = try Data(contentsOf: url)
                     if let settings = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                        calendarManager.importSettings(settings)
+                        let result = self.calendarManager.importSettings(settings)
+                        switch result {
+                        case .success:
+                            self.importExportFeedback = (
+                                NSLocalizedString("Settings imported successfully.", comment: "Import settings success message"),
+                                false
+                            )
+                        case .failure(.incompatibleVersion):
+                            self.importExportFeedback = (
+                                NSLocalizedString("Import failed: settings file is incompatible.", comment: "Import settings incompatible version error message"),
+                                true
+                            )
+                        }
+                    } else {
+                        self.importExportFeedback = (
+                            NSLocalizedString("Import failed: invalid settings file.", comment: "Import settings invalid file error message"),
+                            true
+                        )
                     }
                 } catch {
-                    print("Failed to import settings: \(error)")
+                    self.importExportFeedback = (
+                        String(format: NSLocalizedString("Import failed: %@", comment: "Import settings error message format"), error.localizedDescription),
+                        true
+                    )
                 }
             }
         }

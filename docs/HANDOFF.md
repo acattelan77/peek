@@ -4,7 +4,7 @@ Last updated: 2026-07-15
 
 ## Read this first
 
-Peek is currently at **1.2.1 (build 9)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.2.2 (build 10)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -17,13 +17,13 @@ Peek is currently at **1.2.1 (build 9)**. The repository has been reorganized in
 - PEEK-102 integrated: fake `CalendarEventStoring` and `NotificationScheduling` test doubles plus `CalendarManager` integration tests covering authorization, refresh, calendar filtering, and notification scheduling.
 - PEEK-103 integrated: menu-bar and preferences integration tests covering first-launch calendar defaults, denied access, empty state, event-list behavior, persistence, import/export, and view instantiation, plus a fake launch-at-login controller.
 - PEEK-104 integrated: the global hotkey now re-registers live when changed in Preferences (no restart), triggering it activates the app so the popover surfaces above other windows, and API-reported registration failures are shown in the General tab. Carbon registration lives in `CarbonHotkeyRegistrar` (composition root) behind a `HotkeyRegistering` seam, with the decision policy in the testable `GlobalHotkeyCoordinator`.
-- Last full validation: Debug build succeeded; 62 tests passed with zero failures on 2026-07-15. Compiled bundle metadata reports 1.2.1 (9).
+- PEEK-105 integrated: Preferences now shows visible success or error feedback after importing or exporting settings, including incompatible-version and file-system failures.
+- Last full validation: Debug build succeeded; 63 tests passed with zero failures on 2026-07-15. Compiled bundle metadata reports 1.2.2 (10).
 
 ## Where to start next
 
-PEEK-101 through PEEK-104 are complete. The next highest-priority ready items are in `docs/ROADMAP.md`:
+PEEK-101 through PEEK-105 are complete. The next highest-priority ready item is in `docs/ROADMAP.md`:
 
-- **PEEK-105:** Add visible success/error feedback for settings import and export.
 - **PEEK-108:** Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-style scaling.
 
 Pick one, create a workstream from `docs/workstreams/TEMPLATE.md`, and follow the validation steps in `AGENTS.md`.
