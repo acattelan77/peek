@@ -73,11 +73,13 @@ struct PreferencesView: View {
                     exportSettings()
                 }
                 .buttonStyle(.bordered)
+                .accessibilityHint(NSLocalizedString("Saves Peek settings to a JSON file", comment: "Accessibility hint for Export Settings button"))
 
                 Button("Import Settings...") {
                     importSettings()
                 }
                 .buttonStyle(.bordered)
+                .accessibilityHint(NSLocalizedString("Loads Peek settings from a JSON file", comment: "Accessibility hint for Import Settings button"))
 
                 Spacer()
 
@@ -288,6 +290,8 @@ struct GeneralTab: View {
                         .labelsHidden()
                         Spacer()
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(NSLocalizedString("Look ahead", comment: "Accessibility label for look ahead picker"))
 
                     HStack {
                         Text("Max events to show:")
@@ -302,6 +306,8 @@ struct GeneralTab: View {
                         .labelsHidden()
                         Spacer()
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(NSLocalizedString("Max events to show", comment: "Accessibility label for max events picker"))
                 }
 
                 Divider()
@@ -317,14 +323,10 @@ struct GeneralTab: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(StatusBarDisplayMode.allCases, id: \.self) { mode in
-                                HStack {
-                                    Image(systemName: calendarManager.statusBarMode == mode ? "circle.fill" : "circle")
-                                        .foregroundColor(calendarManager.statusBarMode == mode ? .accentColor : .secondary)
-                                        .font(.system(size: 12))
-                                    Text(mode.displayName)
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
+                                RadioRow(
+                                    title: mode.displayName,
+                                    isSelected: calendarManager.statusBarMode == mode
+                                ) {
                                     calendarManager.statusBarMode = mode
                                 }
                             }
@@ -339,14 +341,10 @@ struct GeneralTab: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(MenuBarSpacePolicy.allCases, id: \.self) { policy in
-                                HStack {
-                                    Image(systemName: calendarManager.menuBarSpacePolicy == policy ? "circle.fill" : "circle")
-                                        .foregroundColor(calendarManager.menuBarSpacePolicy == policy ? .accentColor : .secondary)
-                                        .font(.system(size: 12))
-                                    Text(policy.displayName)
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
+                                RadioRow(
+                                    title: policy.displayName,
+                                    isSelected: calendarManager.menuBarSpacePolicy == policy
+                                ) {
                                     calendarManager.menuBarSpacePolicy = policy
                                 }
                             }
@@ -369,14 +367,10 @@ struct GeneralTab: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                            HStack {
-                                Image(systemName: calendarManager.appearanceMode == mode ? "circle.fill" : "circle")
-                                    .foregroundColor(calendarManager.appearanceMode == mode ? .accentColor : .secondary)
-                                    .font(.system(size: 12))
-                                Text(mode.displayName)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
+                            RadioRow(
+                                title: mode.displayName,
+                                isSelected: calendarManager.appearanceMode == mode
+                            ) {
                                 calendarManager.appearanceMode = mode
                             }
                         }
@@ -393,15 +387,10 @@ struct GeneralTab: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(HotkeyOption.allCases, id: \.self) { option in
-                            HStack {
-                                Image(systemName: calendarManager.globalHotkey == option ? "circle.fill" : "circle")
-                                    .foregroundColor(calendarManager.globalHotkey == option ? .accentColor : .secondary)
-                                    .font(.system(size: 12))
-                                Text(option.rawValue)
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
+                            RadioRow(
+                                title: option.rawValue,
+                                isSelected: calendarManager.globalHotkey == option
+                            ) {
                                 calendarManager.globalHotkey = option
                             }
                         }
@@ -434,14 +423,10 @@ struct GeneralTab: View {
                     if calendarManager.notificationsEnabled {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(NotificationTiming.allCases, id: \.self) { timing in
-                                HStack {
-                                    Image(systemName: calendarManager.notificationTiming == timing ? "circle.fill" : "circle")
-                                        .foregroundColor(calendarManager.notificationTiming == timing ? .accentColor : .secondary)
-                                        .font(.system(size: 12))
-                                    Text(timing.displayName)
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
+                                RadioRow(
+                                    title: timing.displayName,
+                                    isSelected: calendarManager.notificationTiming == timing
+                                ) {
                                     calendarManager.notificationTiming = timing
                                 }
                             }
@@ -471,7 +456,7 @@ struct TabButton: View {
         Button(action: action) {
             VStack(spacing: 6) {
                 Text(title)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
                     .foregroundColor(isSelected ? .primary : .secondary)
 
                 Rectangle()
@@ -531,5 +516,28 @@ struct CalendarCheckboxRow: View {
         @unknown default:
             return ""
         }
+    }
+}
+
+// MARK: - Radio Row
+struct RadioRow: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: isSelected ? "circle.fill" : "circle")
+                    .foregroundColor(isSelected ? .accentColor : .secondary)
+                    .font(.caption)
+                Text(title)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(isSelected ? NSLocalizedString("Selected", comment: "Accessibility value for a selected radio option") : "")
     }
 }

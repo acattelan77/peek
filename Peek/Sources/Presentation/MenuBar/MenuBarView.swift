@@ -5,6 +5,8 @@ import Foundation
 struct MenuBarView: View {
     // Key codes
     private static let kEscapeKeyCode: UInt16 = 53
+    private static let kReturnKeyCode: UInt16 = 36
+    private static let kSpaceKeyCode: UInt16 = 49
     private static let kDownArrowKeyCode: UInt16 = 125
     private static let kUpArrowKeyCode: UInt16 = 126
 
@@ -54,7 +56,7 @@ struct MenuBarView: View {
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Peek")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.headline)
                     Text("Your next event, at a glance")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -70,6 +72,9 @@ struct MenuBarView: View {
                         .padding(.vertical, 3)
                         .background(Color.secondary.opacity(0.14))
                         .clipShape(Capsule())
+                        .accessibilityLabel(
+                            String(format: NSLocalizedString("%d upcoming events", comment: "Accessibility label for event count badge"), calendarManager.upcomingEvents.count)
+                        )
                 }
             }
             .padding(.horizontal, 14)
@@ -82,6 +87,7 @@ struct MenuBarView: View {
                     Image(systemName: calendarManager.hasCalendarAccess ? "calendar.badge.clock" : "calendar.badge.exclamationmark")
                         .font(.system(size: 30, weight: .light))
                         .foregroundColor(.accentColor)
+                        .accessibilityHidden(true)
 
                     Text(
                         calendarManager.hasCalendarAccess
@@ -251,10 +257,21 @@ struct MenuBarView: View {
             } else if event.keyCode == Self.kUpArrowKeyCode {
                 selectedEventIndex = max(selectedEventIndex - 1, 0)
                 return nil
+            } else if event.keyCode == Self.kReturnKeyCode || event.keyCode == Self.kSpaceKeyCode {
+                openMeetingLinkForSelectedEvent()
+                return nil
             }
         }
 
         return event
+    }
+
+    private func openMeetingLinkForSelectedEvent() {
+        guard !calendarManager.upcomingEvents.isEmpty else { return }
+        let event = calendarManager.upcomingEvents[selectedEventIndex]
+        if let url = MeetingURLDetector.extract(from: event), MeetingURLDetector.isURLSafe(url) {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     private func performRefresh() {
@@ -291,6 +308,35 @@ struct EventDetailView: View {
         MeetingURLDetector.extract(from: event)
     }
 
+    private var accessibilityLabelText: String {
+        var parts: [String] = []
+        parts.append(event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback title for untitled events"))
+
+        if event.isAllDay {
+            parts.append(EventTimeFormatter.compactDateText(for: event.startDate))
+            parts.append(NSLocalizedString("All day", comment: "Accessibility label segment for all-day events"))
+        } else {
+            parts.append(EventTimeFormatter.timeRangeText(start: event.startDate, end: event.endDate))
+            if isFirst && event.startDate > Date() {
+                parts.append(EventTimeFormatter.timeUntilText(target: event.startDate))
+            }
+        }
+
+        if let location = event.location, !location.isEmpty {
+            parts.append(location)
+        }
+
+        if let calendar = event.calendar {
+            parts.append(calendar.title)
+        }
+
+        if meetingURL != nil {
+            parts.append(NSLocalizedString("Has meeting link", comment: "Accessibility label segment when event has a meeting link"))
+        }
+
+        return parts.joined(separator: ", ")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Event title with badge for first event
@@ -302,7 +348,7 @@ struct EventDetailView: View {
 
                 if isFirst && event.startDate > Date() {
                     Text("NEXT")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(.caption2.weight(.bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
@@ -325,7 +371,7 @@ struct EventDetailView: View {
                         Text(EventTimeFormatter.compactDateText(for: event.startDate))
                             .font(.subheadline)
                         Text("ALL DAY")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.caption2.weight(.semibold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -407,6 +453,9 @@ struct EventDetailView: View {
                 : Color.clear
         )
         .cornerRadius(6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabelText)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
 }
