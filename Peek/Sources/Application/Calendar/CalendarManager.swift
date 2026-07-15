@@ -172,11 +172,15 @@ class CalendarManager: ObservableObject {
         ]
     }
 
-    func importSettings(_ settings: [String: Any]) {
+    enum ImportSettingsError: Error, Equatable {
+        case incompatibleVersion
+    }
+
+    @discardableResult
+    func importSettings(_ settings: [String: Any]) -> Result<Void, ImportSettingsError> {
         // Validate settings version
         guard let version = settings["exportVersion"] as? Int, version == 1 else {
-            print("Warning: Incompatible settings version, skipping import")
-            return
+            return .failure(.incompatibleVersion)
         }
 
         if let calendars = settings["enabledCalendarIDs"] as? [String] {
@@ -240,6 +244,7 @@ class CalendarManager: ObservableObject {
         // Save all imported settings
         savePreferences()
         saveEnabledCalendars()
+        return .success(())
     }
 
     func requestAccess(completion: @escaping (Bool, Error?) -> Void) {

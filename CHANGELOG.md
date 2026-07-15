@@ -4,6 +4,12 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.2.2 - 2026-07-15
+
+### Added
+
+- Visible success and error feedback after importing or exporting settings in Preferences (PEEK-105).
+
 ## 1.2.1 - 2026-07-15
 
 ### Changed
