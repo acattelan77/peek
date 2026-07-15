@@ -45,6 +45,18 @@ struct EventTimeFormatter {
         return .now
     }
 
+    /// Compact countdown in the design voice: "in 12 min", "in 3 hr", "starting now".
+    static func countdownText(target: Date, now: Date = Date()) -> String {
+        switch timeUntilComponents(target: target, now: now) {
+        case .hoursMinutes(let hours, _):
+            return String(format: NSLocalizedString("in %d hr", comment: "Countdown: hours until event"), hours)
+        case .minutes(let minutes):
+            return String(format: NSLocalizedString("in %d min", comment: "Countdown: minutes until event"), minutes)
+        case .now:
+            return NSLocalizedString("starting now", comment: "Countdown: event starting now")
+        }
+    }
+
     static func timeUntilText(target: Date, now: Date = Date()) -> String {
         switch timeUntilComponents(target: target, now: now) {
         case .hoursMinutes(let hours, let minutes):

@@ -4,6 +4,26 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.0 - 2026-07-15
+
+### Added
+
+- Adopted the Claude Design "calm glance" design system across the app via a shared token
+  layer (`PeekColor`, `PeekFont`, `PeekSpacing`, `PeekRadius`, `PeekElevation`) and reusable
+  components (badges, count pill, inset cards, button styles, focus ring).
+- Redesigned popover: date-stamped header, a hero "NEXT" row with an accent rail, wash,
+  countdown, and provider-aware Join button, plus escalating SOON/NOW urgency variants.
+- Refreshed empty and no-access states ("You're all clear" / "Calendar access needed" with
+  an Open System Settings action).
+- New first-run onboarding flow (welcome → calendar access → pick calendars), shown once.
+- New "Starting now" heads-up card (top-right) with Join, Snooze 5 min, and dismiss.
+- Redesigned Preferences using inset cards, group labels, segmented/menu controls, and
+  accent-tinted switches.
+
+### Changed
+
+- Menu-bar urgency title tints now use the design palette (amber `#E8912B`, red `#E5484D`).
+
 ## 1.2.5 - 2026-07-15
 
 ### Added

@@ -25,33 +25,17 @@ struct PreferencesView: View {
 
     private var preferredColorScheme: ColorScheme? {
         switch calendarManager.appearanceMode {
-        case .auto:
-            return nil
-        case .light:
-            return .light
-        case .dark:
-            return .dark
+        case .auto: return nil
+        case .light: return .light
+        case .dark: return .dark
         }
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Custom tab bar
-            HStack(spacing: 0) {
-                TabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 0) {
-                    selectedTab = 0
-                }
-                TabButton(title: NSLocalizedString("Filters", comment: "Preferences tab title"), isSelected: selectedTab == 1) {
-                    selectedTab = 1
-                }
-                TabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 2) {
-                    selectedTab = 2
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
+            tabBar
+            Divider().overlay(PeekColor.hairline)
 
-            // Tab content
             Group {
                 if selectedTab == 0 {
                     CalendarsTab(calendarManager: calendarManager, availableCalendars: availableCalendars)
@@ -65,44 +49,61 @@ struct PreferencesView: View {
                     )
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Divider()
+            Divider().overlay(PeekColor.hairline)
+            footer
+        }
+        .frame(width: 500, height: 700)
+        .fixedSize()
+        .background(PeekColor.canvas)
+        .preferredColorScheme(preferredColorScheme)
+    }
 
+    private var tabBar: some View {
+        HStack(spacing: 22) {
+            TabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 0) { selectedTab = 0 }
+            TabButton(title: NSLocalizedString("Filters", comment: "Preferences tab title"), isSelected: selectedTab == 1) { selectedTab = 1 }
+            TabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 2) { selectedTab = 2 }
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .background(PeekColor.surface)
+    }
+
+    private var footer: some View {
+        VStack(spacing: 0) {
             if let feedback = importExportFeedback {
-                HStack(spacing: 4) {
+                HStack(spacing: 5) {
                     Image(systemName: feedback.isError ? "xmark.circle.fill" : "checkmark.circle.fill")
                         .accessibilityHidden(true)
                     Text(feedback.message)
-                        .font(.caption)
+                        .font(PeekFont.caption)
                 }
-                .foregroundColor(feedback.isError ? .red : .green)
+                .foregroundColor(feedback.isError ? PeekColor.critical : PeekColor.calm)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
             }
 
-            // Bottom buttons
-            HStack {
-                Button("Export Settings...") {
-                    exportSettings()
-                }
-                .buttonStyle(.bordered)
-                .accessibilityHint(NSLocalizedString("Saves Peek settings to a JSON file", comment: "Accessibility hint for Export Settings button"))
+            HStack(spacing: 10) {
+                Button(NSLocalizedString("Export…", comment: "Export settings button")) { exportSettings() }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint(NSLocalizedString("Saves Peek settings to a JSON file", comment: "Accessibility hint for Export Settings button"))
 
-                Button("Import Settings...") {
-                    importSettings()
-                }
-                .buttonStyle(.bordered)
-                .accessibilityHint(NSLocalizedString("Loads Peek settings from a JSON file", comment: "Accessibility hint for Import Settings button"))
+                Button(NSLocalizedString("Import…", comment: "Import settings button")) { importSettings() }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint(NSLocalizedString("Loads Peek settings from a JSON file", comment: "Accessibility hint for Import Settings button"))
 
                 Spacer()
 
                 Text(AppVersion.from().displayText)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.tertiaryText)
                     .accessibilityLabel(AppVersion.from().displayText)
 
-                Button("Done") {
+                Button(NSLocalizedString("Done", comment: "Done button")) {
                     calendarManager.savePreferences()
                     dismiss()
                 }
@@ -110,9 +111,7 @@ struct PreferencesView: View {
             }
             .padding()
         }
-        .frame(width: 500, height: 700)
-        .fixedSize()
-        .preferredColorScheme(preferredColorScheme)
+        .background(PeekColor.surface)
     }
 
     private func exportSettings() {
@@ -183,104 +182,181 @@ struct PreferencesView: View {
 }
 
 // MARK: - Calendars Tab
+
 struct CalendarsTab: View {
     @ObservedObject var calendarManager: CalendarManager
     let availableCalendars: [EKCalendar]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Select Calendars to Monitor")
-                .font(.headline)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(NSLocalizedString("Calendars to monitor", comment: "Calendars tab heading"))
+                    .font(Font.system(size: 15, weight: .semibold))
+                    .foregroundColor(PeekColor.ink)
+                Text(NSLocalizedString("Choose which calendars appear in the menu bar.", comment: "Calendars tab subtitle"))
+                    .font(PeekFont.bodyMeta)
+                    .foregroundColor(PeekColor.secondaryText)
 
-            Text("Choose which calendars to display in the menu bar")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            if !calendarManager.hasCalendarAccess {
-                Text("Calendar access not granted")
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            } else if availableCalendars.isEmpty {
-                Text("No calendars found")
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(availableCalendars, id: \.calendarIdentifier) { calendar in
-                            CalendarCheckboxRow(
+                if !calendarManager.hasCalendarAccess {
+                    InsetCard {
+                        Text(NSLocalizedString("Calendar access not granted", comment: "No calendar access"))
+                            .font(PeekFont.bodyMeta)
+                            .foregroundColor(PeekColor.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(24)
+                    }
+                } else if availableCalendars.isEmpty {
+                    InsetCard {
+                        Text(NSLocalizedString("No calendars found", comment: "No calendars"))
+                            .font(PeekFont.bodyMeta)
+                            .foregroundColor(PeekColor.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(24)
+                    }
+                } else {
+                    InsetCard {
+                        ForEach(Array(availableCalendars.enumerated()), id: \.element.calendarIdentifier) { index, calendar in
+                            CalendarRow(
                                 calendar: calendar,
                                 isEnabled: calendarManager.isCalendarEnabled(calendar.calendarIdentifier)
                             ) {
                                 calendarManager.toggleCalendar(calendar.calendarIdentifier)
                             }
+                            if index < availableCalendars.count - 1 { RowDivider() }
                         }
                     }
-                }
 
-                HStack {
-                    Button("Select All") {
-                        for calendar in availableCalendars {
-                            if !calendarManager.isCalendarEnabled(calendar.calendarIdentifier) {
+                    HStack(spacing: 8) {
+                        Button(NSLocalizedString("Select all", comment: "Select all calendars")) {
+                            for calendar in availableCalendars where !calendarManager.isCalendarEnabled(calendar.calendarIdentifier) {
                                 calendarManager.toggleCalendar(calendar.calendarIdentifier)
                             }
                         }
-                    }
-                    .buttonStyle(.bordered)
+                        .buttonStyle(SoftAccentButtonStyle())
 
-                    Button("Deselect All") {
-                        for calendar in availableCalendars {
-                            if calendarManager.isCalendarEnabled(calendar.calendarIdentifier) {
+                        Button(NSLocalizedString("Deselect all", comment: "Deselect all calendars")) {
+                            for calendar in availableCalendars where calendarManager.isCalendarEnabled(calendar.calendarIdentifier) {
                                 calendarManager.toggleCalendar(calendar.calendarIdentifier)
                             }
                         }
-                    }
-                    .buttonStyle(.bordered)
+                        .buttonStyle(SecondaryFillButtonStyle())
 
-                    Spacer()
+                        Spacer()
+                    }
                 }
             }
+            .padding(20)
         }
-        .padding()
+    }
+}
+
+private struct CalendarRow: View {
+    let calendar: EKCalendar
+    let isEnabled: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(isEnabled ? PeekColor.accent : Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .strokeBorder(isEnabled ? PeekColor.accent : PeekColor.controlBorder, lineWidth: 1.5)
+                    )
+                    .frame(width: 18, height: 18)
+                    .overlay(
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
+                            .opacity(isEnabled ? 1 : 0)
+                    )
+
+                Circle().fill(Color(calendar.color)).frame(width: 10, height: 10)
+
+                Text(calendar.title)
+                    .font(PeekFont.body)
+                    .foregroundColor(PeekColor.ink)
+
+                Spacer()
+
+                Text(calendarTypeDescription(calendar.type))
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.tertiaryText)
+            }
+            .contentShape(Rectangle())
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(isEnabled
+            ? NSLocalizedString("Selected", comment: "Accessibility value for a selected radio option")
+            : "")
+    }
+
+    private func calendarTypeDescription(_ type: EKCalendarType) -> String {
+        switch type {
+        case .local: return NSLocalizedString("Local", comment: "Calendar type: local")
+        case .calDAV: return NSLocalizedString("iCloud", comment: "Calendar type: CalDAV")
+        case .exchange: return NSLocalizedString("Exchange", comment: "Calendar type: Exchange")
+        case .subscription: return NSLocalizedString("Subscription", comment: "Calendar type: subscription")
+        case .birthday: return NSLocalizedString("Birthday", comment: "Calendar type: birthday")
+        @unknown default: return ""
+        }
     }
 }
 
 // MARK: - Filters Tab
+
 struct FiltersTab: View {
     @ObservedObject var calendarManager: CalendarManager
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Event Filters")
-                .font(.headline)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(NSLocalizedString("Event filters", comment: "Filters tab heading"))
+                    .font(Font.system(size: 15, weight: .semibold))
+                    .foregroundColor(PeekColor.ink)
+                Text(NSLocalizedString("Control which events are displayed.", comment: "Filters tab subtitle"))
+                    .font(PeekFont.bodyMeta)
+                    .foregroundColor(PeekColor.secondaryText)
+                    .padding(.bottom, 8)
 
-            Text("Control which events are displayed")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            VStack(alignment: .leading, spacing: 12) {
-                Toggle("Hide All-Day Events", isOn: $calendarManager.hideAllDayEvents)
-
-                Toggle("Hide Declined Events", isOn: $calendarManager.hideDeclinedEvents)
-
-                Divider()
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Filter out events containing keywords (comma-separated):")
-                        .font(.caption)
-
-                    TextField("e.g., canceled, optional, tentative", text: $calendarManager.filterKeywords)
-                        .textFieldStyle(.roundedBorder)
+                InsetCard {
+                    SettingRow(NSLocalizedString("Hide all-day events", comment: "Filter toggle")) {
+                        switchToggle($calendarManager.hideAllDayEvents)
+                    }
+                    RowDivider()
+                    SettingRow(NSLocalizedString("Hide declined events", comment: "Filter toggle")) {
+                        switchToggle($calendarManager.hideDeclinedEvents)
+                    }
                 }
-            }
 
-            Spacer()
+                GroupLabel(NSLocalizedString("Keyword filter", comment: "Keyword filter group label"))
+                    .padding(.top, 16)
+                InsetCard {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(NSLocalizedString("Hide events whose title or notes contain these words (comma-separated).", comment: "Keyword filter description"))
+                            .font(PeekFont.caption)
+                            .foregroundColor(PeekColor.secondaryText)
+                        TextField(
+                            NSLocalizedString("e.g. canceled, optional, tentative", comment: "Keyword filter placeholder"),
+                            text: $calendarManager.filterKeywords
+                        )
+                        .textFieldStyle(.roundedBorder)
+                    }
+                    .padding(14)
+                }
+
+                Spacer()
+            }
+            .padding(20)
         }
-        .padding()
     }
 }
 
 // MARK: - General Tab
+
 struct GeneralTab: View {
     @ObservedObject var calendarManager: CalendarManager
     @Binding var launchAtLogin: Bool
@@ -304,190 +380,158 @@ struct GeneralTab: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Launch at Login
-                Toggle("Launch at Login", isOn: launchAtLoginBinding)
-
+            VStack(alignment: .leading, spacing: 16) {
+                // Launch at login (ungrouped card)
+                InsetCard {
+                    SettingRow(NSLocalizedString("Launch at login", comment: "Launch at login toggle")) {
+                        switchToggle(launchAtLoginBinding)
+                    }
+                }
                 if let launchAtLoginErrorMessage {
                     Text(launchAtLoginErrorMessage)
-                        .font(.caption)
-                        .foregroundColor(.red)
+                        .font(PeekFont.caption)
+                        .foregroundColor(PeekColor.critical)
+                        .padding(.horizontal, 4)
                 }
 
-                Divider()
-
-                // Calendar Settings
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Look ahead:")
-                            .frame(width: 140, alignment: .leading)
+                // Schedule
+                settingsGroup(NSLocalizedString("Schedule", comment: "Group label: schedule")) {
+                    SettingRow(NSLocalizedString("Look ahead", comment: "Look ahead setting")) {
                         Picker("", selection: $calendarManager.lookaheadDays) {
-                            Text("Today only").tag(1)
-                            Text("Next 3 days").tag(3)
-                            Text("Next 7 days").tag(7)
-                            Text("Next 14 days").tag(14)
-                            Text("Next 30 days").tag(30)
+                            Text(NSLocalizedString("Today only", comment: "")).tag(1)
+                            Text(NSLocalizedString("Next 3 days", comment: "")).tag(3)
+                            Text(NSLocalizedString("Next 7 days", comment: "")).tag(7)
+                            Text(NSLocalizedString("Next 14 days", comment: "")).tag(14)
+                            Text(NSLocalizedString("Next 30 days", comment: "")).tag(30)
                         }
                         .labelsHidden()
-                        Spacer()
+                        .frame(width: 150)
+                        .accessibilityLabel(NSLocalizedString("Look ahead", comment: "Accessibility label for look ahead picker"))
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(NSLocalizedString("Look ahead", comment: "Accessibility label for look ahead picker"))
-
-                    HStack {
-                        Text("Max events to show:")
-                            .frame(width: 140, alignment: .leading)
+                    RowDivider()
+                    SettingRow(NSLocalizedString("Max events to show", comment: "Max events setting")) {
                         Picker("", selection: $calendarManager.maxEventsToShow) {
-                            Text("3").tag(3)
-                            Text("5").tag(5)
-                            Text("10").tag(10)
-                            Text("15").tag(15)
-                            Text("20").tag(20)
+                            ForEach([3, 5, 10, 15, 20], id: \.self) { Text("\($0)").tag($0) }
                         }
                         .labelsHidden()
-                        Spacer()
+                        .frame(width: 90)
+                        .accessibilityLabel(NSLocalizedString("Max events to show", comment: "Accessibility label for max events picker"))
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(NSLocalizedString("Max events to show", comment: "Accessibility label for max events picker"))
                 }
 
-                Divider()
-
-                // Status Bar Display
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Status Bar Display")
-                        .font(.headline)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Display format:")
-                            .font(.subheadline)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(StatusBarDisplayMode.allCases, id: \.self) { mode in
-                                RadioRow(
-                                    title: mode.displayName,
-                                    isSelected: calendarManager.statusBarMode == mode
-                                ) {
-                                    calendarManager.statusBarMode = mode
-                                }
-                            }
+                // Status bar display
+                settingsGroup(NSLocalizedString("Status bar display", comment: "Group label: status bar")) {
+                    SettingRow(NSLocalizedString("Time format", comment: "Time format setting")) {
+                        Picker("", selection: $calendarManager.statusBarMode) {
+                            ForEach(StatusBarDisplayMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                         }
-                        .padding(.leading, 4)
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .frame(width: 200)
+                        .accessibilityLabel(NSLocalizedString("Time format", comment: "Accessibility label for time format"))
                     }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Space policy:")
-                            .font(.subheadline)
-                            .padding(.top, 4)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(MenuBarSpacePolicy.allCases, id: \.self) { policy in
-                                RadioRow(
-                                    title: policy.displayName,
-                                    isSelected: calendarManager.menuBarSpacePolicy == policy
-                                ) {
-                                    calendarManager.menuBarSpacePolicy = policy
-                                }
-                            }
+                    RowDivider()
+                    SettingRow(NSLocalizedString("Space policy", comment: "Space policy setting")) {
+                        Picker("", selection: $calendarManager.menuBarSpacePolicy) {
+                            ForEach(MenuBarSpacePolicy.allCases, id: \.self) { Text($0.displayName).tag($0) }
                         }
-                        .padding(.leading, 4)
+                        .labelsHidden()
+                        .frame(width: 180)
+                        .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
                     }
-
-                    Toggle("Show event count badge", isOn: $calendarManager.showEventCount)
-                        .padding(.top, 8)
-
-                    Toggle("Use urgency colors", isOn: $calendarManager.urgencyColorsEnabled)
+                    RowDivider()
+                    SettingRow(NSLocalizedString("Show event count badge", comment: "Show count toggle")) {
+                        switchToggle($calendarManager.showEventCount)
+                    }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
+                        subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
+                    ) {
+                        switchToggle($calendarManager.urgencyColorsEnabled)
+                    }
                 }
-
-                Divider()
 
                 // Appearance
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Appearance")
-                        .font(.headline)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                            RadioRow(
-                                title: mode.displayName,
-                                isSelected: calendarManager.appearanceMode == mode
-                            ) {
-                                calendarManager.appearanceMode = mode
-                            }
+                settingsGroup(NSLocalizedString("Appearance", comment: "Group label: appearance")) {
+                    SettingRow(NSLocalizedString("Theme", comment: "Theme setting")) {
+                        Picker("", selection: $calendarManager.appearanceMode) {
+                            ForEach(AppearanceMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                         }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .frame(width: 200)
+                        .accessibilityLabel(NSLocalizedString("Theme", comment: "Accessibility label for theme"))
                     }
-                    .padding(.leading, 4)
                 }
 
-                Divider()
-
-                // Global Hotkey
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Global Hotkey")
-                        .font(.headline)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(HotkeyOption.allCases, id: \.self) { option in
-                            RadioRow(
-                                title: option.rawValue,
-                                isSelected: calendarManager.globalHotkey == option
-                            ) {
-                                calendarManager.globalHotkey = option
-                            }
+                // Shortcut & alerts
+                settingsGroup(NSLocalizedString("Shortcut & alerts", comment: "Group label: shortcut and alerts")) {
+                    SettingRow(NSLocalizedString("Global hotkey", comment: "Global hotkey setting")) {
+                        Picker("", selection: $calendarManager.globalHotkey) {
+                            ForEach(HotkeyOption.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                         }
+                        .labelsHidden()
+                        .frame(width: 110)
+                        .accessibilityLabel(NSLocalizedString("Global hotkey", comment: "Accessibility label for global hotkey"))
                     }
-                    .padding(.leading, 4)
-
                     if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
-                        Text(hotkeyStatusMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.top, 4)
-                    } else {
-                        Text("Changes take effect immediately")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 4)
+                        rowFootnote(hotkeyStatusMessage, isError: true)
                     }
-                }
-
-                Divider()
-
-                // Notifications
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Notifications")
-                        .font(.headline)
-
-                    Toggle("Enable event notifications", isOn: $calendarManager.notificationsEnabled)
-
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Meeting notifications", comment: "Notifications toggle"),
+                        subtitle: NSLocalizedString("Alert with a join link before an event starts.", comment: "Notifications subtitle")
+                    ) {
+                        switchToggle($calendarManager.notificationsEnabled)
+                    }
                     if calendarManager.notificationsEnabled {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(NotificationTiming.allCases, id: \.self) { timing in
-                                RadioRow(
-                                    title: timing.displayName,
-                                    isSelected: calendarManager.notificationTiming == timing
-                                ) {
-                                    calendarManager.notificationTiming = timing
-                                }
+                        RowDivider()
+                        SettingRow(NSLocalizedString("Alert timing", comment: "Alert timing setting")) {
+                            Picker("", selection: $calendarManager.notificationTiming) {
+                                ForEach(NotificationTiming.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
+                            .labelsHidden()
+                            .frame(width: 150)
+                            .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
                         }
-                        .padding(.leading, 20)
-
-                        Text("Notifications include meeting links when available")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 20)
-                            .padding(.top, 4)
                     }
                 }
             }
             .padding(20)
         }
     }
+
+    @ViewBuilder
+    private func settingsGroup<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            GroupLabel(label)
+            InsetCard { content() }
+        }
+    }
+
+    private func rowFootnote(_ text: String, isError: Bool) -> some View {
+        Text(text)
+            .font(PeekFont.caption)
+            .foregroundColor(isError ? PeekColor.critical : PeekColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 14)
+            .padding(.bottom, 10)
+    }
+}
+
+// MARK: - Shared trailing switch
+
+@ViewBuilder
+func switchToggle(_ isOn: Binding<Bool>) -> some View {
+    Toggle("", isOn: isOn)
+        .labelsHidden()
+        .toggleStyle(.switch)
+        .tint(PeekColor.accent)
 }
 
 // MARK: - Tab Button
+
 struct TabButton: View {
     let title: String
     let isSelected: Bool
@@ -497,88 +541,14 @@ struct TabButton: View {
         Button(action: action) {
             VStack(spacing: 6) {
                 Text(title)
-                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                    .foregroundColor(isSelected ? .primary : .secondary)
-
+                    .font(Font.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? PeekColor.ink : PeekColor.secondaryText)
                 Rectangle()
-                    .fill(isSelected ? Color.accentColor : Color.clear)
+                    .fill(isSelected ? PeekColor.accent : Color.clear)
                     .frame(height: 2)
             }
         }
         .buttonStyle(.plain)
-        .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-    }
-}
-
-// MARK: - Calendar Checkbox Row
-struct CalendarCheckboxRow: View {
-    let calendar: EKCalendar
-    let isEnabled: Bool
-    let onToggle: () -> Void
-
-    var body: some View {
-        Button(action: onToggle) {
-            HStack(spacing: 8) {
-                Image(systemName: isEnabled ? "checkmark.square.fill" : "square")
-                    .foregroundColor(isEnabled ? .blue : .gray)
-
-                Circle()
-                    .fill(Color(calendar.color))
-                    .frame(width: 12, height: 12)
-
-                Text(calendar.title)
-                    .foregroundColor(.primary)
-
-                Spacer()
-
-                Text(calendarTypeDescription(calendar.type))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .padding(.vertical, 4)
-    }
-
-    private func calendarTypeDescription(_ type: EKCalendarType) -> String {
-        switch type {
-        case .local:
-            return NSLocalizedString("Local", comment: "Calendar type: local")
-        case .calDAV:
-            return NSLocalizedString("CalDAV", comment: "Calendar type: CalDAV")
-        case .exchange:
-            return NSLocalizedString("Exchange", comment: "Calendar type: Exchange")
-        case .subscription:
-            return NSLocalizedString("Subscription", comment: "Calendar type: subscription")
-        case .birthday:
-            return NSLocalizedString("Birthday", comment: "Calendar type: birthday")
-        @unknown default:
-            return ""
-        }
-    }
-}
-
-// MARK: - Radio Row
-struct RadioRow: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: isSelected ? "circle.fill" : "circle")
-                    .foregroundColor(isSelected ? .accentColor : .secondary)
-                    .font(.caption)
-                Text(title)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityValue(isSelected ? NSLocalizedString("Selected", comment: "Accessibility value for a selected radio option") : "")
     }
 }

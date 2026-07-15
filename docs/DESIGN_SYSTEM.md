@@ -1,5 +1,33 @@
 # Design system
 
+> **Authoritative reference:** the Claude Design "calm glance" handoff in
+> `design_handoff_peek_design_system/` (see its `README.md`). That package defines the
+> final colors, type, spacing, and every screen state. This document summarizes the brand
+> and records how the system is implemented in code.
+
+## Implementation (code tokens)
+
+The design system is expressed as a single shared token layer under
+`Peek/Sources/Presentation/DesignSystem/`; every view consumes it rather than hardcoding
+values:
+
+- `PeekTheme.swift` — `PeekColor` (light/dark-aware brand, urgency, neutral, and text
+  tokens), `PeekFont` (SF Pro roles), `PeekSpacing` / `PeekRadius` (4pt grid), and
+  `PeekElevation` (`.peekShadow(_:)`).
+- `PeekComponents.swift` — reusable pieces: `PeekBadge` (NEXT/SOON/NOW/ALL DAY),
+  `CountPill`, `InsetCard` + `GroupLabel` + `SettingRow`, the button styles
+  (`PrimaryButtonStyle`, `SoftAccentButtonStyle`, `SecondaryFillButtonStyle`), the
+  `PulsingDot`, and the `.peekFocusRing(_:)` modifier. `PeekMotion.reduceMotion` gates
+  animation.
+
+Surfaces built on the tokens: the popover (`MenuBar/MenuBarView.swift`), Preferences
+(`Preferences/PreferencesView.swift`), first-run onboarding (`Onboarding/OnboardingView.swift`),
+and the "Starting now" HUD (`HUD/StartingNowHUD.swift`). The menu-bar status item keeps a
+monochrome template glyph and only tints the title text for urgency.
+
+Primary accent is **Peek Blue `#3B60E4`**; urgency uses amber `#E8912B` then red `#E5484D`,
+each always paired with a word (SOON / NOW) or icon — never color alone.
+
 ## Brand idea
 
 Peek reveals the next useful slice of a calendar. The identity combines a calendar page, an opening/fold, and one highlighted upcoming slot. It should feel calm, immediate, and native to macOS.
