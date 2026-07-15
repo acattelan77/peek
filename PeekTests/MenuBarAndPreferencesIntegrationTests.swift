@@ -276,6 +276,17 @@ final class MenuBarAndPreferencesIntegrationTests: XCTestCase {
         UserDefaults().removeSuite(named: freshSuiteName)
     }
 
+    func testImportIncompatibleVersionReturnsFailure() {
+        let result = calendarManager.importSettings(["exportVersion": 999])
+
+        switch result {
+        case .failure(.incompatibleVersion):
+            break
+        default:
+            XCTFail("Expected incompatible version failure, got \(result)")
+        }
+    }
+
     // MARK: - View instantiation
 
     func testMenuBarViewInstantiatesWithFakeDependencies() {
