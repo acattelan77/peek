@@ -13,7 +13,7 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 - **PEEK-101 — Done:** Add notch-safe adaptive compact mode for crowded menu bars. Peek should proactively fall back to its icon before macOS hides the status item, restore text when space returns, and avoid rapid mode switching. Provide `Automatic`, `Always show icon`, and `Always show text` preferences, with `Automatic` as the default.
 - **PEEK-102 — Done:** Add fake EventKit and notification schedulers for authorization, refresh, and reminder integration tests.
 - **PEEK-103 — Done:** Add UI coverage for first launch, denied calendar access, empty state, event list, and preferences.
-- **PEEK-104 — Ready:** Make the global hotkey update without restarting and surface registration conflicts.
+- **PEEK-104 — Done:** Make the global hotkey update without restarting and surface registration conflicts. Live re-registration through a testable `GlobalHotkeyCoordinator`; API-reported registration failures shown in Preferences. Cross-app conflicts that Carbon does not report remain undetectable (documented limitation).
 - **PEEK-105 — Ready:** Add visible success/error feedback for settings import and export.
 - **PEEK-106 — Ready:** Validate macOS 13 behavior on real or CI-hosted macOS 13 hardware.
 - **PEEK-107 — Ready:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.

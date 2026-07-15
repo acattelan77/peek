@@ -27,6 +27,10 @@ class CalendarManager: ObservableObject {
     @Published var notificationTiming: NotificationTiming = .fifteenMinutes
     @Published var urgencyColorsEnabled: Bool = true
 
+    /// Transient (not persisted) message describing the outcome of the most recent
+    /// global-hotkey registration. `nil` means the current hotkey is active.
+    @Published var hotkeyStatusMessage: String?
+
     private let defaults: any PreferencesStoring
     private let enabledCalendarsKey = "enabledCalendarIDs"
     private let hasCustomCalendarsKey = "hasCustomCalendarSelection"

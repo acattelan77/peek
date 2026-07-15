@@ -84,10 +84,17 @@ struct EventPipeline {
             .sorted { $0.startDate > $1.startDate }
             .first { now.timeIntervalSince($0.startDate) <= lateGraceInterval }
         let nextEvent = lateEvent ?? filtered.first { $0.startDate > now }
-        let limitedEvents = maxEvents > 0 ? Array(filtered.prefix(maxEvents)) : []
+        let relevantEvents: [Envelope<T>]
+        if let nextEvent,
+           let nextIndex = filtered.firstIndex(where: { $0.startDate == nextEvent.startDate }) {
+            relevantEvents = Array(filtered[nextIndex...])
+        } else {
+            relevantEvents = []
+        }
+        let limitedEvents = maxEvents > 0 ? Array(relevantEvents.prefix(maxEvents)) : []
 
         return EventSelectionResult(
-            upcomingEvents: filtered.map { $0.event },
+            upcomingEvents: relevantEvents.map { $0.event },
             limitedEvents: limitedEvents.map { $0.event },
             nextEvent: nextEvent?.event
         )

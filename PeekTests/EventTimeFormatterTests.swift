@@ -1,4 +1,5 @@
 import XCTest
+@testable import Peek
 
 final class EventTimeFormatterTests: XCTestCase {
     func testTimeUntilComponentsHoursAndMinutes() {

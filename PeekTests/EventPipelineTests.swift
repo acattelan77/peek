@@ -1,4 +1,5 @@
 import XCTest
+@testable import Peek
 
 final class EventPipelineTests: XCTestCase {
     private struct TestEvent: EventCandidate, Equatable {
@@ -235,6 +236,7 @@ final class EventPipelineTests: XCTestCase {
         )
 
         XCTAssertEqual(result.nextEvent, future)
+        XCTAssertEqual(result.upcomingEvents, [future])
     }
 
     func testLimitedEventsRespectsMax() {

@@ -17,26 +17,35 @@ struct PeekApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     // Constants
-    private static let kHotKeyID: UInt32 = 1
     private static let kUpdateInterval = StatusBarRefreshPolicy.normalInterval
 
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
+    private var environment: AppEnvironment!
     private var calendarManager: CalendarManager!
     private var cancellables = Set<AnyCancellable>()
-    private var hotKeyRef: EventHotKeyRef?
+    private var hotkeyRegistrar: CarbonHotkeyRegistrar!
     private var updateTimer: Timer?
-    private let notificationManager = NotificationManager.shared
+    private var notificationManager: (any NotificationScheduling)!
     private var pulseTimer: Timer?
     private var isPulsing = false
-    private var isShowingIconOnlyForSpace = false
+    private var spacePolicy: StatusBarSpacePolicy!
     private var outsideClickEventMonitor: Any?
     private var refreshWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Initialize calendar manager
-        calendarManager = CalendarManager()
+        // Compose live infrastructure once, at the application boundary.
+        environment = .live()
+        calendarManager = environment.calendarManager
+        notificationManager = environment.notificationScheduler
+        spacePolicy = StatusBarSpacePolicy(policy: calendarManager.menuBarSpacePolicy)
+
+        // Own the Carbon hotkey lifecycle in a focused registrar so it can be
+        // re-applied live and its Carbon event handler is installed exactly once.
+        hotkeyRegistrar = CarbonHotkeyRegistrar { [weak self] in
+            self?.handleHotkeyPressed()
+        }
 
         // Create status item in menu bar
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -130,6 +139,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        // Observe menu-bar space policy changes
+        calendarManager.$menuBarSpacePolicy
+            .sink { [weak self] policy in
+                self?.spacePolicy = StatusBarSpacePolicy(policy: policy)
+                self?.updateMenuBar()
+            }
+            .store(in: &cancellables)
+
         calendarManager.$showEventCount
             .sink { [weak self] _ in
                 self?.updateMenuBar()
@@ -174,14 +191,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
-        // Register global hotkey (Cmd+Shift+C)
-        registerGlobalHotkey()
+        // Re-register the global hotkey live whenever the user changes it.
+        calendarManager.$globalHotkey
+            .dropFirst()
+            .sink { [weak self] hotkey in
+                self?.applyGlobalHotkey(hotkey)
+            }
+            .store(in: &cancellables)
+
+        // Register the initial global hotkey.
+        applyGlobalHotkey(calendarManager.globalHotkey)
 
         // Observe app activation to refresh permissions and events
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleAppDidBecomeActive),
             name: NSApplication.didBecomeActiveNotification,
+            object: nil
+        )
+
+        // Observe display configuration changes so the space policy can re-evaluate
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleScreenParametersChanged),
+            name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
 
@@ -195,10 +228,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if granted {
                 self?.handleCalendarAccessChange(granted: true, shouldRefresh: true)
 
-                // Request notification permissions if notifications are enabled
-                self?.notificationManager.requestPermission { notificationGranted in
-                    if notificationGranted {
-                        self?.rescheduleNotifications()
+                if self?.calendarManager.notificationsEnabled == true {
+                    self?.notificationManager.requestPermission { notificationGranted in
+                        if notificationGranted {
+                            self?.rescheduleNotifications()
+                        }
                     }
                 }
             } else {
@@ -213,7 +247,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        unregisterGlobalHotkey()
+        hotkeyRegistrar?.unregister()
         updateTimer?.invalidate()
         updateTimer = nil
         pulseTimer?.invalidate()
@@ -231,6 +265,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func handleAppDidBecomeActive() {
         let granted = calendarManager.refreshAuthorizationStatus()
         handleCalendarAccessChange(granted: granted, shouldRefresh: true)
+    }
+
+    @objc private func handleScreenParametersChanged() {
+        scheduleRefresh(debounce: 0.1)
     }
 
     private func handleCalendarAccessChange(granted: Bool, shouldRefresh: Bool) {
@@ -265,53 +303,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 "Grant permission in System Settings → Privacy & Security → Calendars",
                 comment: "Tooltip when calendar access denied"
             )
-            button.title = title
-            button.toolTip = tooltip
-            applyMenuBarSpaceConstraintIfNeeded(
+            applyStatusBarContent(
                 button: button,
-                title: title,
-                tooltip: tooltip,
-                urgency: .normal
+                content: StatusBarContent(title: title, tooltip: tooltip, urgency: .normal)
             )
         }
     }
 
-    private func registerGlobalHotkey() {
-        var hotKeyID = EventHotKeyID()
-        hotKeyID.signature = OSType("PEEK".fourCharCodeValue)
-        hotKeyID.id = Self.kHotKeyID
-
-        var eventType = EventTypeSpec()
-        eventType.eventClass = OSType(kEventClassKeyboard)
-        eventType.eventKind = OSType(kEventHotKeyPressed)
-
-        // Get hotkey configuration from CalendarManager
-        let hotkey = calendarManager.globalHotkey
-        let status = RegisterEventHotKey(
-            hotkey.keyCode,
-            hotkey.modifiers,
-            hotKeyID,
-            GetEventDispatcherTarget(),
-            0,
-            &hotKeyRef
-        )
-
-        if status != noErr {
-            print("Failed to register global hotkey")
+    /// Applies the user's hotkey selection through the testable coordinator and
+    /// publishes any registration failure so Preferences can show it.
+    private func applyGlobalHotkey(_ hotkey: HotkeyOption) {
+        let result = GlobalHotkeyCoordinator.apply(hotkey, using: hotkeyRegistrar)
+        calendarManager.hotkeyStatusMessage = result.errorMessage
+        if let message = result.errorMessage {
+            print(message)
         }
-
-        // Install event handler
-        InstallEventHandler(GetEventDispatcherTarget(), { _, event, userData in
-            let appDelegate = Unmanaged<AppDelegate>.fromOpaque(userData!).takeUnretainedValue()
-            appDelegate.togglePopover()
-            return noErr
-        }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), nil)
     }
 
-    private func unregisterGlobalHotkey() {
-        if let hotKeyRef = hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-        }
+    /// Invoked from the Carbon hotkey handler. Bring Peek forward so the popover is
+    /// presented above the frontmost app, then toggle it.
+    private func handleHotkeyPressed() {
+        NSApp.activate(ignoringOtherApps: true)
+        togglePopover()
     }
 
     @objc func togglePopover() {
@@ -339,10 +352,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             popover.performClose(nil)
         } else {
-            // Toggle urgency colors only when SHOWING the popover
-            calendarManager.urgencyColorsEnabled.toggle()
-            calendarManager.savePreferences()
-
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
 
             // Make sure to remove any existing monitor before creating a new one to prevent leaks
@@ -384,57 +393,89 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func applyMenuBar(event: EKEvent?) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if let button = self.statusItem.button {
-                let eventCount = self.calendarManager.upcomingEvents.count
-
-                if let event = event, eventCount > 0 {
-                    var displayCount = eventCount
-                    if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == event.eventIdentifier }) {
-                        displayCount = eventCount - index
-                    }
-
-                    let (title, tooltip, urgency) = self.formatStatusBarText(event: event, eventCount: displayCount)
-
-                    // Set title and tooltip first
-                    button.title = title
-                    button.toolTip = tooltip
-
-                    // Apply color based on urgency (AFTER setting title)
-                    self.applyUrgencyStyle(to: button, urgency: urgency)
-
-                    // Handle pulsing animation for imminent meetings
-                    self.updatePulsingState(urgency: urgency)
-
-                    // Adjust timer frequency based on urgency
-                    self.adjustTimerForUrgency(urgency)
-
-                    // Fall back to icon-only if the menu bar is cramped
-                    self.applyMenuBarSpaceConstraintIfNeeded(
-                        button: button,
-                        title: title,
-                        tooltip: tooltip,
-                        urgency: urgency
-                    )
-                } else {
-                    let title = self.calendarManager.statusBarMode == .iconOnly
-                        ? ""
-                        : NSLocalizedString("No upcoming events", comment: "Status bar title when no events")
-                    button.title = title
-                    button.toolTip = nil
-                    button.attributedTitle = NSAttributedString(string: button.title)
-                    self.stopPulsing()
-                    self.adjustTimerForUrgency(.normal)
-                    self.applyMenuBarSpaceConstraintIfNeeded(
-                        button: button,
-                        title: title,
-                        tooltip: nil,
-                        urgency: .normal
-                    )
-                }
+            guard let button = self.statusItem.button else {
+                self.maybeRescheduleNotifications(force: false)
+                return
             }
 
+            let eventCount = self.calendarManager.upcomingEvents.count
+            let content: StatusBarContent
+
+            if let event = event, eventCount > 0 {
+                var displayCount = eventCount
+                if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == event.eventIdentifier }) {
+                    displayCount = eventCount - index
+                }
+
+                content = StatusBarContentBuilder.make(
+                    eventTitle: event.title,
+                    startDate: event.startDate,
+                    eventCount: displayCount,
+                    mode: self.calendarManager.statusBarMode,
+                    showCount: self.calendarManager.showEventCount
+                )
+
+                self.updatePulsingState(urgency: content.urgency)
+                self.adjustTimerForUrgency(content.urgency)
+            } else {
+                content = StatusBarContent(
+                    title: NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),
+                    tooltip: nil,
+                    urgency: .normal
+                )
+                self.stopPulsing()
+                self.adjustTimerForUrgency(.normal)
+            }
+
+            self.applyStatusBarContent(button: button, content: content)
             self.maybeRescheduleNotifications(force: false)
         }
+    }
+
+    private func applyStatusBarContent(button: NSStatusBarButton, content: StatusBarContent) {
+        // Prepare the full text presentation so it can be measured and used as a tooltip.
+        button.title = content.title
+        button.toolTip = content.tooltip
+        applyUrgencyStyle(to: button, urgency: content.urgency)
+
+        let metrics = statusItemMetrics(button: button, title: content.title)
+        let presentation = spacePolicy.update(
+            availableWidth: metrics.availableWidth,
+            requiredWidth: metrics.requiredWidth,
+            notchMargin: metrics.notchMargin
+        )
+
+        switch presentation {
+        case .iconOnly:
+            button.imagePosition = .imageOnly
+            button.title = ""
+            button.attributedTitle = NSAttributedString(string: "")
+            button.toolTip = content.tooltip ?? content.title
+        case .text:
+            button.imagePosition = .imageLeading
+        }
+    }
+
+    private func statusItemMetrics(button: NSStatusBarButton, title: String) -> (availableWidth: CGFloat, requiredWidth: CGFloat, notchMargin: CGFloat) {
+        let window = button.window
+        let screen = window?.screen ?? NSScreen.main
+        let screenFrame = screen?.frame ?? .zero
+
+        let availableWidth: CGFloat
+        if let window = window {
+            availableWidth = max(0, screenFrame.maxX - window.frame.minX)
+        } else {
+            availableWidth = screenFrame.width
+        }
+
+        let iconWidth = button.image?.size.width ?? 0
+        let font = button.font ?? NSFont.menuBarFont(ofSize: 0)
+        let titleWidth = (title as NSString).size(withAttributes: [.font: font]).width
+        let requiredWidth = iconWidth + titleWidth + 12
+
+        let notchMargin: CGFloat = (screen?.safeAreaInsets.top ?? 0) > 0 ? 60 : 0
+
+        return (availableWidth, requiredWidth, notchMargin)
     }
 
     private func applyUrgencyStyle(to button: NSStatusBarButton, urgency: MeetingUrgency) {
@@ -545,76 +586,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func formatStatusBarText(event: EKEvent, eventCount: Int) -> (String, String?, MeetingUrgency) {
-        let mode = calendarManager.statusBarMode
-        let showCount = calendarManager.showEventCount
-
-        let now = Date()
-        let minutesUntil = Int(event.startDate.timeIntervalSince(now)) / 60
-
-        // Calculate urgency level
-        let urgency = MeetingUrgency.from(minutesUntil: minutesUntil)
-
-        // Icon only mode
-        if mode == .iconOnly {
-            let tooltipTitle = event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title")
-            return ("", tooltipTitle, urgency)
-        }
-
-        let eventTitle = event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title")
-        let maxTitleLength = 20
-        let truncatedTitle = eventTitle.count > maxTitleLength
-            ? String(eventTitle.prefix(maxTitleLength)) + "..."
-            : eventTitle
-
-        let countSuffix = (eventCount > 1 && showCount)
-            ? String(
-                format: NSLocalizedString(" (+%d)", comment: "Suffix showing additional event count"),
-                eventCount - 1
-            )
-            : ""
-
-        var timeString: String
-
-        if mode == .timeUntil {
-            // Time until mode
-            if event.startDate > now {
-                let interval = event.startDate.timeIntervalSince(now)
-                let hours = Int(interval) / 3600
-                let minutes = (Int(interval) % 3600) / 60
-
-                if hours > 24 {
-                    let days = hours / 24
-                    let format = NSLocalizedString("%dd", comment: "Abbreviated days")
-                    timeString = String(format: format, days)
-                } else if hours > 0 {
-                    let format = NSLocalizedString("%dh %dm", comment: "Abbreviated hours and minutes")
-                    timeString = String(format: format, hours, minutes)
-                } else if minutes > 0 {
-                    let format = NSLocalizedString("%dm", comment: "Abbreviated minutes")
-                    timeString = String(format: format, minutes)
-                } else {
-                    timeString = NSLocalizedString("NOW!", comment: "Status bar label when event is now")
-                }
-            } else {
-                timeString = NSLocalizedString("NOW!", comment: "Status bar label when event is now")
-            }
-        } else {
-            // Actual time mode
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            timeString = formatter.string(from: event.startDate)
-        }
-
-        let titleFormat = NSLocalizedString("%@ - %@%@", comment: "Status bar title format: time - title (+count)")
-        let title = String(format: titleFormat, timeString, truncatedTitle, countSuffix)
-        let tooltip = eventTitle.count > maxTitleLength
-            ? String(format: NSLocalizedString("%@ - %@", comment: "Status bar tooltip format: time - title"), timeString, eventTitle)
-            : nil
-
-        return (title, tooltip, urgency)
-    }
-
     private func startTimer(interval: TimeInterval = kUpdateInterval) {
         // Invalidate existing timer if any
         updateTimer?.invalidate()
@@ -625,58 +596,71 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func applyMenuBarSpaceConstraintIfNeeded(
-        button: NSStatusBarButton,
-        title: String,
-        tooltip: String?,
-        urgency: MeetingUrgency
-    ) {
-        if calendarManager.statusBarMode == .iconOnly {
-            isShowingIconOnlyForSpace = false
-            if button.imagePosition != .imageOnly {
-                button.imagePosition = .imageOnly
-            }
-            return
-        }
+}
 
-        let shouldForceIconOnly = shouldForceIconOnly(button: button, title: title)
+/// Live Carbon implementation of `HotkeyRegistering`. Installs the hot-key event
+/// handler once at construction and re-registers the key combination on demand,
+/// unregistering any previous binding first. This is the only place that touches
+/// Carbon's hot-key API.
+final class CarbonHotkeyRegistrar: HotkeyRegistering {
+    private static let hotKeyID: UInt32 = 1
 
-        if shouldForceIconOnly {
-            isShowingIconOnlyForSpace = true
-            if button.imagePosition != .imageOnly {
-                button.imagePosition = .imageOnly
-            }
-            if !title.isEmpty {
-                button.title = ""
-                button.attributedTitle = NSAttributedString(string: "")
-            }
-            button.toolTip = tooltip ?? title
-        } else {
-            if button.imagePosition != .imageLeading {
-                button.imagePosition = .imageLeading
-            }
-            if isShowingIconOnlyForSpace {
-                isShowingIconOnlyForSpace = false
-                button.title = title
-                button.toolTip = tooltip
-                applyUrgencyStyle(to: button, urgency: urgency)
-            }
+    private var hotKeyRef: EventHotKeyRef?
+    private var eventHandlerRef: EventHandlerRef?
+    private let handler: () -> Void
+    private let signature = OSType("PEEK".fourCharCodeValue)
+
+    init(handler: @escaping () -> Void) {
+        self.handler = handler
+        installEventHandler()
+    }
+
+    deinit {
+        unregister()
+        if let eventHandlerRef {
+            RemoveEventHandler(eventHandlerRef)
         }
     }
 
-    private func shouldForceIconOnly(button: NSStatusBarButton, title: String) -> Bool {
-        guard !title.isEmpty else { return false }
-        guard button.bounds.width > 0 else { return false }
+    private func installEventHandler() {
+        var eventType = EventTypeSpec(
+            eventClass: OSType(kEventClassKeyboard),
+            eventKind: OSType(kEventHotKeyPressed)
+        )
+        InstallEventHandler(
+            GetEventDispatcherTarget(),
+            { _, _, userData in
+                guard let userData else { return noErr }
+                let registrar = Unmanaged<CarbonHotkeyRegistrar>.fromOpaque(userData).takeUnretainedValue()
+                registrar.handler()
+                return noErr
+            },
+            1,
+            &eventType,
+            Unmanaged.passUnretained(self).toOpaque(),
+            &eventHandlerRef
+        )
+    }
 
-        let font = button.font ?? NSFont.menuBarFont(ofSize: 0)
-        let titleWidth = (title as NSString).size(withAttributes: [.font: font]).width
+    @discardableResult
+    func register(keyCode: UInt32, modifiers: UInt32) -> OSStatus {
+        unregister()
+        let hotKeyID = EventHotKeyID(signature: signature, id: Self.hotKeyID)
+        return RegisterEventHotKey(
+            keyCode,
+            modifiers,
+            hotKeyID,
+            GetEventDispatcherTarget(),
+            0,
+            &hotKeyRef
+        )
+    }
 
-        let previousImagePosition = button.imagePosition
-        button.imagePosition = .imageLeading
-        let titleRect = (button.cell as? NSButtonCell)?.titleRect(forBounds: button.bounds) ?? button.bounds
-        button.imagePosition = previousImagePosition
-
-        return titleWidth - titleRect.width > 2
+    func unregister() {
+        if let hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
+            self.hotKeyRef = nil
+        }
     }
 }
 

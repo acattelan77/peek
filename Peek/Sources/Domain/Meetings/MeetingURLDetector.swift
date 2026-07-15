@@ -3,7 +3,7 @@ import EventKit
 
 struct MeetingURLDetector {
     static let patterns: [String] = [
-        "https://[a-zA-Z0-9.-]+\\.zoom\\.us/j/[0-9]+",
+        "https://[a-zA-Z0-9.-]+\\.zoom\\.us/j/[0-9]+(?:\\?[^\\s<>\"]*)?",
         "https://meet\\.google\\.com/[a-z-]+",
         "https://teams\\.microsoft\\.com/l/meetup-join/[^\\s]+",
         "https://[a-zA-Z0-9.-]+\\.webex\\.com/[^\\s]+",
@@ -59,13 +59,17 @@ struct MeetingURLDetector {
 
             if let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
                let range = Range(match.range, in: text) {
-                let urlString = String(text[range])
+                let urlString = sanitizedURLString(String(text[range]))
                 if let url = URL(string: urlString), isURLSafe(url) {
                     return url
                 }
             }
         }
         return nil
+    }
+
+    private static func sanitizedURLString(_ value: String) -> String {
+        value.trimmingCharacters(in: CharacterSet(charactersIn: ".,;:!?)]}>'\""))
     }
 
     static func isURLSafe(_ url: URL) -> Bool {

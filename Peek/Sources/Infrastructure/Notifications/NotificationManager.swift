@@ -11,10 +11,38 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     private let eventNotificationIdentifierPrefix = "event:"
     private let eventIDKey = "eventID"
     private let snoozeFlagKey = "isSnooze"
+    private let eventCategoryIdentifier = "EVENT_NOTIFICATION"
 
     override private init() {
         super.init()
         notificationCenter.delegate = self
+        registerNotificationCategories()
+    }
+
+    /// Registers the event notification category once, up front. The Join/Snooze
+    /// actions are static; the per-event meeting URL travels in `userInfo`, so there
+    /// is no need to re-register categories while scheduling individual notifications.
+    private func registerNotificationCategories() {
+        let joinAction = UNNotificationAction(
+            identifier: "JOIN_MEETING",
+            title: NSLocalizedString("Join Meeting", comment: "Notification action to join meeting"),
+            options: .foreground
+        )
+        let snoozeAction = UNNotificationAction(
+            identifier: "SNOOZE",
+            title: String(
+                format: NSLocalizedString("Snooze (%d min)", comment: "Notification action to snooze"),
+                5
+            ),
+            options: []
+        )
+        let category = UNNotificationCategory(
+            identifier: eventCategoryIdentifier,
+            actions: [joinAction, snoozeAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        notificationCenter.setNotificationCategories([category])
     }
 
     // MARK: - Permission Management
@@ -52,7 +80,11 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     }
 
     func scheduleNotifications(for events: [EKEvent], timing: NotificationTiming) {
-        guard hasNotificationPermission, timing != .none else { return }
+        guard timing != .none else {
+            removePendingEventNotifications(excludingSnoozed: true)
+            return
+        }
+        guard hasNotificationPermission else { return }
         removePendingEventNotifications(excludingSnoozed: true) { [weak self] in
             guard let self = self else { return }
 
@@ -78,33 +110,12 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 content.sound = .default
                 content.userInfo = [self.eventIDKey: eventID]
 
-                // Add actions if meeting URL is detected
+                // Attach the join/snooze actions if a meeting URL is detected. The
+                // category itself is registered once at init; here we only opt this
+                // notification into it and carry the per-event URL in userInfo.
                 if let meetingURL = MeetingURLDetector.extract(from: event) {
                     content.userInfo["meetingURL"] = meetingURL.absoluteString
-
-                    let joinAction = UNNotificationAction(
-                        identifier: "JOIN_MEETING",
-                        title: NSLocalizedString("Join Meeting", comment: "Notification action to join meeting"),
-                        options: .foreground
-                    )
-                    let snoozeAction = UNNotificationAction(
-                        identifier: "SNOOZE",
-                        title: String(
-                            format: NSLocalizedString("Snooze (%d min)", comment: "Notification action to snooze"),
-                            5
-                        ),
-                        options: []
-                    )
-
-                    let category = UNNotificationCategory(
-                        identifier: "EVENT_NOTIFICATION",
-                        actions: [joinAction, snoozeAction],
-                        intentIdentifiers: [],
-                        options: []
-                    )
-
-                    notificationCenter.setNotificationCategories([category])
-                    content.categoryIdentifier = "EVENT_NOTIFICATION"
+                    content.categoryIdentifier = self.eventCategoryIdentifier
                 }
 
                 // Create trigger
