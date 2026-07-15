@@ -20,6 +20,10 @@ xcodebuild -scheme Peek -destination "platform=macOS" -derivedDataPath ./build \
 
 Use `./scripts/build-unsigned.sh` for a local ad-hoc-signed Release app with calendar entitlements.
 
+## Continuous integration
+
+CI runs the build and test suite on both `macos-latest` and `macos-13` runners (see `.github/workflows/ci.yml`). The `macos-13` job acts as the project's automated proxy for validating behavior on macOS 13 until dedicated hardware is available.
+
 ## Starting or handing off work
 
 Read `AGENTS.md` and `docs/HANDOFF.md`, then claim a ready roadmap item with a file copied from `docs/workstreams/TEMPLATE.md`. Use a dedicated branch/worktree for parallel work and declare the files or subsystem you own. Before pausing or finishing, record what changed, validation performed, remaining risks, and the exact next action in both the workstream and integrated handoff.

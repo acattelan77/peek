@@ -18,13 +18,37 @@
 
 ## Distribution
 
-The current scripts create local ad-hoc-signed builds. Public distribution additionally requires:
+The `release.yml` GitHub Actions workflow produces a Developer ID-signed, notarized, stapled DMG whenever a `v*` tag is pushed.
 
-1. Archive with Developer ID signing.
-2. Export the signed app.
-3. Submit for notarization and staple the ticket.
-4. Package the stapled app in a signed DMG.
-5. Validate with Gatekeeper on a clean machine.
+Required repository secrets:
+
+- `APPLE_DEVELOPER_ID_CERTIFICATE` — base64-encoded Developer ID Application `.p12`.
+- `APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD` — password for the `.p12`.
+- `APPLE_DEVELOPER_IDENTITY` — exact identity string, e.g. `Developer ID Application: Your Name (TEAM_ID)`.
+- `APPLE_ID` — Apple ID for `notarytool`.
+- `APPLE_APP_SPECIFIC_PASSWORD` — app-specific password for `notarytool`.
+- `APPLE_TEAM_ID` — Apple Developer Team ID.
+- `KEYCHAIN_PASSWORD` — temporary keychain password used during the runner job.
+
+The workflow performs the following steps:
+
+1. Validates version metadata with `scripts/check-version.sh`.
+2. Imports the Developer ID certificate into a temporary keychain.
+3. Runs `scripts/release.sh` to build a signed Release app, package a DMG, submit it for notarization, and staple the ticket.
+4. Uploads the DMG as a workflow artifact.
+5. Creates a GitHub Release and attaches the DMG.
+
+To create a release locally, ensure the secrets above are exported as environment variables and run:
+
+```bash
+./scripts/release.sh
+```
+
+The output is written to `artifacts/Peek-<version>.<build>.dmg`.
+
+### Update policy
+
+Peek does not include an automatic updater. New versions are published as GitHub Releases, and users are notified through release notes. A Sparkle-based automatic updater may be added in a future release if it is justified by the project scope and privacy design.
 
 Do not describe an ad-hoc-signed DMG as a public production release.
 

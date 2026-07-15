@@ -4,6 +4,19 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.2.5 - 2026-07-15
+
+### Added
+
+- CI matrix now includes a `macos-13` runner for automated macOS 13 build/test validation (PEEK-106).
+
+## 1.2.4 - 2026-07-15
+
+### Added
+
+- GitHub Actions `release.yml` workflow and `scripts/release.sh` for building a Developer ID-signed, notarized, stapled DMG on version tags (PEEK-107).
+- Documented required release secrets, release steps, and GitHub Releases update policy in `docs/RELEASE.md` (PEEK-107).
+
 ## 1.2.3 - 2026-07-15
 
 ### Added
