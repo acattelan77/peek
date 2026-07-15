@@ -4,7 +4,7 @@ Last updated: 2026-07-15
 
 ## Read this first
 
-Peek is currently at **1.2.3 (build 11)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.2.5 (build 13)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -19,16 +19,20 @@ Peek is currently at **1.2.3 (build 11)**. The repository has been reorganized i
 - PEEK-104 integrated: the global hotkey now re-registers live when changed in Preferences (no restart), triggering it activates the app so the popover surfaces above other windows, and API-reported registration failures are shown in the General tab. Carbon registration lives in `CarbonHotkeyRegistrar` (composition root) behind a `HotkeyRegistering` seam, with the decision policy in the testable `GlobalHotkeyCoordinator`.
 - PEEK-105 integrated: Preferences now shows visible success or error feedback after importing or exporting settings, including incompatible-version and file-system failures.
 - PEEK-108 integrated: VoiceOver labels and values added to the menu-bar popover and Preferences; Preferences radio rows and the selected event's meeting link are keyboard-activatable; user-facing text uses Dynamic Type-style text styles.
-- Last full validation: Debug build succeeded; 63 tests passed with zero failures on 2026-07-15. Compiled bundle metadata reports 1.2.3 (11).
+- PEEK-107 integrated: GitHub Actions `release.yml` and `scripts/release.sh` produce a Developer ID-signed, notarized, stapled DMG on version tags; release secrets and the GitHub Releases update policy are documented.
+- PEEK-106 integrated: CI now builds and tests on a `macos-13` runner as the automated proxy for macOS 13 validation.
+- Last full validation: Debug build succeeded; 63 tests passed with zero failures on 2026-07-15. Compiled bundle metadata reports 1.2.5 (13).
 
 ## Where to start next
 
-PEEK-101 through PEEK-108 are complete. The remaining `Ready` items are in `docs/ROADMAP.md`:
+PEEK-101 through PEEK-106 are complete. There are no remaining `Ready` items in `docs/ROADMAP.md`; the next candidates are in the **Next** bucket:
 
-- **PEEK-106:** Validate macOS 13 behavior on real or CI-hosted macOS 13 hardware.
-- **PEEK-107:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.
+- Event detail expansion: notes, attendees, attachments, and conference provider identity.
+- Conflict and overlap warnings.
+- Multiple time-zone display.
+- Quick event creation with explicit confirmation and calendar selection.
 
-Pick one, create a workstream from `docs/workstreams/TEMPLATE.md`, and follow the validation steps in `AGENTS.md`.
+Create a workstream from `docs/workstreams/TEMPLATE.md` and follow the validation steps in `AGENTS.md`.
 
 ## Known limitations from PEEK-104
 
