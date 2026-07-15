@@ -49,6 +49,7 @@
 		2C0000010000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
 		2C0000020000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
 		2C0000030000000000000001 /* AppVersionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000120000000000000001 /* AppVersionTests.swift */; };
+		2B0000400000000000000001 /* GlobalHotkeyCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000410000000000000001 /* GlobalHotkeyCoordinatorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +101,7 @@
 		2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAndPreferencesIntegrationTests.swift; sourceTree = "<group>"; };
 		2C0000110000000000000001 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		2C0000120000000000000001 /* AppVersionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionTests.swift; sourceTree = "<group>"; };
+		2B0000410000000000000001 /* GlobalHotkeyCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyCoordinatorTests.swift; sourceTree = "<group>"; };
 		2C0000130000000000000001 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -173,6 +175,7 @@
 				2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */,
 				2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */,
 				2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */,
+				2B0000410000000000000001 /* GlobalHotkeyCoordinatorTests.swift */,
 			);
 			path = PeekTests;
 			sourceTree = "<group>";
@@ -509,6 +512,7 @@
 				2B0000080000000000000001 /* StatusBarContentBuilderTests.swift in Sources */,
 				1A0000730000000000000001 /* EventPipelineTests.swift in Sources */,
 				2B00001A0000000000000001 /* StatusBarSpacePolicyTests.swift in Sources */,
+				2B0000400000000000000001 /* GlobalHotkeyCoordinatorTests.swift in Sources */,
 				2B00003B0000000000000001 /* CalendarManagerIntegrationTests.swift in Sources */,
 				2B0000370000000000000001 /* FakeCalendarEventStore.swift in Sources */,
 				2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */,

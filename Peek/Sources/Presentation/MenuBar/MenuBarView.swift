@@ -45,39 +45,71 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if calendarManager.upcomingEvents.isEmpty {
-                Text("No upcoming events")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                // Header with branding
-                HStack(spacing: 8) {
-                    Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .cornerRadius(6)
+            // Header remains visible in loading, permission, empty, and event states.
+            HStack(spacing: 8) {
+                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
+                    .resizable()
+                    .frame(width: 26, height: 26)
+                    .cornerRadius(6)
 
+                VStack(alignment: .leading, spacing: 1) {
                     Text("Peek")
-                        .font(.system(size: 18, weight: .semibold))
-
-                    Spacer()
-
-                    Text("\(calendarManager.upcomingEvents.count)")
+                        .font(.system(size: 17, weight: .semibold))
+                    Text("Your next event, at a glance")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.2))
-                        .cornerRadius(4)
                 }
-                .padding(.horizontal)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
 
-                Divider()
+                Spacer()
 
+                if !calendarManager.upcomingEvents.isEmpty {
+                    Text("\(calendarManager.upcomingEvents.count)")
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.secondary.opacity(0.14))
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+
+            Divider()
+
+            if calendarManager.upcomingEvents.isEmpty {
+                VStack(spacing: 9) {
+                    Image(systemName: calendarManager.hasCalendarAccess ? "calendar.badge.clock" : "calendar.badge.exclamationmark")
+                        .font(.system(size: 30, weight: .light))
+                        .foregroundColor(.accentColor)
+
+                    Text(
+                        calendarManager.hasCalendarAccess
+                            ? NSLocalizedString("No upcoming events", comment: "Empty event state title")
+                            : NSLocalizedString("No Calendar Access", comment: "Missing calendar permission title")
+                    )
+                        .font(.headline)
+
+                    Text(
+                        calendarManager.hasCalendarAccess
+                            ? NSLocalizedString(
+                                "Peek will update automatically when an event is added.",
+                                comment: "Empty event state explanation"
+                            )
+                            : NSLocalizedString(
+                                "Grant permission in System Settings → Privacy & Security → Calendars",
+                                comment: "Calendar permission recovery guidance"
+                            )
+                    )
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 270)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 28)
+                .frame(maxWidth: .infinity)
+            } else {
                 // Event list
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -111,6 +143,7 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
                 .help(NSLocalizedString("Preferences", comment: "Help text: Preferences"))
+                .accessibilityLabel(Text("Preferences"))
 
                 Spacer()
 
@@ -136,6 +169,7 @@ struct MenuBarView: View {
                 .buttonStyle(.plain)
                 .disabled(isRefreshing || !calendarManager.hasCalendarAccess)
                 .help(refreshHelpText)
+                .accessibilityLabel(Text("Refresh"))
 
                 Button(action: {
                     let calendarURL = URL(fileURLWithPath: "/System/Applications/Calendar.app")
@@ -147,6 +181,7 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
                 .help(NSLocalizedString("Open Calendar", comment: "Help text: Open Calendar"))
+                .accessibilityLabel(Text("Open Calendar"))
 
                 Spacer()
 
@@ -159,6 +194,7 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
                 .help(NSLocalizedString("Quit Peek", comment: "Help text: Quit Peek"))
+                .accessibilityLabel(Text("Quit Peek"))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -314,7 +350,7 @@ struct EventDetailView: View {
             // Location and Calendar in one row
             HStack(spacing: 12) {
                 if let location = event.location, !location.isEmpty {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 5) {
                         Image(systemName: "location")
                             .foregroundColor(.red)
                             .frame(width: 16)
@@ -325,13 +361,15 @@ struct EventDetailView: View {
                     }
                 }
 
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(Color(event.calendar.color))
-                        .frame(width: 8, height: 8)
-                    Text(event.calendar.title)
-                        .font(.caption)
-                        .lineLimit(1)
+                if let calendar = event.calendar {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(Color(calendar.color))
+                            .frame(width: 8, height: 8)
+                        Text(calendar.title)
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
                 }
             }
 
@@ -352,15 +390,8 @@ struct EventDetailView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.green, Color.green.opacity(0.8)]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .cornerRadius(4)
-                    .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                    .background(Color.accentColor)
+                    .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 4)

@@ -1,4 +1,5 @@
 import XCTest
+@testable import Peek
 
 final class MeetingURLDetectorTests: XCTestCase {
     func testIsURLSafeAcceptsTrustedDomains() {
@@ -41,5 +42,13 @@ final class MeetingURLDetectorTests: XCTestCase {
         let result = MeetingURLDetector.extractFrom(notes: notes, location: location, url: nil)
 
         XCTAssertEqual(result?.absoluteString, "https://acme.zoom.us/j/123456")
+    }
+
+    func testZoomPasswordQueryIsPreserved() {
+        let text = "Join https://acme.zoom.us/j/123456789?pwd=abcDEF123."
+
+        let result = MeetingURLDetector.findURL(in: text)
+
+        XCTAssertEqual(result?.absoluteString, "https://acme.zoom.us/j/123456789?pwd=abcDEF123")
     }
 }

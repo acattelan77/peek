@@ -81,6 +81,11 @@ struct PreferencesView: View {
 
                 Spacer()
 
+                Text(AppVersion.from().displayText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .accessibilityLabel(AppVersion.from().displayText)
+
                 Button("Done") {
                     calendarManager.savePreferences()
                     dismiss()
@@ -307,23 +312,52 @@ struct GeneralTab: View {
                         .font(.headline)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(StatusBarDisplayMode.allCases, id: \.self) { mode in
-                            HStack {
-                                Image(systemName: calendarManager.statusBarMode == mode ? "circle.fill" : "circle")
-                                    .foregroundColor(calendarManager.statusBarMode == mode ? .accentColor : .secondary)
-                                    .font(.system(size: 12))
-                                Text(mode.displayName)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                calendarManager.statusBarMode = mode
+                        Text("Display format:")
+                            .font(.subheadline)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(StatusBarDisplayMode.allCases, id: \.self) { mode in
+                                HStack {
+                                    Image(systemName: calendarManager.statusBarMode == mode ? "circle.fill" : "circle")
+                                        .foregroundColor(calendarManager.statusBarMode == mode ? .accentColor : .secondary)
+                                        .font(.system(size: 12))
+                                    Text(mode.displayName)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    calendarManager.statusBarMode = mode
+                                }
                             }
                         }
+                        .padding(.leading, 4)
                     }
-                    .padding(.leading, 4)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Space policy:")
+                            .font(.subheadline)
+                            .padding(.top, 4)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(MenuBarSpacePolicy.allCases, id: \.self) { policy in
+                                HStack {
+                                    Image(systemName: calendarManager.menuBarSpacePolicy == policy ? "circle.fill" : "circle")
+                                        .foregroundColor(calendarManager.menuBarSpacePolicy == policy ? .accentColor : .secondary)
+                                        .font(.system(size: 12))
+                                    Text(policy.displayName)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    calendarManager.menuBarSpacePolicy = policy
+                                }
+                            }
+                        }
+                        .padding(.leading, 4)
+                    }
 
                     Toggle("Show event count badge", isOn: $calendarManager.showEventCount)
                         .padding(.top, 8)
+
+                    Toggle("Use urgency colors", isOn: $calendarManager.urgencyColorsEnabled)
                 }
 
                 Divider()
@@ -374,10 +408,18 @@ struct GeneralTab: View {
                     }
                     .padding(.leading, 4)
 
-                    Text("Restart app for hotkey change to take effect")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 4)
+                    if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
+                        Text(hotkeyStatusMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 4)
+                    } else {
+                        Text("Changes take effect immediately")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 4)
+                    }
                 }
 
                 Divider()

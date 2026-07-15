@@ -1,4 +1,5 @@
 import XCTest
+@testable import Peek
 
 final class MeetingUrgencyTests: XCTestCase {
     func testMeetingUrgencyThresholds() {

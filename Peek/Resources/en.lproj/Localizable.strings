@@ -23,6 +23,8 @@
 
 /* Menu Bar */
 "Peek" = "Peek";
+"Your next event, at a glance" = "Your next event, at a glance";
+"Peek will update automatically when an event is added." = "Peek will update automatically when an event is added.";
 "Preferences" = "Preferences";
 "Refresh" = "Refresh";
 "Refreshing..." = "Refreshing...";
@@ -67,10 +69,14 @@
 "Next 30 days" = "Next 30 days";
 "Max events to show:" = "Max events to show:";
 "Status Bar Display" = "Status Bar Display";
+"Display format:" = "Display format:";
+"Space policy:" = "Space policy:";
 "Show event count badge" = "Show event count badge";
+"Use urgency colors" = "Use urgency colors";
 "Appearance" = "Appearance";
 "Global Hotkey" = "Global Hotkey";
-"Restart app for hotkey change to take effect" = "Restart app for hotkey change to take effect";
+"Changes take effect immediately" = "Changes take effect immediately";
+"Couldn't register %@. Another app may be using this shortcut. Try a different one." = "Couldn't register %@. Another app may be using this shortcut. Try a different one.";
 "Notifications" = "Notifications";
 "Enable event notifications" = "Enable event notifications";
 "Notifications include meeting links when available" = "Notifications include meeting links when available";
@@ -81,7 +87,9 @@
 "Birthday" = "Birthday";
 "Time Until" = "Time Until";
 "Actual Time" = "Actual Time";
-"Icon Only" = "Icon Only";
+"Automatic" = "Automatic";
+"Always show icon" = "Always show icon";
+"Always show text" = "Always show text";
 "Auto" = "Auto";
 "Light" = "Light";
 "Dark" = "Dark";
@@ -90,3 +98,4 @@
 "10 minutes before" = "10 minutes before";
 "15 minutes before" = "15 minutes before";
 "30 minutes before" = "30 minutes before";
+"Version %@ (%@)" = "Version %@ (%@)";

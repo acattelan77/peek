@@ -4,6 +4,19 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.2.1 - 2026-07-15
+
+### Changed
+
+- The global hotkey now updates immediately when changed in Preferences; no app restart is required (PEEK-104).
+- Triggering Peek with the global hotkey now brings the app forward so the popover reliably appears above the frontmost window (PEEK-104).
+
+### Fixed
+
+- Failed global-hotkey registration (for example, a shortcut another app already owns) is now surfaced in Preferences instead of only printing to the console (PEEK-104).
+- The event notification category (Join/Snooze actions) is now registered once at startup instead of repeatedly inside the per-event scheduling loop, so notification actions are reliable regardless of which events have meeting links.
+- The event row no longer force-unwraps an event's calendar, preventing a potential crash for events without an associated calendar.
+
 ## 1.2.0 - 2026-07-15
 
 ### Added
