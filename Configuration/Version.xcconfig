@@ -1,0 +1,3 @@
+// Single source of truth. Use scripts/bump-version.sh; do not edit casually.
+MARKETING_VERSION = 1.2.0
+CURRENT_PROJECT_VERSION = 8

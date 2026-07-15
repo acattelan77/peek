@@ -30,6 +30,25 @@
 		1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356A21502F22CFCE0059351D /* NotificationManager.swift */; };
+		2B0000010000000000000001 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000110000000000000001 /* AppPreferences.swift */; };
+		2B0000020000000000000001 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000110000000000000001 /* AppPreferences.swift */; };
+		2B0000030000000000000001 /* CalendarEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000120000000000000001 /* CalendarEventStore.swift */; };
+		2B0000040000000000000001 /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000130000000000000001 /* PreferencesStore.swift */; };
+		2B0000050000000000000001 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000140000000000000001 /* AppEnvironment.swift */; };
+		2B0000060000000000000001 /* StatusBarContentBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000150000000000000001 /* StatusBarContentBuilder.swift */; };
+		2B0000070000000000000001 /* StatusBarContentBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000150000000000000001 /* StatusBarContentBuilder.swift */; };
+		2B0000080000000000000001 /* StatusBarContentBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */; };
+		2B0000180000000000000001 /* StatusBarSpacePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000170000000000000001 /* StatusBarSpacePolicy.swift */; };
+		2B00001A0000000000000001 /* StatusBarSpacePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */; };
+		2B00001B0000000000000001 /* StatusBarSpacePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000170000000000000001 /* StatusBarSpacePolicy.swift */; };
+		2B0000370000000000000001 /* FakeCalendarEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000360000000000000001 /* FakeCalendarEventStore.swift */; };
+		2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000380000000000000001 /* FakeNotificationScheduler.swift */; };
+		2B00003B0000000000000001 /* CalendarManagerIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */; };
+		2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003E0000000000000001 /* FakeLaunchAtLoginController.swift */; };
+		2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */; };
+		2C0000010000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
+		2C0000020000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
+		2C0000030000000000000001 /* AppVersionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000120000000000000001 /* AppVersionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +84,23 @@
 		1A0000310000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1A0000330000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		356A21502F22CFCE0059351D /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		2B0000110000000000000001 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
+		2B0000120000000000000001 /* CalendarEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventStore.swift; sourceTree = "<group>"; };
+		2B0000130000000000000001 /* PreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStore.swift; sourceTree = "<group>"; };
+		2B0000140000000000000001 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		2B0000150000000000000001 /* StatusBarContentBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarContentBuilder.swift; sourceTree = "<group>"; };
+		2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarContentBuilderTests.swift; sourceTree = "<group>"; };
+		2B0000170000000000000001 /* StatusBarSpacePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarSpacePolicy.swift; sourceTree = "<group>"; };
+		2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarSpacePolicyTests.swift; sourceTree = "<group>"; };
+		2B0000350000000000000001 /* Fakes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fakes; sourceTree = "<group>"; };
+		2B0000360000000000000001 /* FakeCalendarEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeCalendarEventStore.swift; sourceTree = "<group>"; };
+		2B0000380000000000000001 /* FakeNotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeNotificationScheduler.swift; sourceTree = "<group>"; };
+		2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManagerIntegrationTests.swift; sourceTree = "<group>"; };
+		2B00003E0000000000000001 /* FakeLaunchAtLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeLaunchAtLoginController.swift; sourceTree = "<group>"; };
+		2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAndPreferencesIntegrationTests.swift; sourceTree = "<group>"; };
+		2C0000110000000000000001 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
+		2C0000120000000000000001 /* AppVersionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionTests.swift; sourceTree = "<group>"; };
+		2C0000130000000000000001 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +124,7 @@
 		1A0000110000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				2C0000200000000000000001 /* Configuration */,
 				1A0000120000000000000001 /* Peek */,
 				1A0000480000000000000001 /* PeekTests */,
 				1A0000130000000000000001 /* Products */,
@@ -107,9 +144,10 @@
 			isa = PBXGroup;
 			children = (
 				1A0000250000000000000001 /* App */,
-				1A0000260000000000000001 /* Managers */,
-				1A0000640000000000000001 /* Utilities */,
-				1A0000270000000000000001 /* Views */,
+				2B0000200000000000000001 /* Application */,
+				2B0000210000000000000001 /* Domain */,
+				2B0000220000000000000001 /* Infrastructure */,
+				2B0000230000000000000001 /* Presentation */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -122,46 +160,21 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		1A0000260000000000000001 /* Managers */ = {
-			isa = PBXGroup;
-			children = (
-				1A0000040000000000000001 /* CalendarManager.swift */,
-				356A21502F22CFCE0059351D /* NotificationManager.swift */,
-			);
-			path = Managers;
-			sourceTree = "<group>";
-		};
-		1A0000270000000000000001 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				1A0000060000000000000001 /* MenuBarView.swift */,
-				1A0000120000000000000002 /* PreferencesView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
 		1A0000480000000000000001 /* PeekTests */ = {
 			isa = PBXGroup;
 			children = (
+				2B0000350000000000000001 /* Fakes */,
+				2C0000120000000000000001 /* AppVersionTests.swift */,
 				1A0000490000000000000001 /* MeetingURLDetectorTests.swift */,
 				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
 				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
+				2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */,
+				2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */,
+				2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */,
+				2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */,
 			);
 			path = PeekTests;
-			sourceTree = "<group>";
-		};
-		1A0000640000000000000001 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
-				1A00006D0000000000000001 /* EventPipeline.swift */,
-				1A00006E0000000000000001 /* EventCandidate+EventKit.swift */,
-				1A0000600000000000000001 /* MeetingURLDetector.swift */,
-				1A0000620000000000000001 /* EventTimeFormatter.swift */,
-				1A0000680000000000000001 /* MeetingUrgency.swift */,
-			);
-			path = Utilities;
 			sourceTree = "<group>";
 		};
 		1A0000280000000000000001 /* Resources */ = {
@@ -183,6 +196,157 @@
 				1A0000470000000000000001 /* PeekTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2B0000200000000000000001 /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000140000000000000001 /* AppEnvironment.swift */,
+				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
+				2C0000110000000000000001 /* AppVersion.swift */,
+				2B0000170000000000000001 /* StatusBarSpacePolicy.swift */,
+				2B0000240000000000000001 /* Calendar */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		2B0000210000000000000001 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000250000000000000001 /* Models */,
+				2B0000260000000000000001 /* Events */,
+				2B0000270000000000000001 /* Meetings */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		2B0000220000000000000001 /* Infrastructure */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000280000000000000001 /* Calendar */,
+				2B0000290000000000000001 /* Notifications */,
+				2B0000300000000000000001 /* Preferences */,
+			);
+			path = Infrastructure;
+			sourceTree = "<group>";
+		};
+		2B0000230000000000000001 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000310000000000000001 /* Formatting */,
+				2B0000320000000000000001 /* MenuBar */,
+				2B0000330000000000000001 /* Preferences */,
+				2B0000340000000000000001 /* StatusBar */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		2B0000240000000000000001 /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000040000000000000001 /* CalendarManager.swift */,
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		2B0000250000000000000001 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000110000000000000001 /* AppPreferences.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		2B0000260000000000000001 /* Events */ = {
+			isa = PBXGroup;
+			children = (
+				1A00006D0000000000000001 /* EventPipeline.swift */,
+				1A0000680000000000000001 /* MeetingUrgency.swift */,
+			);
+			path = Events;
+			sourceTree = "<group>";
+		};
+		2B0000270000000000000001 /* Meetings */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000600000000000000001 /* MeetingURLDetector.swift */,
+			);
+			path = Meetings;
+			sourceTree = "<group>";
+		};
+		2B0000280000000000000001 /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000120000000000000001 /* CalendarEventStore.swift */,
+				1A00006E0000000000000001 /* EventCandidate+EventKit.swift */,
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		2B0000290000000000000001 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				356A21502F22CFCE0059351D /* NotificationManager.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		2B0000300000000000000001 /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000130000000000000001 /* PreferencesStore.swift */,
+			);
+			path = Preferences;
+			sourceTree = "<group>";
+		};
+		2B0000310000000000000001 /* Formatting */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000620000000000000001 /* EventTimeFormatter.swift */,
+			);
+			path = Formatting;
+			sourceTree = "<group>";
+		};
+		2B0000320000000000000001 /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000060000000000000001 /* MenuBarView.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		2B0000330000000000000001 /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000120000000000000002 /* PreferencesView.swift */,
+			);
+			path = Preferences;
+			sourceTree = "<group>";
+		};
+		2B0000340000000000000001 /* StatusBar */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000150000000000000001 /* StatusBarContentBuilder.swift */,
+			);
+			path = StatusBar;
+			sourceTree = "<group>";
+		};
+		2B0000350000000000000001 /* Fakes */ = {
+			isa = PBXGroup;
+			children = (
+				2B0000360000000000000001 /* FakeCalendarEventStore.swift */,
+				2B0000380000000000000001 /* FakeNotificationScheduler.swift */,
+				2B00003E0000000000000001 /* FakeLaunchAtLoginController.swift */,
+			);
+			path = Fakes;
+			sourceTree = "<group>";
+		};
+		2C0000200000000000000001 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				2C0000130000000000000001 /* Version.xcconfig */,
+			);
+			path = Configuration;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -314,14 +478,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A0000010000000000000001 /* PeekApp.swift in Sources */,
+				2B0000180000000000000001 /* StatusBarSpacePolicy.swift in Sources */,
+				2B0000050000000000000001 /* AppEnvironment.swift in Sources */,
+				2C0000010000000000000001 /* AppVersion.swift in Sources */,
 				1A0000030000000000000001 /* CalendarManager.swift in Sources */,
 				356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */,
+				2B0000030000000000000001 /* CalendarEventStore.swift in Sources */,
+				2B0000040000000000000001 /* PreferencesStore.swift in Sources */,
+				2B0000010000000000000001 /* AppPreferences.swift in Sources */,
 				1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */,
 				1A0000700000000000000001 /* EventPipeline.swift in Sources */,
 				1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */,
 				1A0000610000000000000001 /* MeetingURLDetector.swift in Sources */,
 				1A0000630000000000000001 /* EventTimeFormatter.swift in Sources */,
 				1A0000690000000000000001 /* MeetingUrgency.swift in Sources */,
+				2B0000060000000000000001 /* StatusBarContentBuilder.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
 				1A0000110000000000000002 /* PreferencesView.swift in Sources */,
 			);
@@ -331,15 +502,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2C0000030000000000000001 /* AppVersionTests.swift in Sources */,
 				1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */,
 				1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */,
 				1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */,
+				2B0000080000000000000001 /* StatusBarContentBuilderTests.swift in Sources */,
 				1A0000730000000000000001 /* EventPipelineTests.swift in Sources */,
-				1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */,
-				1A0000720000000000000001 /* EventPipeline.swift in Sources */,
-				1A00006B0000000000000001 /* MeetingURLDetector.swift in Sources */,
-				1A00006C0000000000000001 /* EventTimeFormatter.swift in Sources */,
-				1A00006A0000000000000001 /* MeetingUrgency.swift in Sources */,
+				2B00001A0000000000000001 /* StatusBarSpacePolicyTests.swift in Sources */,
+				2B00003B0000000000000001 /* CalendarManagerIntegrationTests.swift in Sources */,
+				2B0000370000000000000001 /* FakeCalendarEventStore.swift in Sources */,
+				2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */,
+				2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */,
+				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -470,12 +644,12 @@
 		};
 		1A0000220000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2C0000130000000000000001 /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Peek/Resources/Peek.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
 				ENABLE_APP_SANDBOX = YES;
@@ -491,7 +665,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peek.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -501,12 +674,12 @@
 		};
 		1A0000230000000000000001 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2C0000130000000000000001 /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Peek/Resources/Peek.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
 				ENABLE_APP_SANDBOX = YES;
@@ -522,7 +695,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peek.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -534,11 +706,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleName = "$(PRODUCT_NAME)";
-				INFOPLIST_KEY_NSPrincipalClass = "NSApplication";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -549,6 +721,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Peek.app/Contents/MacOS/Peek";
 			};
 			name = Debug;
 		};
@@ -556,11 +729,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RY7ZAZ3QN9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleName = "$(PRODUCT_NAME)";
-				INFOPLIST_KEY_NSPrincipalClass = "NSApplication";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -572,6 +745,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Peek.app/Contents/MacOS/Peek";
 			};
 			name = Release;
 		};

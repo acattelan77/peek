@@ -1,0 +1,50 @@
+# Changelog
+
+This project follows Keep a Changelog conventions. Versions are released from `main`.
+
+## Unreleased
+
+## 1.2.0 - 2026-07-15
+
+### Added
+
+- Fake EventKit event store and notification scheduler for isolated integration tests (PEEK-102).
+- CalendarManager integration tests covering authorization, refresh, calendar filtering, and notification scheduling (PEEK-102).
+- Menu-bar and preferences integration tests covering first-launch calendar defaults, denied access, empty state, event-list behavior, persistence, import/export, and view instantiation (PEEK-103).
+- Fake launch-at-login controller for `PreferencesView` tests (PEEK-103).
+- Notch-safe adaptive compact mode for crowded menu bars (PEEK-101).
+- New menu-bar space policy with `Automatic`, `Always show icon`, and `Always show text` options.
+- Hysteresis in the space policy to prevent rapid text/icon oscillation near the width threshold.
+- Notch detection that reserves extra margin on notched displays so Peek falls back to its icon earlier.
+- Migration of the previous `Icon Only` display mode to the new `Always show icon` space policy.
+
+### Changed
+
+- `StatusBarDisplayMode` now only controls time format (`Time Until` / `Actual Time`); icon-vs-text behavior is handled by `MenuBarSpacePolicy`.
+
+### Fixed
+
+- `CalendarManager.refreshAuthorizationStatus()` now updates `hasCalendarAccess` synchronously so callers and observers see consistent state immediately.
+
+## 1.1.0 - 2026-07-15
+
+### Added
+
+- Layered source architecture and live dependency composition.
+- EventKit, notification, and preferences service boundaries.
+- Testable status-bar content builder.
+- Architecture, roadmap, development, design, release, security, and decision documentation.
+- Reproducible app and menu-bar asset generator.
+- Refreshed blue-indigo calendar-fold identity.
+- Repository-level multi-agent contract, integrated handoff, and workstream ownership protocol.
+- Central version configuration, bump/check tooling, CI validation, and version display in Preferences.
+
+### Changed
+
+- Ongoing events outside the grace window no longer precede the actual next event.
+- Zoom links preserve password query parameters.
+- Notification permission is requested only after notifications are enabled.
+
+### Fixed
+
+- Selecting disabled notification timing now removes pending event reminders.
