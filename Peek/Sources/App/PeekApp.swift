@@ -455,7 +455,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.imagePosition = .imageLeading
         }
 
-        button.accessibilityLabel = content.tooltip ?? content.title
+        button.setAccessibilityLabel(content.tooltip ?? content.title)
     }
 
     private func statusItemMetrics(button: NSStatusBarButton, title: String) -> (availableWidth: CGFloat, requiredWidth: CGFloat, notchMargin: CGFloat) {

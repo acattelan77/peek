@@ -17,7 +17,7 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 - **PEEK-105 — Done:** Add visible success/error feedback for settings import and export.
 - **PEEK-106 — Ready:** Validate macOS 13 behavior on real or CI-hosted macOS 13 hardware.
 - **PEEK-107 — Ready:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.
-- **PEEK-108 — Ready:** Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-style scaling.
+- **PEEK-108 — Done:** Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-style scaling.
 
 ## Next — calendar usefulness
 

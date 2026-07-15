@@ -4,6 +4,14 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.2.3 - 2026-07-15
+
+### Added
+
+- VoiceOver labels and values for the menu-bar popover event list, status-item button, and Preferences controls (PEEK-108).
+- Keyboard activation for Preferences radio rows and for opening the selected event's meeting link with Return or Space in the popover (PEEK-108).
+- Dynamic Type-style text styles for user-facing text in the popover and Preferences (PEEK-108).
+
 ## 1.2.2 - 2026-07-15
 
 ### Added
