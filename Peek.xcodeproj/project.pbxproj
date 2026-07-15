@@ -50,6 +50,10 @@
 		2C0000020000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
 		2C0000030000000000000001 /* AppVersionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000120000000000000001 /* AppVersionTests.swift */; };
 		2B0000400000000000000001 /* GlobalHotkeyCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000410000000000000001 /* GlobalHotkeyCoordinatorTests.swift */; };
+		2D0000010000000000000001 /* PeekTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000110000000000000001 /* PeekTheme.swift */; };
+		2D0000020000000000000001 /* PeekComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000120000000000000001 /* PeekComponents.swift */; };
+		2D0000030000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000130000000000000001 /* OnboardingView.swift */; };
+		2D0000040000000000000001 /* StartingNowHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000140000000000000001 /* StartingNowHUD.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +106,10 @@
 		2C0000110000000000000001 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		2C0000120000000000000001 /* AppVersionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionTests.swift; sourceTree = "<group>"; };
 		2B0000410000000000000001 /* GlobalHotkeyCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyCoordinatorTests.swift; sourceTree = "<group>"; };
+		2D0000110000000000000001 /* PeekTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeekTheme.swift; sourceTree = "<group>"; };
+		2D0000120000000000000001 /* PeekComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeekComponents.swift; sourceTree = "<group>"; };
+		2D0000130000000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		2D0000140000000000000001 /* StartingNowHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartingNowHUD.swift; sourceTree = "<group>"; };
 		2C0000130000000000000001 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -236,7 +244,10 @@
 		2B0000230000000000000001 /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
+				2D0000210000000000000001 /* DesignSystem */,
 				2B0000310000000000000001 /* Formatting */,
+				2D0000220000000000000001 /* Onboarding */,
+				2D0000230000000000000001 /* HUD */,
 				2B0000320000000000000001 /* MenuBar */,
 				2B0000330000000000000001 /* Preferences */,
 				2B0000340000000000000001 /* StatusBar */,
@@ -308,6 +319,31 @@
 				1A0000620000000000000001 /* EventTimeFormatter.swift */,
 			);
 			path = Formatting;
+			sourceTree = "<group>";
+		};
+		2D0000210000000000000001 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				2D0000110000000000000001 /* PeekTheme.swift */,
+				2D0000120000000000000001 /* PeekComponents.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		2D0000220000000000000001 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				2D0000130000000000000001 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		2D0000230000000000000001 /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				2D0000140000000000000001 /* StartingNowHUD.swift */,
+			);
+			path = HUD;
 			sourceTree = "<group>";
 		};
 		2B0000320000000000000001 /* MenuBar */ = {
@@ -496,6 +532,10 @@
 				1A0000630000000000000001 /* EventTimeFormatter.swift in Sources */,
 				1A0000690000000000000001 /* MeetingUrgency.swift in Sources */,
 				2B0000060000000000000001 /* StatusBarContentBuilder.swift in Sources */,
+				2D0000010000000000000001 /* PeekTheme.swift in Sources */,
+				2D0000020000000000000001 /* PeekComponents.swift in Sources */,
+				2D0000030000000000000001 /* OnboardingView.swift in Sources */,
+				2D0000040000000000000001 /* StartingNowHUD.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
 				1A0000110000000000000002 /* PreferencesView.swift in Sources */,
 			);

@@ -27,6 +27,10 @@ class CalendarManager: ObservableObject {
     @Published var notificationTiming: NotificationTiming = .fifteenMinutes
     @Published var urgencyColorsEnabled: Bool = true
 
+    /// Whether the first-run onboarding flow has been completed. Persisted so it is
+    /// only shown once.
+    @Published var hasCompletedOnboarding: Bool = false
+
     /// Transient (not persisted) message describing the outcome of the most recent
     /// global-hotkey registration. `nil` means the current hotkey is active.
     @Published var hotkeyStatusMessage: String?
@@ -47,6 +51,7 @@ class CalendarManager: ObservableObject {
     private let notificationsEnabledKey = "notificationsEnabled"
     private let notificationTimingKey = "notificationTiming"
     private let urgencyColorsEnabledKey = "urgencyColorsEnabled"
+    private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -114,6 +119,14 @@ class CalendarManager: ObservableObject {
         }
 
         urgencyColorsEnabled = defaults.object(forKey: urgencyColorsEnabledKey) as? Bool ?? true
+
+        hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
+    }
+
+    /// Persists that onboarding has finished, so it will not be shown again.
+    func completeOnboarding() {
+        hasCompletedOnboarding = true
+        defaults.set(true, forKey: hasCompletedOnboardingKey)
     }
 
     func savePreferences() {

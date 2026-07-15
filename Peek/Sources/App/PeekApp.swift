@@ -33,6 +33,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var outsideClickEventMonitor: Any?
     private var refreshWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
+    private var onboardingWindow: NSWindow?
+    private var hudWindow: NSPanel?
+    private var shownStartingNowEventIDs = Set<String>()
+    private var hudSnoozeWorkItem: DispatchWorkItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Compose live infrastructure once, at the application boundary.
@@ -223,7 +227,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.scheduleRefresh(debounce: 1.0)
         }
 
-        // Request calendar access and start monitoring
+        // First run shows onboarding, which drives calendar access itself. Existing
+        // users (already authorized, or previously onboarded) skip straight to the
+        // normal access flow.
+        let alreadyAuthorized = calendarManager.refreshAuthorizationStatus()
+        if calendarManager.hasCompletedOnboarding || alreadyAuthorized {
+            requestCalendarAccessAndStart()
+        } else {
+            presentOnboarding()
+        }
+    }
+
+    /// Requests calendar access and begins monitoring. Safe to call when already
+    /// authorized (the system returns the cached decision without re-prompting).
+    private func requestCalendarAccessAndStart() {
         calendarManager.requestAccess { [weak self] granted, error in
             if granted {
                 self?.handleCalendarAccessChange(granted: true, shouldRefresh: true)
@@ -246,6 +263,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - Onboarding
+
+    private func presentOnboarding() {
+        let view = OnboardingView(calendarManager: calendarManager) { [weak self] in
+            self?.finishOnboarding()
+        }
+        let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.title = "Peek"
+        window.delegate = self
+        window.center()
+        window.level = .floating
+        onboardingWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func finishOnboarding() {
+        guard let window = onboardingWindow else { return }
+        calendarManager.completeOnboarding()
+        onboardingWindow = nil
+        window.close()
+
+        // Reflect whatever access state onboarding produced without a second prompt.
+        let granted = calendarManager.refreshAuthorizationStatus()
+        handleCalendarAccessChange(granted: granted, shouldRefresh: true)
+        if granted && calendarManager.notificationsEnabled {
+            notificationManager.requestPermission { [weak self] ok in
+                if ok { self?.rescheduleNotifications() }
+            }
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         hotkeyRegistrar?.unregister()
         updateTimer?.invalidate()
@@ -259,7 +312,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         calendarManager.stopObservingChanges()
-
+        closeHUD()
     }
 
     @objc private func handleAppDidBecomeActive() {
@@ -417,6 +470,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 self.updatePulsingState(urgency: content.urgency)
                 self.adjustTimerForUrgency(content.urgency)
+                self.maybeShowStartingNowHUD(for: event, urgency: content.urgency)
             } else {
                 content = StatusBarContent(
                     title: NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),
@@ -489,9 +543,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if calendarManager.urgencyColorsEnabled {
             switch urgency {
             case .critical:
-                color = .systemRed
+                color = NSColor(hex: "#E5484D") // Peek critical red
             case .urgent:
-                color = .systemOrange
+                color = NSColor(hex: "#E8912B") // Peek urgent amber
             case .normal:
                 color = .labelColor // System default
             }
@@ -598,6 +652,99 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - "Starting now" HUD
+
+    /// Shows the heads-up card once when an event reaches its start time.
+    private func maybeShowStartingNowHUD(for event: EKEvent, urgency: MeetingUrgency) {
+        guard urgency == .critical, !event.isAllDay, let eventID = event.eventIdentifier else { return }
+
+        let now = Date()
+        // Fire only in the first minute after the start time, and only once per event.
+        let started = event.startDate.timeIntervalSince(now)
+        guard started <= 0, started > -60, !shownStartingNowEventIDs.contains(eventID) else { return }
+
+        shownStartingNowEventIDs.insert(eventID)
+        showStartingNowHUD(for: event)
+    }
+
+    private func showStartingNowHUD(for event: EKEvent) {
+        closeHUD()
+
+        let meetingURL = MeetingURLDetector.extract(from: event)
+        let providerLabel = meetingURL.map { MeetingProvider.label(for: $0) }
+
+        let hud = StartingNowHUD(
+            title: event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title"),
+            timeRange: EventTimeFormatter.timeRangeText(start: event.startDate, end: event.endDate),
+            calendarName: event.calendar?.title,
+            calendarColor: event.calendar.map { Color($0.color) },
+            joinProviderLabel: providerLabel,
+            appearanceMode: calendarManager.appearanceMode,
+            onJoin: { [weak self] in
+                if let url = meetingURL, MeetingURLDetector.isURLSafe(url) {
+                    NSWorkspace.shared.open(url)
+                }
+                self?.closeHUD()
+            },
+            onSnooze: { [weak self] in
+                self?.snoozeHUD(for: event)
+            },
+            onClose: { [weak self] in
+                self?.closeHUD()
+            }
+        )
+
+        let panel = NSPanel(contentViewController: NSHostingController(rootView: hud))
+        panel.styleMask = [.borderless, .nonactivatingPanel]
+        panel.isFloatingPanel = true
+        panel.level = .floating
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.hasShadow = true
+        panel.hidesOnDeactivate = false
+
+        // Position top-right of the active screen.
+        if let screen = NSScreen.main {
+            let visible = screen.visibleFrame
+            let size = panel.frame.size
+            let origin = NSPoint(
+                x: visible.maxX - size.width - 16,
+                y: visible.maxY - size.height - 16
+            )
+            panel.setFrameOrigin(origin)
+        }
+
+        hudWindow = panel
+        panel.orderFrontRegardless()
+    }
+
+    private func snoozeHUD(for event: EKEvent) {
+        closeHUD()
+        let work = DispatchWorkItem { [weak self] in
+            self?.showStartingNowHUD(for: event)
+        }
+        hudSnoozeWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 300, execute: work)
+    }
+
+    private func closeHUD() {
+        hudSnoozeWorkItem?.cancel()
+        hudSnoozeWorkItem = nil
+        hudWindow?.close()
+        hudWindow = nil
+    }
+
+}
+
+extension AppDelegate: NSWindowDelegate {
+    func windowWillClose(_ notification: Notification) {
+        // If the user closes onboarding via the traffic light, treat it as finished.
+        guard (notification.object as? NSWindow) === onboardingWindow else { return }
+        calendarManager.completeOnboarding()
+        onboardingWindow = nil
+        let granted = calendarManager.refreshAuthorizationStatus()
+        handleCalendarAccessChange(granted: granted, shouldRefresh: true)
+    }
 }
 
 /// Live Carbon implementation of `HotkeyRegistering`. Installs the hot-key event
