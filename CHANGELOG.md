@@ -4,6 +4,24 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.3 - 2026-07-16
+
+### Changed
+
+- Aligned the menu-bar template icon with the app icon model: calendar page, header band,
+  binding stubs, single next-event slot, and lower-right fold now come from the same asset
+  generator.
+- Replaced the app-icon master with the refined "peek behind the calendar" artwork and
+  regenerated the complete macOS app-icon catalog from that source.
+- Tightened design-system adoption in Preferences and onboarding by moving checkbox calendar
+  rows into a shared component and replacing the keyword filter text field with removable
+  design-system chips.
+- Menu-bar urgency title colors now use named design-system AppKit tokens.
+- Removed the square AppKit panel outline behind the rounded "Starting now" HUD.
+- Added breathing room between onboarding actions and the step progress dots.
+- Meeting notifications now keep the user's toggle preference on even when macOS notification
+  permission is unavailable, and scheduling resumes after permission is granted.
+
 ## 1.3.2 - 2026-07-16
 
 ### Changed
