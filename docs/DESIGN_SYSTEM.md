@@ -11,14 +11,14 @@ The design system is expressed as a single shared token layer under
 `Peek/Sources/Presentation/DesignSystem/`; every view consumes it rather than hardcoding
 values:
 
-- `PeekTheme.swift` — `PeekColor` (light/dark-aware brand, urgency, neutral, and text
-  tokens), `PeekFont` (SF Pro roles), `PeekSpacing` / `PeekRadius` (4pt grid), and
-  `PeekElevation` (`.peekShadow(_:)`).
+- `PeekTheme.swift` — `PeekColor` / `PeekNSColor` (light/dark-aware brand, urgency,
+  neutral, menu-bar, and text tokens), `PeekFont` (SF Pro roles), `PeekSpacing` /
+  `PeekRadius` (4pt grid), and `PeekElevation` (`.peekShadow(_:)`).
 - `PeekComponents.swift` — reusable pieces: `PeekBadge` (NEXT/SOON/NOW/ALL DAY),
-  `CountPill`, `InsetCard` + `GroupLabel` + `SettingRow`, the button styles
-  (`PrimaryButtonStyle`, `SoftAccentButtonStyle`, `SecondaryFillButtonStyle`), the
-  `PulsingDot`, and the `.peekFocusRing(_:)` modifier. `PeekMotion.reduceMotion` gates
-  animation.
+  `CountPill`, `InsetCard` + `GroupLabel` + `SettingRow`, `PeekCheckboxRow`,
+  `PeekKeywordChip`, the button styles (`PrimaryButtonStyle`, `SoftAccentButtonStyle`,
+  `SecondaryFillButtonStyle`), the `PulsingDot`, and the `.peekFocusRing(_:)` modifier.
+  `PeekMotion.reduceMotion` gates animation.
 
 Surfaces built on the tokens: the popover (`MenuBar/MenuBarView.swift`), Preferences
 (`Preferences/PreferencesView.swift`), first-run onboarding (`Onboarding/OnboardingView.swift`),
@@ -48,13 +48,17 @@ SwiftUI controls should continue to use semantic system colors for accessibility
 
 - Master: `design/brand/peek-app-icon-master.png`
 - Generated set: `Peek/Resources/Assets.xcassets/AppIcon.appiconset`
-- Preserve the page fold, single coral slot, and indigo/blue palette.
+- Preserve the page fold, single coral slot peeking from behind the calendar, and
+  indigo/blue palette.
 - Never add text, numbers, a dense month grid, or traffic-light window controls.
 - Verify at 16, 32, 128, and 1024 px after every change.
 
 ## Menu-bar icon
 
-The status icon is a monochrome template image generated in code. It uses a calendar outline, two bindings, and a single next-event slot. Never embed color because macOS controls template tinting for light, dark, selected, and accessibility appearances.
+The status icon is a monochrome template image generated in code. It is a simplified glyph
+of the app icon: a calendar page outline, header mark, two binding stubs, a lower-right fold,
+and a bolder next-event slot peeking behind it. Never embed color because macOS controls
+template tinting for light, dark, selected, and accessibility appearances.
 
 ## UI principles
 

@@ -102,6 +102,8 @@
 
 /* Design system refresh (popover, preferences, onboarding, HUD) */
 "%d upcoming events" = "%d upcoming events";
+"Add keyword" = "Add keyword";
+"Add keyword…" = "Add keyword…";
 "Alert timing" = "Alert timing";
 "Alert with a join link before an event starts." = "Alert with a join link before an event starts.";
 "Calendar access needed" = "Calendar access needed";
@@ -141,6 +143,8 @@
 "Refresh events" = "Refresh events";
 "Refreshing…" = "Refreshing…";
 "Requesting…" = "Requesting…";
+"Remove %@" = "Remove %@";
+"Remove keyword" = "Remove keyword";
 "SOON" = "SOON";
 "STARTING NOW" = "STARTING NOW";
 "Saves Peek settings to a JSON file" = "Saves Peek settings to a JSON file";

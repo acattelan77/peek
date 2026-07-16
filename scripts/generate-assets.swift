@@ -91,27 +91,45 @@ func statusIconPNG(scale: Int) throws -> Data {
     NSColor.black.setStroke()
     NSColor.black.setFill()
 
-    let calendar = NSBezierPath(roundedRect: NSRect(x: 3.25, y: 3.25, width: 15.5, height: 15), xRadius: 3, yRadius: 3)
-    calendar.lineWidth = 1.7
-    calendar.stroke()
+    let pageRect = NSRect(x: 3.8, y: 3.1, width: 14.4, height: 15.8)
+    let page = NSBezierPath(roundedRect: pageRect, xRadius: 2.8, yRadius: 2.8)
 
-    let header = NSBezierPath()
-    header.move(to: NSPoint(x: 3.8, y: 13.6))
-    header.line(to: NSPoint(x: 18.2, y: 13.6))
-    header.lineWidth = 1.6
-    header.stroke()
+    // Template glyph for the generated app icon: a calendar sheet with a folded
+    // corner revealing the next event. macOS supplies the final menu-bar tint.
+    page.lineWidth = 1.75
+    page.stroke()
 
-    for x in [7.25, 14.75] {
-        let binding = NSBezierPath()
-        binding.move(to: NSPoint(x: x, y: 16.3))
-        binding.line(to: NSPoint(x: x, y: 19.4))
-        binding.lineWidth = 1.9
-        binding.lineCapStyle = .round
-        binding.stroke()
+    let headerSeparator = NSBezierPath()
+    headerSeparator.move(to: NSPoint(x: pageRect.minX + 1.1, y: pageRect.maxY - 4.8))
+    headerSeparator.line(to: NSPoint(x: pageRect.maxX - 1.1, y: pageRect.maxY - 4.8))
+    headerSeparator.lineWidth = 1.45
+    headerSeparator.lineCapStyle = .round
+    headerSeparator.stroke()
+
+    for x in [pageRect.minX + pageRect.width * 0.34, pageRect.minX + pageRect.width * 0.66] {
+        let binding = NSBezierPath(roundedRect: NSRect(x: x - 0.75, y: pageRect.maxY - 1.2, width: 1.5, height: 3.4), xRadius: 0.75, yRadius: 0.75)
+        binding.fill()
     }
 
-    let nextSlot = NSBezierPath(roundedRect: NSRect(x: 8.1, y: 7.1, width: 7.4, height: 2.4), xRadius: 1.2, yRadius: 1.2)
-    nextSlot.fill()
+    let revealedSlot = NSBezierPath(
+        roundedRect: NSRect(x: pageRect.maxX - 8.1, y: pageRect.minY + 2.0, width: 6.9, height: 2.35),
+        xRadius: 1.15,
+        yRadius: 1.15
+    )
+    revealedSlot.fill()
+
+    let foldStart = NSPoint(x: pageRect.maxX - 5.3, y: pageRect.minY + 0.9)
+    let foldTip = NSPoint(x: pageRect.maxX - 0.85, y: pageRect.minY + 5.35)
+    let fold = NSBezierPath()
+    fold.move(to: foldStart)
+    fold.curve(
+        to: foldTip,
+        controlPoint1: NSPoint(x: pageRect.maxX - 3.4, y: pageRect.minY + 1.1),
+        controlPoint2: NSPoint(x: pageRect.maxX - 1.2, y: pageRect.minY + 2.9)
+    )
+    fold.lineWidth = 1.45
+    fold.lineCapStyle = .round
+    fold.stroke()
 
     context.flushGraphics()
     NSGraphicsContext.restoreGraphicsState()
