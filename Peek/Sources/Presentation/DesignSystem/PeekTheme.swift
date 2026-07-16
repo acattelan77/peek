@@ -97,6 +97,11 @@ enum PeekColor {
     static let successWash = Color.peekDynamic(light: "#E7F6EE", dark: "#223A2C")
 }
 
+enum PeekNSColor {
+    static let menuBarAmber = NSColor(hex: "#FFB558")
+    static let menuBarRed = NSColor(hex: "#FF8A8E")
+}
+
 // MARK: - Typography tokens
 
 /// SF Pro type roles from the design handoff.

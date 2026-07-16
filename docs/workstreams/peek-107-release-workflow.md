@@ -1,10 +1,10 @@
 # Workstream: PEEK-107 release workflow
 
 - Roadmap ID: PEEK-107
-- Status: Active
+- Status: Complete
 - Owner: Agent
 - Branch/worktree: codex/peek-107-release-workflow
-- Last updated: 2026-07-15
+- Last updated: 2026-07-16
 
 ## Objective
 
@@ -41,15 +41,15 @@ Establish a Developer ID-signed, notarized release workflow and document the req
 ## Progress
 
 - [x] Create workstream and branch
-- [ ] Add release workflow
-- [ ] Add release script
-- [ ] Update release documentation
-- [ ] Bump version and update changelog/handoff
-- [ ] Run checks, build, and tests
+- [x] Add release workflow
+- [x] Add release script
+- [x] Update release documentation
+- [x] Bump version and update changelog/handoff
+- [x] Run checks, build, and tests
 
 ## Validation
 
-- Not run yet.
+- Integrated before this workstream reconciliation; see `docs/HANDOFF.md`.
 
 ## Decisions and open questions
 
@@ -57,4 +57,4 @@ Establish a Developer ID-signed, notarized release workflow and document the req
 
 ## Exact next action
 
-Create `.github/workflows/release.yml` and `scripts/release.sh`.
+None — reconciled with integrated handoff state.

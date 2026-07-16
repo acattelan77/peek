@@ -176,9 +176,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                 if permissionGranted {
                                     self.maybeRescheduleNotifications(force: true)
                                 } else {
-                                    DispatchQueue.main.async {
-                                        self.calendarManager.notificationsEnabled = false
-                                    }
+                                    self.notificationManager.clearAllPendingNotifications()
                                 }
                             }
                         }
@@ -318,6 +316,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func handleAppDidBecomeActive() {
         let granted = calendarManager.refreshAuthorizationStatus()
         handleCalendarAccessChange(granted: granted, shouldRefresh: true)
+        guard granted, calendarManager.notificationsEnabled else { return }
+        notificationManager.checkPermission { [weak self] notificationGranted in
+            if notificationGranted {
+                self?.maybeRescheduleNotifications(force: true)
+            } else {
+                self?.notificationManager.clearAllPendingNotifications()
+            }
+        }
     }
 
     @objc private func handleScreenParametersChanged() {
@@ -550,9 +556,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if calendarManager.urgencyColorsEnabled {
             switch urgency {
             case .critical:
-                color = NSColor(hex: "#E5484D") // Peek critical red
+                color = PeekNSColor.menuBarRed
             case .urgent:
-                color = NSColor(hex: "#E8912B") // Peek urgent amber
+                color = PeekNSColor.menuBarAmber
             case .normal:
                 color = .labelColor // System default
             }
@@ -707,8 +713,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.level = .floating
         panel.backgroundColor = .clear
         panel.isOpaque = false
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
+        panel.contentView?.wantsLayer = true
+        panel.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
 
         // Position top-right of the active screen.
         if let screen = NSScreen.main {

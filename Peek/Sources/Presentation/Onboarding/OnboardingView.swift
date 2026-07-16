@@ -30,6 +30,7 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             progressDots
+                .padding(.top, 18)
                 .padding(.bottom, 20)
         }
         .frame(width: 420, height: 460)
@@ -144,13 +145,14 @@ struct OnboardingView: View {
                         VStack(spacing: 0) {
                             let calendars = calendarManager.getAllCalendars().sorted { $0.title < $1.title }
                             ForEach(Array(calendars.enumerated()), id: \.element.calendarIdentifier) { index, calendar in
-                                CheckboxRow(
+                                PeekCheckboxRow(
                                     label: calendar.title,
                                     color: Color(calendar.color),
-                                    isOn: calendarManager.isCalendarEnabled(calendar.calendarIdentifier)
-                                ) {
-                                    calendarManager.toggleCalendar(calendar.calendarIdentifier)
-                                }
+                                    isOn: calendarManager.isCalendarEnabled(calendar.calendarIdentifier),
+                                    onToggle: {
+                                        calendarManager.toggleCalendar(calendar.calendarIdentifier)
+                                    }
+                                )
                                 if index < calendars.count - 1 { RowDivider() }
                             }
                         }
@@ -201,47 +203,5 @@ struct OnboardingView: View {
             calendarManager.loadEnabledCalendars()
             advance()
         }
-    }
-}
-
-/// Reusable accent checkbox row used in onboarding and preferences.
-struct CheckboxRow: View {
-    let label: String
-    var color: Color?
-    let isOn: Bool
-    let onToggle: () -> Void
-
-    var body: some View {
-        Button(action: onToggle) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(isOn ? PeekColor.accent : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .strokeBorder(isOn ? PeekColor.accent : PeekColor.controlBorder, lineWidth: 1.5)
-                    )
-                    .frame(width: 18, height: 18)
-                    .overlay(
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.white)
-                            .opacity(isOn ? 1 : 0)
-                    )
-
-                if let color {
-                    Circle().fill(color).frame(width: 10, height: 10)
-                }
-
-                Text(label)
-                    .font(PeekFont.body)
-                    .foregroundColor(PeekColor.ink)
-
-                Spacer()
-            }
-            .contentShape(Rectangle())
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-        }
-        .buttonStyle(.plain)
     }
 }
