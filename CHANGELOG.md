@@ -4,6 +4,12 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.2 - 2026-07-16
+
+### Changed
+
+- Re-rendered the app icon to the Claude Design system (handoff §6): a squircle with an indigo→midnight field, a white calendar page with a Peek-Blue header and binding stubs, a single coral "next" slot, and a peeled corner. The master is generated reproducibly by `scripts/generate-icon-master.swift`; regenerate the icon set with `scripts/generate-assets.swift`.
+
 ## 1.3.1 - 2026-07-16
 
 ### Fixed

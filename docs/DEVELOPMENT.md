@@ -34,13 +34,18 @@ The canonical values live in `Configuration/Version.xcconfig`; never duplicate t
 
 ## Regenerate brand assets
 
-The source master is `design/brand/peek-app-icon-master.png`.
+The source master is `design/brand/peek-app-icon-master.png`, rendered reproducibly from
+code by `scripts/generate-icon-master.swift` (Claude Design system, §6 of the handoff).
 
 ```bash
+# 1. Render the 1024px master from code (edit generate-icon-master.swift to change the art).
+xcrun swift scripts/generate-icon-master.swift
+# 2. Resize it into the appiconset and redraw the template status icon.
 xcrun swift scripts/generate-assets.swift design/brand/peek-app-icon-master.png
 ```
 
-The script writes every macOS app-icon size and the 1x/2x/3x template status icon. Do not resize these assets manually.
+`generate-assets.swift` writes every macOS app-icon size and the 1x/2x/3x template status
+icon. Do not resize these assets manually. Verify the result at 16/32/128/1024 px.
 
 ## Adding code
 
