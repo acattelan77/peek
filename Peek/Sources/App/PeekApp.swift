@@ -405,7 +405,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             popover.performClose(nil)
         } else {
+            // As an accessory (LSUIElement) app, Peek is not activated by a status-item
+            // click. Without activating, the popover's window never becomes key: its
+            // controls render in the inactive (grey) appearance and the transient
+            // popover is dismissed almost immediately. Activate first so the popover
+            // stays open and renders active.
+            NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            popover.contentViewController?.view.window?.makeKey()
 
             // Make sure to remove any existing monitor before creating a new one to prevent leaks
             if let monitor = outsideClickEventMonitor {

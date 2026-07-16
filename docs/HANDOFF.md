@@ -4,7 +4,7 @@ Last updated: 2026-07-15
 
 ## Read this first
 
-Peek is currently at **1.3.0 (build 14)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.3.1 (build 15)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
