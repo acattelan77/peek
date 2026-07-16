@@ -8,11 +8,8 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ${{ matrix.macos }}
-    strategy:
-      fail-fast: false
-      matrix:
-        macos: [macos-latest, macos-13]
+    runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4

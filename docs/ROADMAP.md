@@ -15,7 +15,7 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 - **PEEK-103 — Done:** Add UI coverage for first launch, denied calendar access, empty state, event list, and preferences.
 - **PEEK-104 — Done:** Make the global hotkey update without restarting and surface registration conflicts. Live re-registration through a testable `GlobalHotkeyCoordinator`; API-reported registration failures shown in Preferences. Cross-app conflicts that Carbon does not report remain undetectable (documented limitation).
 - **PEEK-105 — Done:** Add visible success/error feedback for settings import and export.
-- **PEEK-106 — Done:** Validate macOS 13 behavior on real or CI-hosted macOS 13 hardware.
+- **PEEK-106 — Done (partial):** Validate macOS 13 behavior. The CI-hosted `macos-13` runner was removed because GitHub is retiring it and jobs hung queued indefinitely; validation on real macOS 13 hardware is still outstanding.
 - **PEEK-107 — Done:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.
 - **PEEK-108 — Done:** Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-style scaling.
 

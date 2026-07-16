@@ -54,6 +54,14 @@ Validate Peek behavior on macOS 13 by running the CI build and test suite on a m
 
 - GitHub's `macos-13` runner is the practical proxy for macOS 13 validation until physical hardware is available.
 
+## Follow-up (2026-07-16)
+
+- The `macos-13` matrix leg was **removed** from `.github/workflows/ci.yml`: GitHub's hosted
+  `macos-13` runner is being retired and the jobs sat **queued indefinitely**, hanging every
+  CI run (the overall run never completed even though `macos-latest` passed). CI now runs a
+  single `macos-latest` job with a 30-minute timeout. True macOS 13 validation still needs
+  real hardware, as the roadmap item's title anticipated.
+
 ## Exact next action
 
 Workstream complete. No `Ready` roadmap items remain; the next candidates are in the **Next** bucket.
