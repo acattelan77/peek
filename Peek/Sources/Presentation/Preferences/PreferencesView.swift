@@ -256,42 +256,16 @@ private struct CalendarRow: View {
     let onToggle: () -> Void
 
     var body: some View {
-        Button(action: onToggle) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(isEnabled ? PeekColor.accent : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .strokeBorder(isEnabled ? PeekColor.accent : PeekColor.controlBorder, lineWidth: 1.5)
-                    )
-                    .frame(width: 18, height: 18)
-                    .overlay(
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.white)
-                            .opacity(isEnabled ? 1 : 0)
-                    )
-
-                Circle().fill(Color(calendar.color)).frame(width: 10, height: 10)
-
-                Text(calendar.title)
-                    .font(PeekFont.body)
-                    .foregroundColor(PeekColor.ink)
-
-                Spacer()
-
-                Text(calendarTypeDescription(calendar.type))
-                    .font(PeekFont.caption)
-                    .foregroundColor(PeekColor.tertiaryText)
-            }
-            .contentShape(Rectangle())
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
+        PeekCheckboxRow(
+            label: calendar.title,
+            color: Color(calendar.color),
+            isOn: isEnabled,
+            onToggle: onToggle
+        ) {
+            Text(calendarTypeDescription(calendar.type))
+                .font(PeekFont.caption)
+                .foregroundColor(PeekColor.tertiaryText)
         }
-        .buttonStyle(.plain)
-        .accessibilityValue(isEnabled
-            ? NSLocalizedString("Selected", comment: "Accessibility value for a selected radio option")
-            : "")
     }
 
     private func calendarTypeDescription(_ type: EKCalendarType) -> String {
@@ -335,15 +309,11 @@ struct FiltersTab: View {
                 GroupLabel(NSLocalizedString("Keyword filter", comment: "Keyword filter group label"))
                     .padding(.top, 16)
                 InsetCard {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 10) {
                         Text(NSLocalizedString("Hide events whose title or notes contain these words (comma-separated).", comment: "Keyword filter description"))
                             .font(PeekFont.caption)
                             .foregroundColor(PeekColor.secondaryText)
-                        TextField(
-                            NSLocalizedString("e.g. canceled, optional, tentative", comment: "Keyword filter placeholder"),
-                            text: $calendarManager.filterKeywords
-                        )
-                        .textFieldStyle(.roundedBorder)
+                        KeywordChipEditor(text: $calendarManager.filterKeywords)
                     }
                     .padding(14)
                 }
@@ -352,6 +322,101 @@ struct FiltersTab: View {
             }
             .padding(20)
         }
+    }
+}
+
+private struct KeywordChipEditor: View {
+    @Binding var text: String
+    @State private var draft = ""
+
+    private var keywords: [String] {
+        parse(text)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !keywords.isEmpty {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 84), spacing: 6, alignment: .leading)],
+                    alignment: .leading,
+                    spacing: 6
+                ) {
+                    ForEach(keywords, id: \.self) { keyword in
+                        PeekKeywordChip(title: keyword) {
+                            remove(keyword)
+                        }
+                    }
+                }
+            }
+
+            HStack(spacing: 6) {
+                TextField(
+                    NSLocalizedString("Add keyword…", comment: "Keyword chip input placeholder"),
+                    text: $draft
+                )
+                .textFieldStyle(.plain)
+                .font(PeekFont.bodyMeta)
+                .foregroundColor(PeekColor.ink)
+                .onSubmit(addDraftKeywords)
+                .onChange(of: draft) { newValue in
+                    guard newValue.contains(",") else { return }
+                    addDraftKeywords()
+                }
+                Button(action: addDraftKeywords) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PeekColor.tertiaryText : PeekColor.accent)
+                        .frame(width: 18, height: 18)
+                }
+                .buttonStyle(.plain)
+                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .help(NSLocalizedString("Add keyword", comment: "Keyword chip add help"))
+                .accessibilityLabel(Text(NSLocalizedString("Add keyword", comment: "Keyword chip add accessibility label")))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(PeekColor.fill)
+            .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous)
+                    .strokeBorder(PeekColor.innerDivider, lineWidth: 1)
+            )
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(NSLocalizedString("Keyword filter", comment: "Keyword chip editor accessibility label")))
+    }
+
+    private func addDraftKeywords() {
+        let newKeywords = parse(draft)
+        guard !newKeywords.isEmpty else {
+            draft = ""
+            return
+        }
+        let merged = keywords + newKeywords
+        text = normalized(merged)
+        draft = ""
+    }
+
+    private func remove(_ keyword: String) {
+        text = normalized(keywords.filter { $0 != keyword })
+    }
+
+    private func parse(_ value: String) -> [String] {
+        value
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private func normalized(_ values: [String]) -> String {
+        var seen = Set<String>()
+        let unique = values.filter { value in
+            let key = value.lowercased()
+            if seen.contains(key) { return false }
+            seen.insert(key)
+            return true
+        }
+        return unique.joined(separator: ", ")
     }
 }
 
