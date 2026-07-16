@@ -1,6 +1,6 @@
 # Project handoff
 
-Last updated: 2026-07-15
+Last updated: 2026-07-16
 
 ## Read this first
 
@@ -20,17 +20,25 @@ Peek is currently at **1.3.2 (build 16)**. The repository has been reorganized i
 - PEEK-105 integrated: Preferences now shows visible success or error feedback after importing or exporting settings, including incompatible-version and file-system failures.
 - PEEK-108 integrated: VoiceOver labels and values added to the menu-bar popover and Preferences; Preferences radio rows and the selected event's meeting link are keyboard-activatable; user-facing text uses Dynamic Type-style text styles.
 - PEEK-107 integrated: GitHub Actions `release.yml` and `scripts/release.sh` produce a Developer ID-signed, notarized, stapled DMG on version tags; release secrets and the GitHub Releases update policy are documented.
-- PEEK-106 integrated: CI now builds and tests on a `macos-13` runner as the automated proxy for macOS 13 validation.
-- Last full validation: Debug build succeeded; 63 tests passed with zero failures on 2026-07-15. Compiled bundle metadata reports 1.2.5 (13).
+- PEEK-106 integrated (partial): the `macos-13` CI leg was **removed** — GitHub is retiring that hosted runner, so those jobs queued indefinitely and hung every run. CI now runs a single `macos-latest` job with a 30-minute timeout. True macOS 13 validation still needs real hardware.
+- Design system adopted (1.3.0): the Claude Design "calm glance" system is implemented as a shared token layer (`Presentation/DesignSystem/`: `PeekTheme`, `PeekComponents`) and applied across the popover, Preferences (inset cards, segmented/menu controls, accent switches), a new first-run onboarding flow, and a new "Starting now" HUD. Reference kept in `design_handoff_peek_design_system/`.
+- Popover activation fix (1.3.1): as an accessory (`LSUIElement`) app, Peek now activates when the popover opens, so the transient popover no longer dismisses immediately and controls render in the active (accent) appearance instead of greyed.
+- App icon (1.3.2): re-rendered to the design system (handoff §6), generated reproducibly from `scripts/generate-icon-master.swift` and resized by `scripts/generate-assets.swift`.
+- Last full validation: Debug build succeeded; 63 tests passed with zero failures on 2026-07-16; CI green on `macos-latest`. Compiled bundle metadata reports 1.3.2 (16).
 
 ## Where to start next
 
-PEEK-101 through PEEK-106 are complete. There are no remaining `Ready` items in `docs/ROADMAP.md`; the next candidates are in the **Next** bucket:
+PEEK-101 through PEEK-108, the full design-system refresh, and the app-icon re-render are complete. There are no remaining `Ready` items in `docs/ROADMAP.md`; the next candidates are in the **Next** bucket:
 
 - Event detail expansion: notes, attendees, attachments, and conference provider identity.
 - Conflict and overlap warnings.
 - Multiple time-zone display.
 - Quick event creation with explicit confirmation and calendar selection.
+
+Outstanding follow-ups from this cycle:
+
+- Visual QA of the redesign on a running build (light/dark, Reduce Motion, Increased Contrast, and a live "Starting now" HUD trigger).
+- Real macOS 13 hardware validation (CI-hosted macOS 13 is no longer available).
 
 Create a workstream from `docs/workstreams/TEMPLATE.md` and follow the validation steps in `AGENTS.md`.
 
