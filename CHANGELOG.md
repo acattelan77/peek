@@ -4,6 +4,12 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.1 - 2026-07-16
+
+### Fixed
+
+- The popover now reliably stays open when clicking the menu-bar item. As an accessory app, Peek was not activating on a status-item click, so the transient popover was dismissed immediately ("opens then closes") and its controls — including Preferences toggles — rendered in the greyed inactive appearance. Peek now activates when the popover opens, so it stays open and active-state controls (e.g. switches) render in the accent color.
+
 ## 1.3.0 - 2026-07-15
 
 ### Added
