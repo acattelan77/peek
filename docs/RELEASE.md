@@ -12,7 +12,7 @@
 1. Run unit tests and a Release build.
 2. Inspect the built entitlements and confirm calendar access remains present.
 3. Test first launch on a clean user account: calendar prompt, notification opt-in, denied access, and recovery.
-4. Test event refresh, filters, join links, snooze, launch at login, import/export, hotkey, and quit.
+4. Test event refresh, filters, join links, snooze, launch at login, hotkey, and quit.
 5. Verify app and status icons in light and dark menu bars.
 6. Test VoiceOver navigation and keyboard-only operation.
 

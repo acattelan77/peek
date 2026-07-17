@@ -68,7 +68,6 @@ Peek/Sources/
 - Keep macOS side effects behind protocols when they need unit testing.
 - Prefer immutable value types for formatted output and configuration.
 - Dispatch published state changes to the main queue.
-- Treat imported settings as untrusted input and validate them against `PreferenceConstraints`.
 - Add a decision record under `docs/decisions/` for cross-layer or persistence changes.
 
 ## Known architectural debt
