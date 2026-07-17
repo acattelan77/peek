@@ -29,7 +29,6 @@ This document replaces the previous ROADMAP, IMPLEMENTATION, and SECURITY docs. 
 - Lookahead range and max events configuration.
 - Notifications with configurable lead time and join link action.
 - Preferences for appearance, hotkey, status bar mode, and notification behavior.
-- Export and import of settings (JSON) with version validation.
 - Basic unit tests under `PeekTests/`.
 - GitHub Actions CI for unsigned macOS build and unit tests.
 - Protocol boundaries for EventKit, notification scheduling, preferences, and launch-at-login behavior.

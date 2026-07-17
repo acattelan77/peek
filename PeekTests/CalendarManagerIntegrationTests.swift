@@ -80,8 +80,21 @@ final class CalendarManagerIntegrationTests: XCTestCase {
         waitForExpectations(timeout: 1)
     }
 
-    func testRefreshAuthorizationStatusReflectsFakeFullAccess() {
+    func testRefreshAuthorizationStatusReflectsFakeAuthorizedAccess() {
         eventStore.authorizationStatus = .authorized
+
+        let granted = calendarManager.refreshAuthorizationStatus()
+
+        XCTAssertTrue(granted)
+        XCTAssertTrue(calendarManager.hasCalendarAccess)
+    }
+
+    func testRefreshAuthorizationStatusReflectsFakeFullAccess() throws {
+        guard #available(macOS 14.0, *) else {
+            throw XCTSkip("Full Access authorization status requires macOS 14 or later.")
+        }
+
+        eventStore.authorizationStatus = .fullAccess
 
         let granted = calendarManager.refreshAuthorizationStatus()
 

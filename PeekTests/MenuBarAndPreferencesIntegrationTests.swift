@@ -236,57 +236,6 @@ final class MenuBarAndPreferencesIntegrationTests: XCTestCase {
         XCTAssertEqual(restored.notificationTiming, .fiveMinutes)
     }
 
-    // MARK: - Import / export
-
-    func testExportContainsCurrentSettings() {
-        calendarManager.lookaheadDays = 14
-        calendarManager.maxEventsToShow = 10
-
-        let settings = calendarManager.exportSettings()
-
-        XCTAssertEqual(settings["lookaheadDays"] as? Int, 14)
-        XCTAssertEqual(settings["maxEventsToShow"] as? Int, 10)
-        XCTAssertEqual(settings["exportVersion"] as? Int, 1)
-    }
-
-    func testImportRoundTripRestoresSettings() {
-        let calendar = eventStore.addCalendar(title: "Work")
-        calendarManager.toggleCalendar(calendar.calendarIdentifier)
-        calendarManager.lookaheadDays = 14
-        calendarManager.maxEventsToShow = 10
-        calendarManager.hideAllDayEvents = true
-        calendarManager.savePreferences()
-        calendarManager.saveEnabledCalendars()
-
-        let exported = calendarManager.exportSettings()
-
-        let freshSuiteName = "com.peek.app.tests.ui.import.\(UUID().uuidString)"
-        let freshStore = UserDefaults(suiteName: freshSuiteName)!
-        let freshManager = CalendarManager(
-            eventStore: eventStore,
-            preferencesStore: freshStore
-        )
-        freshManager.importSettings(exported)
-
-        XCTAssertEqual(freshManager.lookaheadDays, 14)
-        XCTAssertEqual(freshManager.maxEventsToShow, 10)
-        XCTAssertTrue(freshManager.hideAllDayEvents)
-        XCTAssertTrue(freshManager.isCalendarEnabled(calendar.calendarIdentifier))
-
-        UserDefaults().removeSuite(named: freshSuiteName)
-    }
-
-    func testImportIncompatibleVersionReturnsFailure() {
-        let result = calendarManager.importSettings(["exportVersion": 999])
-
-        switch result {
-        case .failure(.incompatibleVersion):
-            break
-        default:
-            XCTFail("Expected incompatible version failure, got \(result)")
-        }
-    }
-
     // MARK: - View instantiation
 
     func testMenuBarViewInstantiatesWithFakeDependencies() {

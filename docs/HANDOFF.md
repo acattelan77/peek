@@ -4,7 +4,7 @@ Last updated: 2026-07-17
 
 ## Read this first
 
-Peek is currently at **1.3.4 (build 18)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.3.7 (build 21)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -15,9 +15,9 @@ Peek is currently at **1.3.4 (build 18)**. The repository has been reorganized i
 - Reliability fixes: notification disabling, conditional notification permission, Zoom password preservation, and next-event ordering.
 - PEEK-101 integrated: notch-safe adaptive compact mode with `Automatic`, `Always show icon`, and `Always show text` space policies, hysteresis, and notched-display margin.
 - PEEK-102 integrated: fake `CalendarEventStoring` and `NotificationScheduling` test doubles plus `CalendarManager` integration tests covering authorization, refresh, calendar filtering, and notification scheduling.
-- PEEK-103 integrated: menu-bar and preferences integration tests covering first-launch calendar defaults, denied access, empty state, event-list behavior, persistence, import/export, and view instantiation, plus a fake launch-at-login controller.
+- PEEK-103 integrated: menu-bar and preferences integration tests covering first-launch calendar defaults, denied access, empty state, event-list behavior, persistence, and view instantiation, plus a fake launch-at-login controller.
 - PEEK-104 integrated: the global hotkey now re-registers live when changed in Preferences (no restart), triggering it activates the app so the popover surfaces above other windows, and API-reported registration failures are shown in the General tab. Carbon registration lives in `CarbonHotkeyRegistrar` (composition root) behind a `HotkeyRegistering` seam, with the decision policy in the testable `GlobalHotkeyCoordinator`.
-- PEEK-105 integrated: Preferences now shows visible success or error feedback after importing or exporting settings, including incompatible-version and file-system failures.
+- PEEK-105 superseded: Preferences import/export feedback shipped earlier, but the import/export feature was removed in 1.3.6 to simplify the Preferences footer.
 - PEEK-108 integrated: VoiceOver labels and values added to the menu-bar popover and Preferences; Preferences radio rows and the selected event's meeting link are keyboard-activatable; user-facing text uses Dynamic Type-style text styles.
 - PEEK-109 integrated: the `Automatic` menu-bar space policy now measures room to the notch frontier on notched displays, detects when macOS has hidden Peek's item entirely, and falls back to the clickable icon; a sticky latch handles non-notched displays where the front-app menu boundary is not measurable.
 - PEEK-107 integrated: GitHub Actions `release.yml` and `scripts/release.sh` produce a Developer ID-signed, notarized, stapled DMG on version tags; release secrets and the GitHub Releases update policy are documented.
@@ -30,7 +30,14 @@ Peek is currently at **1.3.4 (build 18)**. The repository has been reorganized i
   model in simplified outline form, Preferences keyword filtering uses removable
   design-system chips, onboarding and Preferences calendar rows share `PeekCheckboxRow`, and
   menu-bar urgency colors use named AppKit design tokens.
-- Last full validation: Debug build succeeded; 69 tests passed with zero failures on 2026-07-17; local `main` worktree. Compiled bundle metadata reports 1.3.4 (18).
+- HUD polish (1.3.5): the "Starting now" HUD panel is created borderless from the start and
+  its AppKit hosting layers are transparent, hiding the rectangular external container behind
+  the rounded card.
+- Preferences simplification (1.3.6): removed the Import and Export buttons and the JSON
+  settings backup/restore implementation.
+- Calendar full-access fix (1.3.7): added the macOS full-calendar-access usage description and
+  regression coverage so Peek recognizes Full Access calendar permission on modern macOS.
+- Last full validation: Debug and Release builds succeeded; 67 tests passed with zero failures on 2026-07-17; `codex/hud-external-border` worktree. Installed bundle metadata reports 1.3.7 (21).
 
 ## Where to start next
 

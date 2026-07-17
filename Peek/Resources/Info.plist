@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Peek needs access to your calendar to display upcoming events in the menu bar.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Peek needs full calendar access to display upcoming events in the menu bar.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Peek would like to send you notifications to remind you about upcoming events.</string>
 </dict>

@@ -7,7 +7,6 @@ struct PreferencesView: View {
     @Environment(\.dismiss) var dismiss
     @State private var launchAtLogin: Bool
     @State private var selectedTab = 0
-    @State private var importExportFeedback: (message: String, isError: Bool)?
     private let launchAtLoginController: any LaunchAtLoginControlling
 
     init(
@@ -73,111 +72,22 @@ struct PreferencesView: View {
     }
 
     private var footer: some View {
-        VStack(spacing: 0) {
-            if let feedback = importExportFeedback {
-                HStack(spacing: 5) {
-                    Image(systemName: feedback.isError ? "xmark.circle.fill" : "checkmark.circle.fill")
-                        .accessibilityHidden(true)
-                    Text(feedback.message)
-                        .font(PeekFont.caption)
-                }
-                .foregroundColor(feedback.isError ? PeekColor.critical : PeekColor.calm)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
+        HStack(spacing: 10) {
+            Text(AppVersion.from().displayText)
+                .font(PeekFont.caption)
+                .foregroundColor(PeekColor.tertiaryText)
+                .accessibilityLabel(AppVersion.from().displayText)
+
+            Spacer()
+
+            Button(NSLocalizedString("Done", comment: "Done button")) {
+                calendarManager.savePreferences()
+                dismiss()
             }
-
-            HStack(spacing: 10) {
-                Button(NSLocalizedString("Export…", comment: "Export settings button")) { exportSettings() }
-                    .buttonStyle(.bordered)
-                    .accessibilityHint(NSLocalizedString("Saves Peek settings to a JSON file", comment: "Accessibility hint for Export Settings button"))
-
-                Button(NSLocalizedString("Import…", comment: "Import settings button")) { importSettings() }
-                    .buttonStyle(.bordered)
-                    .accessibilityHint(NSLocalizedString("Loads Peek settings from a JSON file", comment: "Accessibility hint for Import Settings button"))
-
-                Spacer()
-
-                Text(AppVersion.from().displayText)
-                    .font(PeekFont.caption)
-                    .foregroundColor(PeekColor.tertiaryText)
-                    .accessibilityLabel(AppVersion.from().displayText)
-
-                Button(NSLocalizedString("Done", comment: "Done button")) {
-                    calendarManager.savePreferences()
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-            }
-            .padding()
+            .buttonStyle(.borderedProminent)
         }
+        .padding()
         .background(PeekColor.surface)
-    }
-
-    private func exportSettings() {
-        let savePanel = NSSavePanel()
-        savePanel.allowedContentTypes = [.json]
-        savePanel.nameFieldStringValue = NSLocalizedString("PeekSettings.json", comment: "Default export file name")
-        savePanel.title = NSLocalizedString("Export Peek Settings", comment: "Export settings panel title")
-
-        savePanel.begin { response in
-            if response == .OK, let url = savePanel.url {
-                let settings = calendarManager.exportSettings()
-                do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: settings, options: .prettyPrinted)
-                    try jsonData.write(to: url)
-                    self.importExportFeedback = (
-                        NSLocalizedString("Settings exported successfully.", comment: "Export settings success message"),
-                        false
-                    )
-                } catch {
-                    self.importExportFeedback = (
-                        String(format: NSLocalizedString("Export failed: %@", comment: "Export settings error message format"), error.localizedDescription),
-                        true
-                    )
-                }
-            }
-        }
-    }
-
-    private func importSettings() {
-        let openPanel = NSOpenPanel()
-        openPanel.allowedContentTypes = [.json]
-        openPanel.allowsMultipleSelection = false
-        openPanel.title = NSLocalizedString("Import Peek Settings", comment: "Import settings panel title")
-
-        openPanel.begin { response in
-            if response == .OK, let url = openPanel.urls.first {
-                do {
-                    let jsonData = try Data(contentsOf: url)
-                    if let settings = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                        let result = self.calendarManager.importSettings(settings)
-                        switch result {
-                        case .success:
-                            self.importExportFeedback = (
-                                NSLocalizedString("Settings imported successfully.", comment: "Import settings success message"),
-                                false
-                            )
-                        case .failure(.incompatibleVersion):
-                            self.importExportFeedback = (
-                                NSLocalizedString("Import failed: settings file is incompatible.", comment: "Import settings incompatible version error message"),
-                                true
-                            )
-                        }
-                    } else {
-                        self.importExportFeedback = (
-                            NSLocalizedString("Import failed: invalid settings file.", comment: "Import settings invalid file error message"),
-                            true
-                        )
-                    }
-                } catch {
-                    self.importExportFeedback = (
-                        String(format: NSLocalizedString("Import failed: %@", comment: "Import settings error message format"), error.localizedDescription),
-                        true
-                    )
-                }
-            }
-        }
     }
 }
 

@@ -740,8 +740,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         )
 
-        let panel = NSPanel(contentViewController: NSHostingController(rootView: hud))
-        panel.styleMask = [.borderless, .nonactivatingPanel]
+        let hostingController = NSHostingController(rootView: hud)
+        hostingController.view.wantsLayer = true
+        hostingController.view.layer?.backgroundColor = NSColor.clear.cgColor
+        hostingController.view.layer?.isOpaque = false
+
+        let panel = NSPanel(
+            contentRect: NSRect(origin: .zero, size: hostingController.view.fittingSize),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.contentViewController = hostingController
         panel.isFloatingPanel = true
         panel.level = .floating
         panel.backgroundColor = .clear
@@ -750,6 +760,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.hidesOnDeactivate = false
         panel.contentView?.wantsLayer = true
         panel.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
+        panel.contentView?.layer?.isOpaque = false
+        panel.setContentSize(hostingController.view.fittingSize)
 
         // Position top-right of the active screen.
         if let screen = NSScreen.main {

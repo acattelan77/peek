@@ -4,6 +4,27 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.7 - 2026-07-17
+
+### Fixed
+
+- Added the macOS full-calendar-access usage description and regression coverage so
+  Peek recognizes Full Access calendar permission on modern macOS.
+
+## 1.3.6 - 2026-07-17
+
+### Removed
+
+- Removed the Preferences import and export controls and the JSON settings
+  backup/restore implementation.
+
+## 1.3.5 - 2026-07-17
+
+### Fixed
+
+- Hid the rectangular external AppKit container that could show around the rounded
+  "Starting now" HUD.
+
 ## 1.3.4 - 2026-07-17
 
 ### Fixed
