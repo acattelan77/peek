@@ -1,10 +1,10 @@
 # Project handoff
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 ## Read this first
 
-Peek is currently at **1.3.3 (build 17)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.3.4 (build 18)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -19,6 +19,7 @@ Peek is currently at **1.3.3 (build 17)**. The repository has been reorganized i
 - PEEK-104 integrated: the global hotkey now re-registers live when changed in Preferences (no restart), triggering it activates the app so the popover surfaces above other windows, and API-reported registration failures are shown in the General tab. Carbon registration lives in `CarbonHotkeyRegistrar` (composition root) behind a `HotkeyRegistering` seam, with the decision policy in the testable `GlobalHotkeyCoordinator`.
 - PEEK-105 integrated: Preferences now shows visible success or error feedback after importing or exporting settings, including incompatible-version and file-system failures.
 - PEEK-108 integrated: VoiceOver labels and values added to the menu-bar popover and Preferences; Preferences radio rows and the selected event's meeting link are keyboard-activatable; user-facing text uses Dynamic Type-style text styles.
+- PEEK-109 integrated: the `Automatic` menu-bar space policy now measures room to the notch frontier on notched displays, detects when macOS has hidden Peek's item entirely, and falls back to the clickable icon; a sticky latch handles non-notched displays where the front-app menu boundary is not measurable.
 - PEEK-107 integrated: GitHub Actions `release.yml` and `scripts/release.sh` produce a Developer ID-signed, notarized, stapled DMG on version tags; release secrets and the GitHub Releases update policy are documented.
 - PEEK-106 integrated (partial): the `macos-13` CI leg was **removed** — GitHub is retiring that hosted runner, so those jobs queued indefinitely and hung every run. CI now runs a single `macos-latest` job with a 30-minute timeout. True macOS 13 validation still needs real hardware.
 - Design system adopted (1.3.0): the Claude Design "calm glance" system is implemented as a shared token layer (`Presentation/DesignSystem/`: `PeekTheme`, `PeekComponents`) and applied across the popover, Preferences (inset cards, segmented/menu controls, accent switches), a new first-run onboarding flow, and a new "Starting now" HUD. Reference kept in `design_handoff_peek_design_system/`.
@@ -29,7 +30,7 @@ Peek is currently at **1.3.3 (build 17)**. The repository has been reorganized i
   model in simplified outline form, Preferences keyword filtering uses removable
   design-system chips, onboarding and Preferences calendar rows share `PeekCheckboxRow`, and
   menu-bar urgency colors use named AppKit design tokens.
-- Last full validation: Debug build succeeded; 63 tests passed with zero failures on 2026-07-16; CI green on `macos-latest`. Compiled bundle metadata reports 1.3.3 (17).
+- Last full validation: Debug build succeeded; 69 tests passed with zero failures on 2026-07-17; local `main` worktree. Compiled bundle metadata reports 1.3.4 (18).
 
 ## Where to start next
 
@@ -55,7 +56,7 @@ Create a workstream from `docs/workstreams/TEMPLATE.md` and follow the validatio
 
 - Public distribution is not ready: Developer ID signing and notarization are still outstanding.
 - `CalendarManager` and `AppDelegate` remain larger than the target architecture recommends.
-- The new space policy uses a conservative notch margin; real-world validation on multiple notched and external display setups is welcome.
+- The automatic space policy now uses the notch frontier on notched displays and a sticky hidden-item latch on non-notched displays; real-world crowded-menu-bar validation on multiple notched and external display setups is welcome.
 
 ## Active workstreams
 

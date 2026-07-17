@@ -30,6 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var pulseTimer: Timer?
     private var isPulsing = false
     private var spacePolicy: StatusBarSpacePolicy!
+    private var statusItemWindowState: StatusBarItemWindowState = .notYetLaidOut
+    private var collapsedWhileHidden = false
     private var outsideClickEventMonitor: Any?
     private var refreshWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
@@ -147,6 +149,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         calendarManager.$menuBarSpacePolicy
             .sink { [weak self] policy in
                 self?.spacePolicy = StatusBarSpacePolicy(policy: policy)
+                self?.collapsedWhileHidden = false
                 self?.updateMenuBar()
             }
             .store(in: &cancellables)
@@ -327,6 +330,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func handleScreenParametersChanged() {
+        // A display change may have freed or rearranged menu-bar space, so let
+        // Automatic re-evaluate whether it can show text again.
+        collapsedWhileHidden = false
         scheduleRefresh(debounce: 0.1)
     }
 
@@ -530,19 +536,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let screen = window?.screen ?? NSScreen.main
         let screenFrame = screen?.frame ?? .zero
 
-        let availableWidth: CGFloat
+        // Update window-state tracking so we can distinguish "hidden by macOS"
+        // from "not laid out yet at launch".
         if let window = window {
-            availableWidth = max(0, screenFrame.maxX - window.frame.minX)
-        } else {
-            availableWidth = screenFrame.width
+            statusItemWindowState = .visible(minX: window.frame.minX)
+        } else if statusItemWindowState != .notYetLaidOut {
+            statusItemWindowState = .hidden
         }
+
+        // On notched displays, `auxiliaryTopRightArea.minX` is the right edge of the
+        // notch and therefore the left boundary of the menu-bar extras area. macOS
+        // hides extras whose left edge crosses that frontier. On non-notched
+        // displays the frontier is bounded by the front app's menus, which no public
+        // API exposes, so we rely on hidden-item detection plus a sticky latch.
+        let isNotched = (screen?.safeAreaInsets.top ?? 0) > 0
+        let frontierMinX = isNotched ? screen?.auxiliaryTopRightArea?.minX : nil
+
+        if statusItemWindowState == .hidden && frontierMinX == nil {
+            collapsedWhileHidden = true
+        }
+
+        let windowState: StatusBarItemWindowState
+        if collapsedWhileHidden && frontierMinX == nil {
+            // Stay icon-only on non-notched displays after macOS has hidden us.
+            windowState = .hidden
+        } else {
+            windowState = statusItemWindowState
+        }
+
+        let availableWidth = StatusBarSpaceMetrics.availableWidth(
+            windowState: windowState,
+            frontierMinX: frontierMinX,
+            generousWidth: screenFrame.width
+        )
 
         let iconWidth = button.image?.size.width ?? 0
         let font = button.font ?? NSFont.menuBarFont(ofSize: 0)
         let titleWidth = (title as NSString).size(withAttributes: [.font: font]).width
         let requiredWidth = iconWidth + titleWidth + 12
 
-        let notchMargin: CGFloat = (screen?.safeAreaInsets.top ?? 0) > 0 ? 60 : 0
+        let notchMargin: CGFloat = frontierMinX != nil ? 60 : 0
 
         return (availableWidth, requiredWidth, notchMargin)
     }

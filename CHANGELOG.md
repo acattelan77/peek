@@ -4,6 +4,16 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.4 - 2026-07-17
+
+### Fixed
+
+- The `Automatic` menu-bar space policy now reliably falls back to Peek's icon when the
+  menu bar is crowded, including when macOS has hidden Peek's status item entirely.
+  On notched displays the policy measures the actual room to the notch frontier; on
+  non-notched displays it detects the hidden state and stays icon-only until the display
+  configuration changes. (PEEK-109)
+
 ## 1.3.3 - 2026-07-16
 
 ### Changed
