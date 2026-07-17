@@ -18,6 +18,7 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 - **PEEK-106 — Done (partial):** Validate macOS 13 behavior. The CI-hosted `macos-13` runner was removed because GitHub is retiring it and jobs hung queued indefinitely; validation on real macOS 13 hardware is still outstanding.
 - **PEEK-107 — Done:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.
 - **PEEK-108 — Done:** Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-style scaling.
+- **PEEK-109 — Done:** Fix automatic menu-bar space policy so a crowded menu bar (including macOS having hidden Peek's item entirely) collapses Peek to its clickable icon; restore text when space returns.
 - **Design refresh — Done:** Adopt the Claude Design "calm glance" system via a shared token layer applied across the popover, Preferences, new onboarding flow, and "Starting now" HUD; re-render the app icon (handoff §6). Follow-up: visual QA on a running build. Fixed alongside: accessory-app popover activation so the popover stays open and controls render active.
 
 ## Next — calendar usefulness

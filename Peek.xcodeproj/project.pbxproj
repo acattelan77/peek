@@ -41,6 +41,8 @@
 		2B0000180000000000000001 /* StatusBarSpacePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000170000000000000001 /* StatusBarSpacePolicy.swift */; };
 		2B00001A0000000000000001 /* StatusBarSpacePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */; };
 		2B00001B0000000000000001 /* StatusBarSpacePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000170000000000000001 /* StatusBarSpacePolicy.swift */; };
+		2B0000420000000000000001 /* StatusBarSpaceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000440000000000000001 /* StatusBarSpaceMetrics.swift */; };
+		2B0000450000000000000001 /* StatusBarSpaceMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000460000000000000001 /* StatusBarSpaceMetricsTests.swift */; };
 		2B0000370000000000000001 /* FakeCalendarEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000360000000000000001 /* FakeCalendarEventStore.swift */; };
 		2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000380000000000000001 /* FakeNotificationScheduler.swift */; };
 		2B00003B0000000000000001 /* CalendarManagerIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */; };
@@ -97,6 +99,8 @@
 		2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarContentBuilderTests.swift; sourceTree = "<group>"; };
 		2B0000170000000000000001 /* StatusBarSpacePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarSpacePolicy.swift; sourceTree = "<group>"; };
 		2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarSpacePolicyTests.swift; sourceTree = "<group>"; };
+		2B0000440000000000000001 /* StatusBarSpaceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarSpaceMetrics.swift; sourceTree = "<group>"; };
+		2B0000460000000000000001 /* StatusBarSpaceMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarSpaceMetricsTests.swift; sourceTree = "<group>"; };
 		2B0000350000000000000001 /* Fakes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fakes; sourceTree = "<group>"; };
 		2B0000360000000000000001 /* FakeCalendarEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeCalendarEventStore.swift; sourceTree = "<group>"; };
 		2B0000380000000000000001 /* FakeNotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeNotificationScheduler.swift; sourceTree = "<group>"; };
@@ -181,6 +185,7 @@
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
 				2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */,
 				2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */,
+				2B0000460000000000000001 /* StatusBarSpaceMetricsTests.swift */,
 				2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */,
 				2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */,
 				2B0000410000000000000001 /* GlobalHotkeyCoordinatorTests.swift */,
@@ -216,6 +221,7 @@
 				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
 				2C0000110000000000000001 /* AppVersion.swift */,
 				2B0000170000000000000001 /* StatusBarSpacePolicy.swift */,
+				2B0000440000000000000001 /* StatusBarSpaceMetrics.swift */,
 				2B0000240000000000000001 /* Calendar */,
 			);
 			path = Application;
@@ -518,6 +524,7 @@
 			files = (
 				1A0000010000000000000001 /* PeekApp.swift in Sources */,
 				2B0000180000000000000001 /* StatusBarSpacePolicy.swift in Sources */,
+				2B0000420000000000000001 /* StatusBarSpaceMetrics.swift in Sources */,
 				2B0000050000000000000001 /* AppEnvironment.swift in Sources */,
 				2C0000010000000000000001 /* AppVersion.swift in Sources */,
 				1A0000030000000000000001 /* CalendarManager.swift in Sources */,
@@ -552,6 +559,7 @@
 				2B0000080000000000000001 /* StatusBarContentBuilderTests.swift in Sources */,
 				1A0000730000000000000001 /* EventPipelineTests.swift in Sources */,
 				2B00001A0000000000000001 /* StatusBarSpacePolicyTests.swift in Sources */,
+				2B0000450000000000000001 /* StatusBarSpaceMetricsTests.swift in Sources */,
 				2B0000400000000000000001 /* GlobalHotkeyCoordinatorTests.swift in Sources */,
 				2B00003B0000000000000001 /* CalendarManagerIntegrationTests.swift in Sources */,
 				2B0000370000000000000001 /* FakeCalendarEventStore.swift in Sources */,
