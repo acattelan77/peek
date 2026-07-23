@@ -1,10 +1,10 @@
 # Project handoff
 
-Last updated: 2026-07-17
+Last updated: 2026-07-23
 
 ## Read this first
 
-Peek is currently at **1.3.7 (build 21)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.3.8 (build 22)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -37,6 +37,10 @@ Peek is currently at **1.3.7 (build 21)**. The repository has been reorganized i
   settings backup/restore implementation.
 - Calendar full-access fix (1.3.7): added the macOS full-calendar-access usage description and
   regression coverage so Peek recognizes Full Access calendar permission on modern macOS.
+- HUD shadow clipping fix (1.3.8): the "Starting now" HUD card now sits inside a transparent
+  `shadowPadding` margin sized from the `.hud` elevation values, so the panel bounds no longer
+  clip the drop shadow into a visible squared edge; panel placement anchors on the card's
+  top-right corner, keeping the on-screen position unchanged.
 - Last full validation: Debug and Release builds succeeded; 67 tests passed with zero failures on 2026-07-17; `codex/hud-external-border` worktree. Installed bundle metadata reports 1.3.7 (21).
 
 ## Where to start next

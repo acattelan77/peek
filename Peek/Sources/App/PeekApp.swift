@@ -763,13 +763,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.contentView?.layer?.isOpaque = false
         panel.setContentSize(hostingController.view.fittingSize)
 
-        // Position top-right of the active screen.
+        // Position top-right of the active screen. The panel is larger than the
+        // card by `shadowPadding` on every side to leave room for the shadow, so
+        // anchor using the card's top-right corner, not the panel's.
         if let screen = NSScreen.main {
             let visible = screen.visibleFrame
             let size = panel.frame.size
+            let inset = StartingNowHUD.shadowPadding
             let origin = NSPoint(
-                x: visible.maxX - size.width - 16,
-                y: visible.maxY - size.height - 16
+                x: visible.maxX - (size.width - inset) - 16,
+                y: visible.maxY - (size.height - inset) - 16
             )
             panel.setFrameOrigin(origin)
         }
