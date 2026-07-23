@@ -4,6 +4,14 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.8 - 2026-07-23
+
+### Fixed
+
+- Gave the "Starting now" HUD's drop shadow room inside its transparent panel so
+  the window bounds no longer clip it into a visible squared edge; only the
+  rounded card is visible now.
+
 ## 1.3.7 - 2026-07-17
 
 ### Fixed

@@ -4,6 +4,15 @@ import AppKit
 /// High-signal "Starting now" heads-up card shown top-right when a meeting is imminent.
 /// Pure presentation: the hosting window and timing live in the composition root.
 struct StartingNowHUD: View {
+    /// Fixed card width, shared with the composition root for panel placement.
+    static let cardWidth: CGFloat = 380
+    /// Transparent margin around the card so the drop shadow has room inside the
+    /// hosting window. Without it the window bounds clip the shadow into a
+    /// visible squared edge around the rounded card.
+    static var shadowPadding: CGFloat {
+        PeekElevation.hud.radius / 2 + PeekElevation.hud.y
+    }
+
     let title: String
     let timeRange: String
     let calendarName: String?
@@ -47,10 +56,11 @@ struct StartingNowHUD: View {
             .padding(.top, 18)
             .padding(.bottom, 20)
         }
-        .frame(width: 380)
+        .frame(width: Self.cardWidth)
         .background(PeekColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: PeekRadius.hud, style: .continuous))
         .peekShadow(.hud)
+        .padding(Self.shadowPadding)
         .preferredColorScheme(preferredColorScheme)
     }
 
