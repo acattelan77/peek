@@ -15,6 +15,12 @@ struct PeekApp: App {
     }
 }
 
+private struct PopoverAnchorSnapshot: Equatable {
+    let windowIdentifier: ObjectIdentifier
+    let screenFrame: NSRect
+    let positioningRect: NSRect
+}
+
 class AppDelegate: NSObject, NSApplicationDelegate {
     // Constants
     private static let kUpdateInterval = StatusBarRefreshPolicy.normalInterval
@@ -33,6 +39,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemWindowState: StatusBarItemWindowState = .notYetLaidOut
     private var collapsedWhileHidden = false
     private var outsideClickEventMonitor: Any?
+    private var isPopoverPresentationPending = false
+    private var popoverAnchorTimer: Timer?
+    private var lastPopoverAnchorSnapshot: PopoverAnchorSnapshot?
     private var refreshWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
     private var onboardingWindow: NSWindow?
@@ -82,6 +91,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
+        popover.delegate = self
 
         let menuBarView = MenuBarView(
             calendarManager: calendarManager,
@@ -311,6 +321,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSEvent.removeMonitor(monitor)
             outsideClickEventMonitor = nil
         }
+        isPopoverPresentationPending = false
+        stopPopoverAnchorTracking()
 
         calendarManager.stopObservingChanges()
         closeHUD()
@@ -410,48 +422,65 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        if popover.isShown {
+        if popover.isShown || isPopoverPresentationPending {
+            isPopoverPresentationPending = false
+            stopPopoverAnchorTracking()
             if let monitor = outsideClickEventMonitor {
                 NSEvent.removeMonitor(monitor)
                 outsideClickEventMonitor = nil
             }
-            popover.performClose(nil)
+            if popover.isShown {
+                popover.performClose(nil)
+            }
         } else {
             // As an accessory (LSUIElement) app, Peek is not activated by a status-item
             // click. Without activating, the popover's window never becomes key: its
             // controls render in the inactive (grey) appearance and the transient
-            // popover is dismissed almost immediately. Activate first so the popover
-            // stays open and renders active.
+            // popover is dismissed almost immediately. Activation can also rearrange
+            // status items, so wait for the next layout pass before capturing the
+            // button's position as the popover anchor.
+            isPopoverPresentationPending = true
             NSApp.activate(ignoringOtherApps: true)
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            popover.contentViewController?.view.window?.makeKey()
+            DispatchQueue.main.async { [weak self, weak button] in
+                guard let self = self, let button = button else { return }
+                guard self.isPopoverPresentationPending, !self.popover.isShown else { return }
+                self.isPopoverPresentationPending = false
+                self.presentPopover(relativeTo: button)
+            }
+        }
+    }
 
-            // Make sure to remove any existing monitor before creating a new one to prevent leaks
-            if let monitor = outsideClickEventMonitor {
-                NSEvent.removeMonitor(monitor)
-                outsideClickEventMonitor = nil
+    private func presentPopover(relativeTo button: NSStatusBarButton) {
+        button.layoutSubtreeIfNeeded()
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
+        startPopoverAnchorTracking()
+        installOutsideClickMonitor()
+    }
+
+    private func installOutsideClickMonitor() {
+        if let monitor = outsideClickEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            outsideClickEventMonitor = nil
+        }
+
+        outsideClickEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self = self else { return }
+            guard self.popover.isShown else {
+                if let monitor = self.outsideClickEventMonitor {
+                    NSEvent.removeMonitor(monitor)
+                    self.outsideClickEventMonitor = nil
+                }
+                return
             }
 
-            // Install a global event monitor to close popover when clicking outside
-            outsideClickEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-                guard let self = self else { return }
-                // If the popover is not shown, remove monitor and return
-                guard self.popover.isShown else {
-                    if let monitor = self.outsideClickEventMonitor {
-                        NSEvent.removeMonitor(monitor)
-                        self.outsideClickEventMonitor = nil
-                    }
-                    return
-                }
-                // Determine the window under the mouse click; if it's not the popover's, close it
-                if let clickedWindow = NSApp.window(withWindowNumber: event.windowNumber) {
-                    if clickedWindow != self.popover.contentViewController?.view.window {
-                        self.popover.performClose(nil)
-                    }
-                } else {
-                    // Click on desktop or non-window area
+            let popoverWindow = self.popover.contentViewController?.view.window
+            if let clickedWindow = NSApp.window(withWindowNumber: event.windowNumber) {
+                if clickedWindow != popoverWindow {
                     self.popover.performClose(nil)
                 }
+            } else {
+                self.popover.performClose(nil)
             }
         }
     }
@@ -529,6 +558,59 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         button.setAccessibilityLabel(content.tooltip ?? content.title)
+        refreshPopoverAnchorIfNeeded()
+    }
+
+    /// A status item can move into a different private menu-bar window when macOS
+    /// switches Peek between text and icon-only presentations. Track the live
+    /// window for the full popover lifetime instead of assuming the rearrangement
+    /// finishes within a fixed number of layout passes.
+    private func startPopoverAnchorTracking() {
+        stopPopoverAnchorTracking()
+        lastPopoverAnchorSnapshot = currentPopoverAnchorSnapshot()
+
+        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
+            self?.refreshPopoverAnchorIfNeeded()
+        }
+        popoverAnchorTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func stopPopoverAnchorTracking() {
+        popoverAnchorTimer?.invalidate()
+        popoverAnchorTimer = nil
+        lastPopoverAnchorSnapshot = nil
+    }
+
+    private func refreshPopoverAnchorIfNeeded() {
+        guard popover.isShown, let button = statusItem.button else {
+            stopPopoverAnchorTracking()
+            return
+        }
+
+        button.layoutSubtreeIfNeeded()
+        guard let snapshot = currentPopoverAnchorSnapshot(), snapshot != lastPopoverAnchorSnapshot else {
+            return
+        }
+
+        lastPopoverAnchorSnapshot = snapshot
+
+        // AppKit documents that calling show again for an already shown popover
+        // updates its associated positioning view and rectangle. This matters when
+        // the status button has moved into a replacement menu-bar window.
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+    }
+
+    private func currentPopoverAnchorSnapshot() -> PopoverAnchorSnapshot? {
+        guard let button = statusItem.button, let window = button.window else { return nil }
+
+        let positioningRect = button.bounds
+        let frameInWindow = button.convert(positioningRect, to: nil)
+        return PopoverAnchorSnapshot(
+            windowIdentifier: ObjectIdentifier(window),
+            screenFrame: window.convertToScreen(frameInWindow),
+            positioningRect: positioningRect
+        )
     }
 
     private func statusItemMetrics(button: NSStatusBarButton, title: String) -> (availableWidth: CGFloat, requiredWidth: CGFloat, notchMargin: CGFloat) {
@@ -799,7 +881,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 }
 
-extension AppDelegate: NSWindowDelegate {
+extension AppDelegate: NSWindowDelegate, NSPopoverDelegate {
+    func popoverDidClose(_ notification: Notification) {
+        stopPopoverAnchorTracking()
+    }
+
     func windowWillClose(_ notification: Notification) {
         // If the user closes onboarding via the traffic light, treat it as finished.
         guard (notification.object as? NSWindow) === onboardingWindow else { return }

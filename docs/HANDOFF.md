@@ -1,10 +1,10 @@
 # Project handoff
 
-Last updated: 2026-07-23
+Last updated: 2026-07-30
 
 ## Read this first
 
-Peek is currently at **1.3.8 (build 22)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.3.9 (build 23)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -41,7 +41,13 @@ Peek is currently at **1.3.8 (build 22)**. The repository has been reorganized i
   `shadowPadding` margin sized from the `.hud` elevation values, so the panel bounds no longer
   clip the drop shadow into a visible squared edge; panel placement anchors on the card's
   top-right corner, keeping the on-screen position unchanged.
-- Last full validation: Debug and Release builds succeeded; 67 tests passed with zero failures on 2026-07-17; `codex/hud-external-border` worktree. Installed bundle metadata reports 1.3.7 (21).
+- Popover status-item anchoring fix (1.3.9): presentation now waits for the accessory-app
+  activation layout pass, then tracks the live status-item window while the popover is open.
+  If macOS replaces or moves that window during icon/text fallback, Peek re-associates the
+  already-shown popover with the current status button.
+- Last full validation: version check and Debug build succeeded; 67 tests passed
+  with zero failures on 2026-07-31 on `codex/popover-status-item-anchor`.
+  Installed bundle metadata was not changed by this workstream.
 
 ## Where to start next
 

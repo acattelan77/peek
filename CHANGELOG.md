@@ -4,6 +4,15 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.9 - 2026-07-30
+
+### Fixed
+
+- Kept the popover arrow attached to Peek's current menu-bar icon when app
+  activation, event-title updates, or the automatic icon/text fallback cause
+  macOS to rearrange status items, including cases where macOS replaces the
+  text item's menu-bar window with a compact icon window after the popover opens.
+
 ## 1.3.8 - 2026-07-23
 
 ### Fixed
