@@ -1,7 +1,7 @@
 # Workstream: Keep popover anchored to the status item
 
 - Roadmap ID: N/A
-- Status: In review
+- Status: Complete
 - Owner: Codex
 - Branch/worktree: `codex/popover-anchor-window-rebind`
 - Last updated: 2026-08-12
@@ -57,6 +57,8 @@ app activation or status-text changes cause macOS to rearrange menu-bar items.
 - Required unsigned Debug build succeeded on 2026-08-12.
 - Required macOS test run passed on 2026-08-12: 69 tests, zero failures.
 - `git diff --check` passed.
+- 2026-08-12 physical QA passed on the 1.3.11 build: the global hotkey opens
+  the popover without crashing and the arrow follows the current icon.
 - Local Release build succeeded for both arm64 and x86_64, passed strict
   on-disk signature verification, and contains the calendar entitlement.
 - Computer-control inspection can launch the app but cannot address or capture
@@ -89,7 +91,4 @@ app activation or status-text changes cause macOS to rearrange menu-bar items.
 
 ## Exact next action
 
-Install the 1.3.11 Release candidate, confirm the global hotkey opens the
-popover without crashing, then repeat the reported close/reopen sequence and
-confirm the arrow follows the current icon after another menu-bar item is
-opened.
+None — physical QA passed on 1.3.11 and the workstream is complete.

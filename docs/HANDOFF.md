@@ -51,9 +51,9 @@ Peek is currently at **1.3.11 (build 25)**. The repository has been reorganized 
   conversion trapped when the popover was presented via the global hotkey
   (`EXC_BREAKPOINT` in `liveStatusButtonScreenFrame`). The conversion is now
   range-checked and falls back to AppKit-derived geometry.
-- Last full validation: 69 tests passed with zero failures on 2026-08-12 on
-  `codex/popover-anchor-window-rebind`. Physical close/reopen QA remains the
-  completion gate for this WindowServer-dependent fix.
+- Last full validation: 69 tests passed with zero failures on 2026-08-12.
+  Physical QA passed the same day on the 1.3.11 build, completing the
+  popover status-item anchor workstream.
 
 ## Where to start next
 
@@ -77,7 +77,6 @@ Create a workstream from `docs/workstreams/TEMPLATE.md` and follow the validatio
 
 ## Known constraints
 
-- Public distribution is not ready: Developer ID signing and notarization are still outstanding.
 - `CalendarManager` and `AppDelegate` remain larger than the target architecture recommends.
 - The automatic space policy now uses the notch frontier on notched displays and a sticky hidden-item latch on non-notched displays; real-world crowded-menu-bar validation on multiple notched and external display setups is welcome.
 
