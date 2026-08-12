@@ -5,12 +5,14 @@ import Foundation
 struct MenuBarView: View {
     // Key codes
     private static let kEscapeKeyCode: UInt16 = 53
+    private static let kReturnKeyCode: UInt16 = 36
     private static let kDownArrowKeyCode: UInt16 = 125
     private static let kUpArrowKeyCode: UInt16 = 126
 
     @ObservedObject var calendarManager: CalendarManager
     @State private var showingPreferences = false
     @State private var selectedEventIndex: Int = 0
+    @State private var expandedEventID: String?
     @State private var eventMonitor: Any?
     @State private var isRefreshing = false
     @State private var showRefreshConfirmation = false
@@ -86,6 +88,11 @@ struct MenuBarView: View {
                 selectedEventIndex = max(0, newCount - 1)
             }
         }
+        .onChange(of: calendarManager.upcomingEvents.map(\.eventIdentifier)) { identifiers in
+            if let expandedEventID, !identifiers.contains(expandedEventID) {
+                self.expandedEventID = nil
+            }
+        }
     }
 
     // MARK: - Header
@@ -129,7 +136,9 @@ struct MenuBarView: View {
                     EventRow(
                         event: event,
                         isHero: index == 0,
-                        isSelected: index == selectedEventIndex
+                        isSelected: index == selectedEventIndex,
+                        isExpanded: expandedEventID != nil && expandedEventID == event.eventIdentifier,
+                        onToggleExpand: { toggleExpansion(for: event) }
                     )
                     .contextMenu {
                         EventContextMenu(event: event)
@@ -139,6 +148,7 @@ struct MenuBarView: View {
             .padding(PeekSpacing.sm)
         }
         .frame(maxHeight: 400)
+        .background(PeekColor.canvas)
     }
 
     // MARK: - Empty / no-access states
@@ -241,6 +251,10 @@ struct MenuBarView: View {
             } else if event.keyCode == Self.kUpArrowKeyCode {
                 selectedEventIndex = max(selectedEventIndex - 1, 0)
                 return nil
+            } else if event.keyCode == Self.kReturnKeyCode,
+                      selectedEventIndex < calendarManager.upcomingEvents.count {
+                toggleExpansion(for: calendarManager.upcomingEvents[selectedEventIndex])
+                return nil
             }
         }
 
@@ -248,6 +262,11 @@ struct MenuBarView: View {
     }
 
     // MARK: - Actions
+
+    private func toggleExpansion(for event: EKEvent) {
+        guard let identifier = event.eventIdentifier else { return }
+        expandedEventID = (expandedEventID == identifier) ? nil : identifier
+    }
 
     private func performRefresh() {
         guard !isRefreshing else { return }
@@ -281,24 +300,6 @@ struct MenuBarView: View {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
             NSWorkspace.shared.open(url)
         }
-    }
-}
-
-// MARK: - Meeting provider helpers
-
-enum MeetingProvider {
-    static func label(for url: URL) -> String {
-        guard let host = url.host?.lowercased() else {
-            return NSLocalizedString("Meeting", comment: "Generic meeting provider")
-        }
-        if host.contains("zoom") { return "Zoom" }
-        if host.contains("meet.google") { return "Google Meet" }
-        if host.contains("teams.microsoft") { return "Teams" }
-        if host.contains("webex") { return "Webex" }
-        if host.contains("gotomeeting") { return "GoToMeeting" }
-        if host.contains("whereby") { return "Whereby" }
-        if host.contains("discord") { return "Discord" }
-        return NSLocalizedString("Meeting", comment: "Generic meeting provider")
     }
 }
 
@@ -343,6 +344,8 @@ struct EventRow: View {
     let event: EKEvent
     var isHero: Bool = false
     var isSelected: Bool = false
+    var isExpanded: Bool = false
+    var onToggleExpand: (() -> Void)? = nil
 
     private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
 
@@ -391,6 +394,18 @@ struct EventRow: View {
             }
         }
         .peekFocusRing(isSelected)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onToggleExpand?()
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            onToggleExpand?()
+        }
+        .accessibilityValue(Text(isExpanded
+            ? NSLocalizedString("Expanded", comment: "Accessibility: event row is expanded")
+            : NSLocalizedString("Collapsed", comment: "Accessibility: event row is collapsed")))
     }
 
     // MARK: Hero (NEXT) row
@@ -418,12 +433,20 @@ struct EventRow: View {
                 if let meetingURL {
                     joinButton(url: meetingURL)
                 }
+
+                if isExpanded {
+                    expandedDetail
+                }
             }
             .padding(.leading, 11)
             .padding(.trailing, 12)
             .padding(.vertical, 11)
         }
         .background(washColor)
+        .overlay(
+            RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous)
+                .strokeBorder(PeekColor.hairline, lineWidth: 1)
+        )
         .clipShape(RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous))
         .modifier(CriticalPulse(active: urgency == .critical && !event.isAllDay))
     }
@@ -442,10 +465,18 @@ struct EventRow: View {
             }
             metaRow(accented: false)
             detailRow
+
+            if isExpanded {
+                expandedDetail
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(isSelected ? PeekColor.rowHoverWash : Color.clear)
+        .background(isSelected ? PeekColor.rowHoverWash : PeekColor.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous)
+                .strokeBorder(PeekColor.hairline, lineWidth: 1)
+        )
         .clipShape(RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous))
     }
 
@@ -517,6 +548,99 @@ struct EventRow: View {
             }
 
             Spacer(minLength: 0)
+        }
+    }
+
+    // MARK: Expanded detail
+
+    private var expandedDetail: some View {
+        let detail = EventDetailBuilder.make(from: event)
+        return VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+            RowDivider()
+
+            if detail.isEmpty {
+                Text(NSLocalizedString("No additional details", comment: "Expanded event row with no notes, attendees, or attachments"))
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.tertiaryText)
+            } else {
+                // The hero row already shows provider identity and a Join button.
+                if !isHero, let meetingURL = detail.meetingURL {
+                    joinButton(url: meetingURL)
+                }
+
+                if let notes = detail.notes {
+                    detailSection(NSLocalizedString("Notes", comment: "Expanded event section: notes")) {
+                        Text(notes)
+                            .font(PeekFont.bodyMeta)
+                            .foregroundColor(PeekColor.bodyText)
+                            .lineLimit(6)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                if !detail.attendees.isEmpty {
+                    detailSection(NSLocalizedString("Attendees", comment: "Expanded event section: attendees")) {
+                        attendeeRows(detail: detail)
+                    }
+                }
+            }
+        }
+        .padding(.top, 2)
+    }
+
+    private func detailSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title.uppercased())
+                .font(PeekFont.label)
+                .tracking(0.5)
+                .foregroundColor(PeekColor.tertiaryText)
+            content()
+        }
+    }
+
+    private func attendeeRows(detail: EventDetail) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(detail.visibleAttendees.enumerated()), id: \.offset) { _, attendee in
+                HStack(spacing: 6) {
+                    Image(systemName: attendeeResponseIcon(attendee.response))
+                        .font(.system(size: 11))
+                        .foregroundColor(attendeeResponseColor(attendee.response))
+                        .frame(width: 14)
+                    Text(attendee.displayName)
+                        .font(PeekFont.bodyMeta)
+                        .foregroundColor(PeekColor.bodyText)
+                        .lineLimit(1)
+                    if attendee.isOrganizer {
+                        Text(NSLocalizedString("Organizer", comment: "Marks the event organizer in the attendee list"))
+                            .font(PeekFont.caption)
+                            .foregroundColor(PeekColor.tertiaryText)
+                    }
+                }
+            }
+            if detail.hiddenAttendeeCount > 0 {
+                Text(String(format: NSLocalizedString("+%d more", comment: "Count of attendees not shown in the expanded event row"), detail.hiddenAttendeeCount))
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.tertiaryText)
+            }
+        }
+    }
+
+    private func attendeeResponseIcon(_ response: AttendeeResponse) -> String {
+        switch response {
+        case .accepted: return "checkmark.circle.fill"
+        case .declined: return "xmark.circle"
+        case .tentative: return "questionmark.circle"
+        case .pending: return "clock"
+        case .unknown: return "person"
+        }
+    }
+
+    private func attendeeResponseColor(_ response: AttendeeResponse) -> Color {
+        switch response {
+        case .accepted: return PeekColor.calm
+        case .declined: return PeekColor.critical
+        case .tentative: return PeekColor.urgent
+        case .pending, .unknown: return PeekColor.tertiaryText
         }
     }
 

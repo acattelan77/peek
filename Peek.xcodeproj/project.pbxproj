@@ -15,6 +15,9 @@
 		1A0000350000000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000320000000000000001 /* InfoPlist.strings */; };
 		1A0000110000000000000002 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000120000000000000002 /* PreferencesView.swift */; };
 		1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000490000000000000001 /* MeetingURLDetectorTests.swift */; };
+		4E0000040000000000000001 /* EventDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000010000000000000001 /* EventDetail.swift */; };
+		4E0000050000000000000001 /* MeetingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000020000000000000001 /* MeetingProvider.swift */; };
+		4E0000060000000000000001 /* EventDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000030000000000000001 /* EventDetailTests.swift */; };
 		1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00004A0000000000000001 /* EventTimeFormatterTests.swift */; };
 		1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00004B0000000000000001 /* MeetingUrgencyTests.swift */; };
 		1A0000610000000000000001 /* MeetingURLDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000600000000000000001 /* MeetingURLDetector.swift */; };
@@ -78,6 +81,9 @@
 		1A0000120000000000000002 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		1A0000470000000000000001 /* PeekTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PeekTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000490000000000000001 /* MeetingURLDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingURLDetectorTests.swift; sourceTree = "<group>"; };
+		4E0000010000000000000001 /* EventDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetail.swift; sourceTree = "<group>"; };
+		4E0000020000000000000001 /* MeetingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingProvider.swift; sourceTree = "<group>"; };
+		4E0000030000000000000001 /* EventDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailTests.swift; sourceTree = "<group>"; };
 		1A00004A0000000000000001 /* EventTimeFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTimeFormatterTests.swift; sourceTree = "<group>"; };
 		1A00004B0000000000000001 /* MeetingUrgencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingUrgencyTests.swift; sourceTree = "<group>"; };
 		1A0000600000000000000001 /* MeetingURLDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingURLDetector.swift; sourceTree = "<group>"; };
@@ -180,6 +186,7 @@
 				2B0000350000000000000001 /* Fakes */,
 				2C0000120000000000000001 /* AppVersionTests.swift */,
 				1A0000490000000000000001 /* MeetingURLDetectorTests.swift */,
+				4E0000030000000000000001 /* EventDetailTests.swift */,
 				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
 				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
@@ -281,6 +288,7 @@
 			isa = PBXGroup;
 			children = (
 				1A00006D0000000000000001 /* EventPipeline.swift */,
+				4E0000010000000000000001 /* EventDetail.swift */,
 				1A0000680000000000000001 /* MeetingUrgency.swift */,
 			);
 			path = Events;
@@ -290,6 +298,7 @@
 			isa = PBXGroup;
 			children = (
 				1A0000600000000000000001 /* MeetingURLDetector.swift */,
+				4E0000020000000000000001 /* MeetingProvider.swift */,
 			);
 			path = Meetings;
 			sourceTree = "<group>";
@@ -538,6 +547,8 @@
 				1A0000610000000000000001 /* MeetingURLDetector.swift in Sources */,
 				1A0000630000000000000001 /* EventTimeFormatter.swift in Sources */,
 				1A0000690000000000000001 /* MeetingUrgency.swift in Sources */,
+				4E0000040000000000000001 /* EventDetail.swift in Sources */,
+				4E0000050000000000000001 /* MeetingProvider.swift in Sources */,
 				2B0000060000000000000001 /* StatusBarContentBuilder.swift in Sources */,
 				2D0000010000000000000001 /* PeekTheme.swift in Sources */,
 				2D0000020000000000000001 /* PeekComponents.swift in Sources */,
@@ -554,6 +565,7 @@
 			files = (
 				2C0000030000000000000001 /* AppVersionTests.swift in Sources */,
 				1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */,
+				4E0000060000000000000001 /* EventDetailTests.swift in Sources */,
 				1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */,
 				1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */,
 				2B0000080000000000000001 /* StatusBarContentBuilderTests.swift in Sources */,

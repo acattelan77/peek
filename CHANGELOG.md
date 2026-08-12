@@ -4,6 +4,18 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.4.0 - 2026-08-12
+
+### Added
+
+- Event detail expansion: clicking an event in the popover (or pressing Return
+  on the keyboard-selected row) expands it in place to show its notes,
+  attendees with response status and the organizer, and a Join button for
+  non-hero rows. Conference provider identity (Zoom, Google Meet, Teams, …) is
+  now derived in the Domain layer and shared between the row, the expanded
+  details, and the "Starting now" HUD. Attachments are not shown: macOS
+  EventKit does not expose them.
+
 ## 1.3.11 - 2026-08-12
 
 ### Fixed

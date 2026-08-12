@@ -157,3 +157,13 @@
 "in %d min" = "in %d min";
 "meeting" = "meeting";
 "starting now" = "starting now";
+
+// Expanded event details
+"Notes" = "Notes";
+"Attendees" = "Attendees";
+"Organizer" = "Organizer";
+"No additional details" = "No additional details";
+"+%d more" = "+%d more";
+"Unknown attendee" = "Unknown attendee";
+"Expanded" = "Expanded";
+"Collapsed" = "Collapsed";

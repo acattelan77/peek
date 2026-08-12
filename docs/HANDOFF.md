@@ -4,7 +4,7 @@ Last updated: 2026-08-12
 
 ## Read this first
 
-Peek is currently at **1.3.11 (build 25)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.4.0 (build 26)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -51,15 +51,20 @@ Peek is currently at **1.3.11 (build 25)**. The repository has been reorganized 
   conversion trapped when the popover was presented via the global hotkey
   (`EXC_BREAKPOINT` in `liveStatusButtonScreenFrame`). The conversion is now
   range-checked and falls back to AppKit-derived geometry.
-- Last full validation: 69 tests passed with zero failures on 2026-08-12.
-  Physical QA passed the same day on the 1.3.11 build, completing the
-  popover status-item anchor workstream.
+- PEEK-110 integrated (1.4.0): popover events are bordered cards (the next
+  event keeps its urgency color coding) that expand in place on click or
+  Return to show notes, attendees with response status and the organizer, and
+  conference provider identity. `MeetingProvider` moved to `Domain/Meetings`;
+  detail logic lives in the testable `EventDetail`/`EventDetailBuilder`.
+  Attachments are omitted because macOS EventKit does not expose them.
+- Last full validation: 80 tests passed with zero failures on 2026-08-12 on
+  `codex/event-detail-expansion`, including physical QA of the expansion
+  interactions and card styling.
 
 ## Where to start next
 
-PEEK-101 through PEEK-108, the full design-system refresh, and the app-icon re-render are complete. There are no remaining `Ready` items in `docs/ROADMAP.md`; the next candidates are in the **Next** bucket:
+PEEK-101 through PEEK-110, the full design-system refresh, and the app-icon re-render are complete. There are no remaining `Ready` items in `docs/ROADMAP.md`; the next candidates are in the **Next** bucket:
 
-- Event detail expansion: notes, attendees, attachments, and conference provider identity.
 - Conflict and overlap warnings.
 - Multiple time-zone display.
 - Quick event creation with explicit confirmation and calendar selection.
