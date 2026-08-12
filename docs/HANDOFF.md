@@ -1,10 +1,10 @@
 # Project handoff
 
-Last updated: 2026-07-30
+Last updated: 2026-08-12
 
 ## Read this first
 
-Peek is currently at **1.3.9 (build 23)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.3.11 (build 25)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
 
 ## Integrated state
 
@@ -41,13 +41,19 @@ Peek is currently at **1.3.9 (build 23)**. The repository has been reorganized i
   `shadowPadding` margin sized from the `.hud` elevation values, so the panel bounds no longer
   clip the drop shadow into a visible squared edge; panel placement anchors on the card's
   top-right corner, keeping the on-screen position unchanged.
-- Popover status-item anchoring fix (1.3.9): presentation now waits for the accessory-app
-  activation layout pass, then tracks the live status-item window while the popover is open.
-  If macOS replaces or moves that window during icon/text fallback, Peek re-associates the
-  already-shown popover with the current status button.
-- Last full validation: version check and Debug build succeeded; 67 tests passed
-  with zero failures on 2026-07-31 on `codex/popover-status-item-anchor`.
-  Installed bundle metadata was not changed by this workstream.
+- Popover status-item anchoring fix (1.3.10): the direct status-button anchor used
+  in 1.3.9 still reused stale AppKit positioning state after close/reopen. Peek
+  now creates a fresh invisible anchor window for each presentation, positions
+  it from WindowServer's live status-item frame, and retains click-derived
+  geometry as a fallback.
+- Hotkey crash fix (1.3.11): the private status-item window can report a
+  `windowNumber` outside the `CGWindowID` (`UInt32`) range, and the unchecked
+  conversion trapped when the popover was presented via the global hotkey
+  (`EXC_BREAKPOINT` in `liveStatusButtonScreenFrame`). The conversion is now
+  range-checked and falls back to AppKit-derived geometry.
+- Last full validation: 69 tests passed with zero failures on 2026-08-12 on
+  `codex/popover-anchor-window-rebind`. Physical close/reopen QA remains the
+  completion gate for this WindowServer-dependent fix.
 
 ## Where to start next
 

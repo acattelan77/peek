@@ -288,6 +288,24 @@ final class AppDelegateLogicTests: XCTestCase {
         XCTAssertEqual(StatusBarRefreshPolicy.interval(for: .urgent), 5)
         XCTAssertEqual(StatusBarRefreshPolicy.interval(for: .normal), 60)
     }
+
+    func testClickGeometryFindsActualButtonFrameWithoutUsingWindowFrame() {
+        let frame = PopoverAnchorGeometry.eventDerivedButtonFrame(
+            buttonFrameInWindow: NSRect(x: 5, y: 2, width: 24, height: 20),
+            eventLocationInWindow: NSPoint(x: 17, y: 12),
+            mouseLocation: NSPoint(x: 667, y: 1_028)
+        )
+
+        XCTAssertEqual(frame, NSRect(x: 655, y: 1_018, width: 24, height: 20))
+    }
+
+    func testAnchorWindowCentersOnButtonBottomEdge() {
+        let frame = PopoverAnchorGeometry.anchorWindowFrame(
+            for: NSRect(x: 655, y: 1_018, width: 24, height: 20)
+        )
+
+        XCTAssertEqual(frame, NSRect(x: 666.5, y: 1_018, width: 1, height: 1))
+    }
 }
 
 final class NotificationManagerSignatureTests: XCTestCase {

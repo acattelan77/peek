@@ -3,8 +3,8 @@
 - Roadmap ID: N/A
 - Status: In review
 - Owner: Codex
-- Branch/worktree: `codex/popover-status-item-anchor`
-- Last updated: 2026-07-31
+- Branch/worktree: `codex/popover-anchor-window-rebind`
+- Last updated: 2026-08-12
 
 ## Objective
 
@@ -27,6 +27,7 @@ app activation or status-text changes cause macOS to rearrange menu-bar items.
 ## Claimed files and subsystems
 
 - `Peek/Sources/App/PeekApp.swift`
+- `PeekTests/EventPipelineTests.swift`
 - `CHANGELOG.md`
 - `Configuration/Version.xcconfig`
 - `docs/HANDOFF.md`
@@ -45,17 +46,27 @@ app activation or status-text changes cause macOS to rearrange menu-bar items.
 - [x] Run required validation.
 - [x] Replace bounded stabilization with tracking of the live status-item window.
 - [x] Re-run required validation after physical QA exposed the remaining race.
+- [x] Decouple `NSPopover` from the private status-item positioning window.
+- [x] Add click-geometry regression tests.
+- [x] Fix the hotkey-presentation crash from the out-of-range
+  `windowNumber` → `CGWindowID` conversion (1.3.11).
 
 ## Validation
 
-- `bash scripts/check-version.sh` passed for 1.3.9 (23).
-- Required unsigned Debug build succeeded on 2026-07-31.
-- Required macOS test run passed on 2026-07-31: 67 tests, zero failures.
+- `bash scripts/check-version.sh` passed for 1.3.11 (25).
+- Required unsigned Debug build succeeded on 2026-08-12.
+- Required macOS test run passed on 2026-08-12: 69 tests, zero failures.
 - `git diff --check` passed.
+- Local Release build succeeded for both arm64 and x86_64, passed strict
+  on-disk signature verification, and contains the calendar entitlement.
+- Computer-control inspection can launch the app but cannot address or capture
+  macOS menu-bar extras, so the exact visual close/reopen sequence still
+  requires physical QA.
 - 2026-07-31 physical QA failed when Peek changed from text to icon after another
   menu-bar item was opened; the popover remained at the prior text-item position.
-- The revised build was relaunched from Xcode; repeating the same physical sequence
-  remains the final confirmation.
+- 2026-07-31 physical QA failed again on the revised Release build: after another
+  menu-bar item was opened, Peek's compact icon appeared at its current position
+  while the popover arrow remained centered on an earlier menu-bar position.
 
 ## Decisions and open questions
 
@@ -66,9 +77,19 @@ app activation or status-text changes cause macOS to rearrange menu-bar items.
 - The revised implementation compares the live window identity, screen frame,
   and button bounds throughout the popover lifetime. AppKit's documented
   re-show behavior updates the positioning-view association without closing it.
+- The second physical failure shows the private positioning-view association
+  itself is unreliable across close/reopen. The 1.3.10 candidate attaches each
+  presentation to a fresh app-owned transparent anchor window and updates that
+  window from the exact WindowServer status-item frame.
+- 2026-08-12 physical QA: pressing the global hotkey crashed Peek
+  (`EXC_BREAKPOINT` in `liveStatusButtonScreenFrame`). The private status-item
+  window's `windowNumber` can fall outside the `CGWindowID` (`UInt32`) range,
+  and the unchecked conversion trapped. 1.3.11 range-checks the conversion and
+  falls back to click-derived/AppKit-derived geometry.
 
 ## Exact next action
 
-Repeat the reported sequence on the currently running Xcode build: open Peek,
-open another menu-bar item, then reopen Peek and confirm the arrow follows the
-compact icon.
+Install the 1.3.11 Release candidate, confirm the global hotkey opens the
+popover without crashing, then repeat the reported close/reopen sequence and
+confirm the arrow follows the current icon after another menu-bar item is
+opened.

@@ -4,6 +4,24 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.3.11 - 2026-08-12
+
+### Fixed
+
+- Fixed a crash when opening Peek with the global hotkey: the private
+  status-item window can report a window number outside the `CGWindowID` range,
+  and converting it trapped. Peek now falls back to AppKit-derived popover
+  geometry in that case.
+
+## 1.3.10 - 2026-07-31
+
+### Fixed
+
+- Detached the popover from AppKit's cached private status-item positioning
+  window. Each opening now uses a fresh invisible anchor at Peek's live
+  WindowServer position, with click-derived geometry as a fallback, so reopening
+  after another menu-bar item no longer reuses the previous arrow location.
+
 ## 1.3.9 - 2026-07-30
 
 ### Fixed
