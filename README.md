@@ -2,7 +2,7 @@
 
 Peek is a lightweight macOS menu bar calendar companion. It shows your upcoming events from the macOS Calendar app, highlights urgency as meeting time approaches, and provides one-click join links for common meeting providers.
 
-Current development version: **1.1.0 (build 5)**.
+Current development version: **1.4.1 (build 28)**.
 
 ## About This Repo
 
@@ -11,12 +11,12 @@ This repository contains the macOS app source, resources, tests, build scripts, 
 ## Features
 
 - Quick event overview from the menu bar
-- Manual icon-only display mode; notch-safe automatic switching is planned
+- Automatic notch-safe menu-bar switching, with explicit icon-only and text overrides
 - Visual meeting urgency cues
 - Orange when 2 to 10 minutes away
 - Red with pulsing when less than 2 minutes away
 - Join buttons for common meeting links (Zoom, Google Meet, Teams, Webex, GoToMeeting, Whereby, Discord)
-- Event details: title, date, time, location, calendar, time until start
+- Expandable event details: title, date, time, location, calendar, notes, attendees, and conference provider
 - Calendar selection with saved preferences
 - Smart auto refresh (every minute normally, every 5 seconds when a meeting is close)
 - Dark mode support

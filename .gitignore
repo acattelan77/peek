@@ -124,3 +124,6 @@ Temporary Items
 
 # DMG files (optional - comment out if you want to track DMGs)
 *.dmg
+
+# Swift/Xcode coverage profiles
+*.profraw

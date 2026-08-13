@@ -1,10 +1,13 @@
 # Project handoff
 
-Last updated: 2026-08-12
+Last updated: 2026-08-13
 
 ## Read this first
 
-Peek is currently at **1.4.0 (build 26)**. The repository has been reorganized into a layered monolith and the app has a refreshed icon and popover presentation. Inspect `git status` before working: the architecture, documentation, and visual upgrade may still be uncommitted in the current worktree.
+Peek is currently at **1.4.1 (build 28)**. The current work has passed
+automated and physical QA. The repository is organized as a layered monolith
+with a refreshed icon and popover presentation. Inspect `git status` before
+working.
 
 ## Integrated state
 
@@ -57,6 +60,16 @@ Peek is currently at **1.4.0 (build 26)**. The repository has been reorganized i
   conference provider identity. `MeetingProvider` moved to `Domain/Meetings`;
   detail logic lives in the testable `EventDetail`/`EventDetailBuilder`.
   Attachments are omitted because macOS EventKit does not expose them.
+- 1.4.1: the stale popover-arrow path no longer queries
+  `CGWindowList` for a private status-item window. It uses click-derived
+  geometry for the initial open and AppKit's live status-button frame for
+  tracking, which avoids the macOS 26 `windowNumber == 2^32` failure. The
+  AppDelegate refactor also moved the Carbon registrar, popover-anchor
+  controller, HUD lifecycle, and geometry into focused App-layer types.
+- Latest automated validation: `bash scripts/check-version.sh`,
+  `git diff --check`, unsigned Debug build, and the macOS test suite all passed
+  on 2026-08-13 (80 tests, zero failures). User-performed physical QA also
+  passed for popover alignment, the global hotkey, and the Starting now HUD.
 - Last full validation: 80 tests passed with zero failures on 2026-08-12 on
   `codex/event-detail-expansion`, including physical QA of the expansion
   interactions and card styling.
@@ -82,7 +95,9 @@ Create a workstream from `docs/workstreams/TEMPLATE.md` and follow the validatio
 
 ## Known constraints
 
-- `CalendarManager` and `AppDelegate` remain larger than the target architecture recommends.
+- `CalendarManager` remains larger than the target architecture recommends.
+- `AppDelegate` is reduced from roughly 1120 to 753 lines, but it still owns
+  timers, notification scheduling, and status-bar-space coordination.
 - The automatic space policy now uses the notch frontier on notched displays and a sticky hidden-item latch on non-notched displays; real-world crowded-menu-bar validation on multiple notched and external display setups is welcome.
 
 ## Active workstreams

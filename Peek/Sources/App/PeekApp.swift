@@ -1,8 +1,6 @@
 import SwiftUI
 import AppKit
 import Combine
-import Carbon
-import CoreGraphics
 import EventKit
 
 @main
@@ -13,32 +11,6 @@ struct PeekApp: App {
         Settings {
             EmptyView()
         }
-    }
-}
-
-struct PopoverAnchorGeometry {
-    static func eventDerivedButtonFrame(
-        buttonFrameInWindow: NSRect,
-        eventLocationInWindow: NSPoint,
-        mouseLocation: NSPoint
-    ) -> NSRect {
-        let actualWindowOrigin = NSPoint(
-            x: mouseLocation.x - eventLocationInWindow.x,
-            y: mouseLocation.y - eventLocationInWindow.y
-        )
-        return buttonFrameInWindow.offsetBy(
-            dx: actualWindowOrigin.x,
-            dy: actualWindowOrigin.y
-        )
-    }
-
-    static func anchorWindowFrame(for buttonScreenFrame: NSRect) -> NSRect {
-        NSRect(
-            x: buttonScreenFrame.midX - 0.5,
-            y: buttonScreenFrame.minY,
-            width: 1,
-            height: 1
-        )
     }
 }
 
@@ -61,16 +33,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var collapsedWhileHidden = false
     private var outsideClickEventMonitor: Any?
     private var isPopoverPresentationPending = false
-    private var popoverAnchorTimer: Timer?
-    private var popoverAnchorWindow: NSPanel?
-    private var popoverAnchorView: NSView?
-    private var lastPopoverAnchorScreenFrame: NSRect?
+    private let popoverAnchorController = PopoverAnchorController()
+    private let hudController = StartingNowHUDController()
     private var refreshWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
     private var onboardingWindow: NSWindow?
-    private var hudWindow: NSPanel?
-    private var shownStartingNowEventIDs = Set<String>()
-    private var hudSnoozeWorkItem: DispatchWorkItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Compose live infrastructure once, at the application boundary.
@@ -345,11 +312,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             outsideClickEventMonitor = nil
         }
         isPopoverPresentationPending = false
-        stopPopoverAnchorTracking()
-        tearDownPopoverAnchorWindow()
+        popoverAnchorController.detach()
 
         calendarManager.stopObservingChanges()
-        closeHUD()
+        hudController.close()
     }
 
     @objc private func handleAppDidBecomeActive() {
@@ -446,7 +412,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
 
-            clickDerivedButtonFrame = eventDerivedButtonScreenFrame(
+            clickDerivedButtonFrame = PopoverAnchorController.eventDerivedButtonScreenFrame(
                 button: button,
                 event: event
             )
@@ -456,7 +422,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if popover.isShown || isPopoverPresentationPending {
             isPopoverPresentationPending = false
-            stopPopoverAnchorTracking()
+            popoverAnchorController.stopTracking()
             if let monitor = outsideClickEventMonitor {
                 NSEvent.removeMonitor(monitor)
                 outsideClickEventMonitor = nil
@@ -464,7 +430,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if popover.isShown {
                 popover.performClose(nil)
             } else {
-                tearDownPopoverAnchorWindow()
+                popoverAnchorController.detach()
             }
         } else {
             // As an accessory (LSUIElement) app, Peek is not activated by a status-item
@@ -491,18 +457,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         relativeTo button: NSStatusBarButton,
         clickDerivedButtonFrame: NSRect?
     ) {
-        button.layoutSubtreeIfNeeded()
-        guard let screenFrame = liveStatusButtonScreenFrame(button: button)
-            ?? clickDerivedButtonFrame
-            ?? appKitStatusButtonScreenFrame(button: button)
-        else {
+        guard popoverAnchorController.show(
+            popover: popover,
+            relativeTo: button,
+            clickDerivedButtonFrame: clickDerivedButtonFrame
+        ) else {
             return
         }
-
-        let anchorView = preparePopoverAnchorWindow(buttonScreenFrame: screenFrame)
-        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
-        startPopoverAnchorTracking()
         installOutsideClickMonitor()
     }
 
@@ -566,7 +528,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 self.updatePulsingState(urgency: content.urgency)
                 self.adjustTimerForUrgency(content.urgency)
-                self.maybeShowStartingNowHUD(for: event, urgency: content.urgency)
+                self.hudController.maybeShow(for: event, urgency: content.urgency, appearanceMode: self.calendarManager.appearanceMode)
             } else {
                 content = StatusBarContent(
                     title: NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),
@@ -606,152 +568,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         button.setAccessibilityLabel(content.tooltip ?? content.title)
-        refreshPopoverAnchorIfNeeded()
-    }
-
-    /// A status item can move into a different private menu-bar window when macOS
-    /// switches Peek between text and icon-only presentations. AppKit can retain a
-    /// stale private status-item positioning window across popover presentations,
-    /// so the popover is attached to a fresh transparent anchor window whose screen
-    /// position comes directly from WindowServer.
-    private func startPopoverAnchorTracking() {
-        stopPopoverAnchorTracking()
-
-        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            self?.refreshPopoverAnchorIfNeeded()
-        }
-        popoverAnchorTimer = timer
-        RunLoop.main.add(timer, forMode: .common)
-    }
-
-    private func stopPopoverAnchorTracking() {
-        popoverAnchorTimer?.invalidate()
-        popoverAnchorTimer = nil
-    }
-
-    private func refreshPopoverAnchorIfNeeded() {
-        guard
-            popover.isShown,
-            let button = statusItem.button,
-            let anchorWindow = popoverAnchorWindow,
-            let anchorView = popoverAnchorView
-        else {
-            stopPopoverAnchorTracking()
-            return
-        }
-
-        button.layoutSubtreeIfNeeded()
-        guard
-            let screenFrame = liveStatusButtonScreenFrame(button: button),
-            screenFrame != lastPopoverAnchorScreenFrame
-        else {
-            return
-        }
-
-        lastPopoverAnchorScreenFrame = screenFrame
-        anchorWindow.setFrame(
-            PopoverAnchorGeometry.anchorWindowFrame(for: screenFrame),
-            display: false
-        )
-        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
-    }
-
-    private func eventDerivedButtonScreenFrame(
-        button: NSStatusBarButton,
-        event: NSEvent
-    ) -> NSRect? {
-        guard event.type == .leftMouseUp || event.type == .rightMouseUp else {
-            return nil
-        }
-
-        return PopoverAnchorGeometry.eventDerivedButtonFrame(
-            buttonFrameInWindow: button.convert(button.bounds, to: nil),
-            eventLocationInWindow: event.locationInWindow,
-            mouseLocation: NSEvent.mouseLocation
-        )
-    }
-
-    private func appKitStatusButtonScreenFrame(button: NSStatusBarButton) -> NSRect? {
-        guard let window = button.window else { return nil }
-        return window.convertToScreen(button.convert(button.bounds, to: nil))
-    }
-
-    private func liveStatusButtonScreenFrame(button: NSStatusBarButton) -> NSRect? {
-        guard let window = button.window else { return nil }
-
-        // `windowNumber` is an `Int` and is not guaranteed to fit a `CGWindowID`
-        // (`UInt32`): private status-item windows can report values outside that
-        // range, and an out-of-range conversion traps. Bail out so callers fall
-        // back to click-derived or AppKit-derived frames.
-        guard window.windowNumber > 0, window.windowNumber <= Int(CGWindowID.max) else {
-            return nil
-        }
-        let windowID = CGWindowID(window.windowNumber)
-        guard
-            let windowList = CGWindowListCreateDescriptionFromArray(
-                [windowID] as CFArray
-            ) as? [[String: Any]],
-            let windowInfo = windowList.first,
-            (windowInfo[kCGWindowIsOnscreen as String] as? Bool) != false,
-            let boundsDictionary = windowInfo[kCGWindowBounds as String] as? NSDictionary
-        else {
-            return nil
-        }
-
-        var windowServerFrame = CGRect.zero
-        guard CGRectMakeWithDictionaryRepresentation(
-            boundsDictionary as CFDictionary,
-            &windowServerFrame
-        ) else {
-            return nil
-        }
-
-        let buttonFrameInWindow = button.convert(button.bounds, to: nil)
-        let appKitFrame = window.convertToScreen(buttonFrameInWindow)
-        return NSRect(
-            x: windowServerFrame.minX + buttonFrameInWindow.minX,
-            y: appKitFrame.minY,
-            width: buttonFrameInWindow.width,
-            height: buttonFrameInWindow.height
-        )
-    }
-
-    private func preparePopoverAnchorWindow(buttonScreenFrame: NSRect) -> NSView {
-        tearDownPopoverAnchorWindow()
-
-        let frame = PopoverAnchorGeometry.anchorWindowFrame(for: buttonScreenFrame)
-        let panel = NSPanel(
-            contentRect: frame,
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.backgroundColor = .clear
-        panel.isOpaque = false
-        panel.hasShadow = false
-        panel.ignoresMouseEvents = true
-        panel.hidesOnDeactivate = false
-        panel.isReleasedWhenClosed = false
-        panel.level = .statusBar
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-
-        let anchorView = NSView(frame: NSRect(origin: .zero, size: frame.size))
-        anchorView.wantsLayer = true
-        anchorView.layer?.backgroundColor = NSColor.clear.cgColor
-        panel.contentView = anchorView
-        panel.orderFrontRegardless()
-
-        popoverAnchorWindow = panel
-        popoverAnchorView = anchorView
-        lastPopoverAnchorScreenFrame = buttonScreenFrame
-        return anchorView
-    }
-
-    private func tearDownPopoverAnchorWindow() {
-        popoverAnchorWindow?.orderOut(nil)
-        popoverAnchorWindow = nil
-        popoverAnchorView = nil
-        lastPopoverAnchorScreenFrame = nil
+        popoverAnchorController.refreshIfNeeded()
     }
 
     private func statusItemMetrics(button: NSStatusBarButton, title: String) -> (availableWidth: CGFloat, requiredWidth: CGFloat, notchMargin: CGFloat) {
@@ -921,111 +738,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - "Starting now" HUD
-
-    /// Shows the heads-up card once when an event reaches its start time.
-    private func maybeShowStartingNowHUD(for event: EKEvent, urgency: MeetingUrgency) {
-        guard urgency == .critical, !event.isAllDay, let eventID = event.eventIdentifier else { return }
-
-        let now = Date()
-        // Fire only in the first minute after the start time, and only once per event.
-        let started = event.startDate.timeIntervalSince(now)
-        guard started <= 0, started > -60, !shownStartingNowEventIDs.contains(eventID) else { return }
-
-        shownStartingNowEventIDs.insert(eventID)
-        showStartingNowHUD(for: event)
-    }
-
-    private func showStartingNowHUD(for event: EKEvent) {
-        closeHUD()
-
-        let meetingURL = MeetingURLDetector.extract(from: event)
-        let providerLabel = meetingURL.map { MeetingProvider.label(for: $0) }
-
-        let hud = StartingNowHUD(
-            title: event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title"),
-            timeRange: EventTimeFormatter.timeRangeText(start: event.startDate, end: event.endDate),
-            calendarName: event.calendar?.title,
-            calendarColor: event.calendar.map { Color($0.color) },
-            joinProviderLabel: providerLabel,
-            appearanceMode: calendarManager.appearanceMode,
-            onJoin: { [weak self] in
-                if let url = meetingURL, MeetingURLDetector.isURLSafe(url) {
-                    NSWorkspace.shared.open(url)
-                }
-                self?.closeHUD()
-            },
-            onSnooze: { [weak self] in
-                self?.snoozeHUD(for: event)
-            },
-            onClose: { [weak self] in
-                self?.closeHUD()
-            }
-        )
-
-        let hostingController = NSHostingController(rootView: hud)
-        hostingController.view.wantsLayer = true
-        hostingController.view.layer?.backgroundColor = NSColor.clear.cgColor
-        hostingController.view.layer?.isOpaque = false
-
-        let panel = NSPanel(
-            contentRect: NSRect(origin: .zero, size: hostingController.view.fittingSize),
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.contentViewController = hostingController
-        panel.isFloatingPanel = true
-        panel.level = .floating
-        panel.backgroundColor = .clear
-        panel.isOpaque = false
-        panel.hasShadow = false
-        panel.hidesOnDeactivate = false
-        panel.contentView?.wantsLayer = true
-        panel.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
-        panel.contentView?.layer?.isOpaque = false
-        panel.setContentSize(hostingController.view.fittingSize)
-
-        // Position top-right of the active screen. The panel is larger than the
-        // card by `shadowPadding` on every side to leave room for the shadow, so
-        // anchor using the card's top-right corner, not the panel's.
-        if let screen = NSScreen.main {
-            let visible = screen.visibleFrame
-            let size = panel.frame.size
-            let inset = StartingNowHUD.shadowPadding
-            let origin = NSPoint(
-                x: visible.maxX - (size.width - inset) - 16,
-                y: visible.maxY - (size.height - inset) - 16
-            )
-            panel.setFrameOrigin(origin)
-        }
-
-        hudWindow = panel
-        panel.orderFrontRegardless()
-    }
-
-    private func snoozeHUD(for event: EKEvent) {
-        closeHUD()
-        let work = DispatchWorkItem { [weak self] in
-            self?.showStartingNowHUD(for: event)
-        }
-        hudSnoozeWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 300, execute: work)
-    }
-
-    private func closeHUD() {
-        hudSnoozeWorkItem?.cancel()
-        hudSnoozeWorkItem = nil
-        hudWindow?.close()
-        hudWindow = nil
-    }
-
 }
 
 extension AppDelegate: NSWindowDelegate, NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
-        stopPopoverAnchorTracking()
-        tearDownPopoverAnchorWindow()
+        popoverAnchorController.detach()
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -1035,86 +752,5 @@ extension AppDelegate: NSWindowDelegate, NSPopoverDelegate {
         onboardingWindow = nil
         let granted = calendarManager.refreshAuthorizationStatus()
         handleCalendarAccessChange(granted: granted, shouldRefresh: true)
-    }
-}
-
-/// Live Carbon implementation of `HotkeyRegistering`. Installs the hot-key event
-/// handler once at construction and re-registers the key combination on demand,
-/// unregistering any previous binding first. This is the only place that touches
-/// Carbon's hot-key API.
-final class CarbonHotkeyRegistrar: HotkeyRegistering {
-    private static let hotKeyID: UInt32 = 1
-
-    private var hotKeyRef: EventHotKeyRef?
-    private var eventHandlerRef: EventHandlerRef?
-    private let handler: () -> Void
-    private let signature = OSType("PEEK".fourCharCodeValue)
-
-    init(handler: @escaping () -> Void) {
-        self.handler = handler
-        installEventHandler()
-    }
-
-    deinit {
-        unregister()
-        if let eventHandlerRef {
-            RemoveEventHandler(eventHandlerRef)
-        }
-    }
-
-    private func installEventHandler() {
-        var eventType = EventTypeSpec(
-            eventClass: OSType(kEventClassKeyboard),
-            eventKind: OSType(kEventHotKeyPressed)
-        )
-        InstallEventHandler(
-            GetEventDispatcherTarget(),
-            { _, _, userData in
-                guard let userData else { return noErr }
-                let registrar = Unmanaged<CarbonHotkeyRegistrar>.fromOpaque(userData).takeUnretainedValue()
-                registrar.handler()
-                return noErr
-            },
-            1,
-            &eventType,
-            Unmanaged.passUnretained(self).toOpaque(),
-            &eventHandlerRef
-        )
-    }
-
-    @discardableResult
-    func register(keyCode: UInt32, modifiers: UInt32) -> OSStatus {
-        unregister()
-        let hotKeyID = EventHotKeyID(signature: signature, id: Self.hotKeyID)
-        return RegisterEventHotKey(
-            keyCode,
-            modifiers,
-            hotKeyID,
-            GetEventDispatcherTarget(),
-            0,
-            &hotKeyRef
-        )
-    }
-
-    func unregister() {
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-            self.hotKeyRef = nil
-        }
-    }
-}
-
-extension String {
-    var fourCharCodeValue: FourCharCode {
-        var result: FourCharCode = 0
-        if let data = self.data(using: .macOSRoman) {
-            data.withUnsafeBytes { bytes in
-                let pointer = bytes.bindMemory(to: UInt8.self)
-                for i in 0..<min(4, data.count) {
-                    result = result << 8 + FourCharCode(pointer[i])
-                }
-            }
-        }
-        return result
     }
 }

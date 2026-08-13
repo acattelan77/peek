@@ -4,6 +4,24 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.4.1 - 2026-08-13
+
+### Fixed
+
+- Popover arrow could point at a stale menu-bar position. The WindowServer
+  frame lookup used for anchoring is unusable on macOS 26 — the private
+  status-item window reports a 64-bit window number the window-list API cannot
+  resolve — so anchoring now uses click-derived geometry and AppKit's live
+  button frame, which demonstrably tracks menu-bar rearrangements. The fresh
+  per-presentation anchor window is unchanged.
+
+### Changed
+
+- Internal: split `AppDelegate` (~1120 lines) — the Carbon hotkey registrar,
+  popover anchor machinery, and the "Starting now" HUD lifecycle now live in
+  focused types (`CarbonHotkeyRegistrar`, `PopoverAnchorController`,
+  `StartingNowHUDController`, `PopoverAnchorGeometry`). No behavior change.
+
 ## 1.4.0 - 2026-08-12
 
 ### Added
