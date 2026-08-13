@@ -29,9 +29,12 @@ Dependencies point inward:
 ```text
 Peek/Sources/
 ├── App/                    # NSApplication lifecycle and composition entry
-├── Application/            # AppEnvironment, CalendarManager, app policies
+├── Application/
+│   ├── Calendar/           # CalendarManager and app-facing calendar state
+│   └── CalendarExport/     # Headless CLI orchestration and argument parsing
 ├── Domain/
 │   ├── Events/             # Filtering, ordering, urgency
+│   ├── CalendarExport/     # Versioned export payload and serialization policy
 │   ├── Meetings/           # Trusted meeting-link extraction
 │   └── Models/             # Preferences and constraints
 ├── Infrastructure/
@@ -54,13 +57,47 @@ Peek/Sources/
 5. `StatusBarContentBuilder` produces display content; `AppDelegate` applies AppKit styling.
 6. `NotificationScheduling` refreshes reminders when the event signature changes.
 
+### Headless calendar-export flow
+
+`Peek --export --from <signed-days> --to <signed-days> --json` is a separate,
+non-UI runtime path. `PeekApp` recognizes it before creating the app delegate;
+`CalendarExportCommand` validates the request and existing Full Access, reads
+through `CalendarEventStoring`, builds the versioned payload, writes JSON only
+to stdout, then exits. Failures write a readable diagnostic only to stderr,
+exit non-zero, and never emit partial JSON.
+
+The installed app is consumed by an external, user-local Northwind Notes
+`launchd` job. That job pipes this command to a renderer that atomically owns
+the Northwind Notes cache files. Its scheduling, renderer, and vault writes are not
+part of this repository and must not be moved into Peek.
+
 ## Boundaries and testing
 
 - `CalendarEventStoring` isolates EventKit queries and enables a future fake event store.
 - `PreferencesStoring` isolates persistence and enables deterministic preference tests.
 - `NotificationScheduling` isolates authorization and scheduling from lifecycle code.
 - `LaunchAtLoginControlling` isolates ServiceManagement.
+- `CalendarExportCommand` is a synchronous, headless use-case boundary. It
+  deliberately does not depend on observable `CalendarManager`, which owns UI
+  state and permission prompting.
 - `EventPipeline`, `MeetingURLDetector`, `MeetingUrgency`, `EventTimeFormatter`, and `StatusBarContentBuilder` are pure or near-pure test seams.
+
+## Calendar-export compatibility contract
+
+PEEK-111 is a maintained integration, not a one-off script. Before changing
+its CLI arguments, date-window semantics, persisted-calendar selection,
+authorization behavior, link classification, JSON field meanings, stdout or
+stderr behavior, an agent must assess the external Northwind Notes renderer and
+scheduled job that consume the installed app.
+
+- Keep `schemaVersion: 1` backward compatible. A breaking payload change
+  requires a new schema version, consumer migration plan, tests, and an ADR
+  update rather than silently changing v1.
+- Preserve the privacy boundary: no Northwind Notes paths, scheduling, cache writes,
+  calendar content logging, or permission prompts in the headless command.
+- Cover export behavior with unit tests and update the README, ADR 0003, and
+  handoff whenever the public contract changes. A release-affecting change
+  follows the normal versioning and signed-build validation process.
 
 ## Conventions
 

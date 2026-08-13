@@ -15,6 +15,7 @@ final class FakeCalendarEventStore: CalendarEventStoring {
     var authorizationStatus: EKAuthorizationStatus = .notDetermined
     var requestAccessResult: (granted: Bool, error: Error?) = (false, nil)
     var requestFullAccessResult: (granted: Bool, error: Error?) = (false, nil)
+    var eventsError: Error?
 
     var notificationObject: AnyObject { self }
 
@@ -93,7 +94,8 @@ final class FakeCalendarEventStore: CalendarEventStoring {
         NSPredicate(value: true)
     }
 
-    func events(matching predicate: NSPredicate) -> [EKEvent] {
-        storedEvents
+    func events(matching predicate: NSPredicate) throws -> [EKEvent] {
+        if let eventsError { throw eventsError }
+        return storedEvents
     }
 }

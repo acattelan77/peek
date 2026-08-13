@@ -22,7 +22,7 @@ protocol CalendarEventStoring: AnyObject {
         calendars: [EKCalendar]?
     ) -> NSPredicate
 
-    func events(matching predicate: NSPredicate) -> [EKEvent]
+    func events(matching predicate: NSPredicate) throws -> [EKEvent]
 }
 
 final class EventKitCalendarEventStore: CalendarEventStoring {
@@ -76,7 +76,7 @@ final class EventKitCalendarEventStore: CalendarEventStoring {
         store.predicateForEvents(withStart: startDate, end: endDate, calendars: calendars)
     }
 
-    func events(matching predicate: NSPredicate) -> [EKEvent] {
+    func events(matching predicate: NSPredicate) throws -> [EKEvent] {
         store.events(matching: predicate)
     }
 }

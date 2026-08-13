@@ -288,7 +288,18 @@ class CalendarManager: ObservableObject {
             )
 
             // Fetch events
-            let events = self.eventStore.events(matching: predicate)
+            let events: [EKEvent]
+            do {
+                events = try self.eventStore.events(matching: predicate)
+            } catch {
+                DispatchQueue.main.async {
+                    self.nextEvent = nil
+                    self.upcomingEvents = []
+                    self.allUpcomingEvents = []
+                    completion(nil)
+                }
+                return
+            }
 
             let settings = EventFilterSettings(
                 hideAllDayEvents: hideAllDayEvents,

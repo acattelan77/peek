@@ -7,6 +7,40 @@ import EventKit
 struct PeekApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    init() {
+        // XCTest launches the host application with runner-owned arguments. They
+        // are not user CLI input and must not trigger the headless command path.
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else {
+            return
+        }
+        let arguments = Array(CommandLine.arguments.dropFirst())
+        // LaunchServices may add this process-serial-number argument when the
+        // app is opened normally from Finder or the Dock.
+        guard !arguments.contains(where: { $0.hasPrefix("-psn_") }) else {
+            return
+        }
+        switch CalendarExportCommandLine.parse(arguments: arguments) {
+        case .notRequested:
+            break
+        case .command(.help):
+            FileHandle.standardOutput.write(Data((CalendarExportCommandLine.usage + "\n").utf8))
+            exit(EXIT_SUCCESS)
+        case let .command(.export(request)):
+            switch CalendarExportRunner.execute(request) {
+            case let .success(data):
+                FileHandle.standardOutput.write(data)
+                FileHandle.standardOutput.write(Data("\n".utf8))
+                exit(EXIT_SUCCESS)
+            case let .failure(error):
+                FileHandle.standardError.write(Data("Peek export error: \(error.localizedDescription)\n".utf8))
+                exit(EXIT_FAILURE)
+            }
+        case let .failure(message):
+            FileHandle.standardError.write(Data("Peek export error: \(message)\n".utf8))
+            exit(EXIT_FAILURE)
+        }
+    }
+
     var body: some Scene {
         Settings {
             EmptyView()

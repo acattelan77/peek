@@ -24,6 +24,7 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 
 ## Next — calendar usefulness
 
+- **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.
 - Conflict and overlap warnings.
 - Multiple time-zone display.
 - Quick event creation with explicit confirmation and calendar selection.

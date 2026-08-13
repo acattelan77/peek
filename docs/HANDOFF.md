@@ -4,7 +4,7 @@ Last updated: 2026-08-13
 
 ## Read this first
 
-Peek is currently at **1.4.1 (build 28)**. The current work has passed
+Peek is currently at **1.5.0 (build 29)**. The current work has passed
 automated and physical QA. The repository is organized as a layered monolith
 with a refreshed icon and popover presentation. Inspect `git status` before
 working.
@@ -66,10 +66,32 @@ working.
   tracking, which avoids the macOS 26 `windowNumber == 2^32` failure. The
   AppDelegate refactor also moved the Carbon registrar, popover-anchor
   controller, HUD lifecycle, and geometry into focused App-layer types.
+- PEEK-111 integrated (1.5.0): `Peek --export --from <signed-days> --to
+  <signed-days> --json` exits before constructing app UI and writes the
+  versioned local-calendar JSON v1 contract only to stdout. It uses existing
+  Full Access without prompting, honors persisted calendar selection (or all
+  calendars on first launch), includes all intersecting all-day and declined
+  events, and fails without partial JSON on authorization or EventKit errors.
+  The installed app is now consumed by the user-local Northwind Notes LaunchAgent at
+  login, 06:45, and 13:00, piping `--from -3 --to 14 --json` to its external
+  renderer. The renderer owns atomic writes to Northwind Notes's private
+  `_calendar.md` and `_calendar-events.json` caches; those files, its script,
+  and `launchd` plist are deliberately outside this repository.
+- PEEK-111 maintenance requirement: treat its CLI and JSON v1 schema as a
+  live compatibility contract. Do not silently change its arguments, selection
+  semantics, authorization behavior, payload fields, link classification, or
+  stdout/stderr behavior. Assess the external Northwind Notes consumer first; use a
+  new schema version plus a consumer migration for breaking changes, preserve
+  the no-vault-write and no-content-logging boundary, and update tests, README,
+  ADR 0003, and this handoff with every contract change.
 - Latest automated validation: `bash scripts/check-version.sh`,
   `git diff --check`, unsigned Debug build, and the macOS test suite all passed
-  on 2026-08-13 (80 tests, zero failures). User-performed physical QA also
-  passed for popover alignment, the global hotkey, and the Starting now HUD.
+  on 2026-08-13 (89 tests, zero failures). The PEEK-111 `--help` and invalid
+  CLI paths were also exercised against the unsigned Debug binary. The signed,
+  installed app then completed the Northwind Notes LaunchAgent's first end-to-end
+  calendar export successfully with existing Full Access; the renderer
+  generated both private cache files and the job exited 0. Do not inspect or
+  log cache content merely to recheck this integration.
 - Last full validation: 80 tests passed with zero failures on 2026-08-12 on
   `codex/event-detail-expansion`, including physical QA of the expansion
   interactions and card styling.
@@ -86,6 +108,12 @@ Outstanding follow-ups from this cycle:
 
 - Visual QA of the redesign on a running build (light/dark, Reduce Motion, Increased Contrast, and a live "Starting now" HUD trigger).
 - Real macOS 13 hardware validation (CI-hosted macOS 13 is no longer available).
+
+PEEK-111 is a live local integration and must be maintained. Before modifying
+its headless CLI or JSON contract, read the dedicated compatibility section in
+`docs/ARCHITECTURE.md`, ADR 0003, and the PEEK-111 workstream. Coordinate any
+breaking change with the external Northwind Notes renderer and LaunchAgent rather
+than treating that consumer as disposable.
 
 Create a workstream from `docs/workstreams/TEMPLATE.md` and follow the validation steps in `AGENTS.md`.
 

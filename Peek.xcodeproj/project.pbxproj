@@ -63,6 +63,9 @@
 		2D0000020000000000000001 /* PeekComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000120000000000000001 /* PeekComponents.swift */; };
 		2D0000030000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000130000000000000001 /* OnboardingView.swift */; };
 		2D0000040000000000000001 /* StartingNowHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000140000000000000001 /* StartingNowHUD.swift */; };
+		111000010000000000000001 /* CalendarExportCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000020000000000000001 /* CalendarExportCommand.swift */; };
+		111000030000000000000001 /* CalendarExportPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000040000000000000001 /* CalendarExportPayload.swift */; };
+		111000050000000000000001 /* CalendarExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000060000000000000001 /* CalendarExportTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +131,9 @@
 		2D0000120000000000000001 /* PeekComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeekComponents.swift; sourceTree = "<group>"; };
 		2D0000130000000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		2D0000140000000000000001 /* StartingNowHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartingNowHUD.swift; sourceTree = "<group>"; };
+		111000020000000000000001 /* CalendarExportCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportCommand.swift; sourceTree = "<group>"; };
+		111000040000000000000001 /* CalendarExportPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportPayload.swift; sourceTree = "<group>"; };
+		111000060000000000000001 /* CalendarExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportTests.swift; sourceTree = "<group>"; };
 		2C0000130000000000000001 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -195,6 +201,7 @@
 		1A0000480000000000000001 /* PeekTests */ = {
 			isa = PBXGroup;
 			children = (
+				111000060000000000000001 /* CalendarExportTests.swift */,
 				2B0000350000000000000001 /* Fakes */,
 				2C0000120000000000000001 /* AppVersionTests.swift */,
 				1A0000490000000000000001 /* MeetingURLDetectorTests.swift */,
@@ -236,6 +243,7 @@
 		2B0000200000000000000001 /* Application */ = {
 			isa = PBXGroup;
 			children = (
+				111000070000000000000001 /* CalendarExport */,
 				2B0000140000000000000001 /* AppEnvironment.swift */,
 				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
 				2C0000110000000000000001 /* AppVersion.swift */,
@@ -249,6 +257,7 @@
 		2B0000210000000000000001 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				111000080000000000000001 /* CalendarExport */,
 				2B0000250000000000000001 /* Models */,
 				2B0000260000000000000001 /* Events */,
 				2B0000270000000000000001 /* Meetings */,
@@ -286,6 +295,22 @@
 				1A0000040000000000000001 /* CalendarManager.swift */,
 			);
 			path = Calendar;
+			sourceTree = "<group>";
+		};
+		111000070000000000000001 /* CalendarExport */ = {
+			isa = PBXGroup;
+			children = (
+				111000020000000000000001 /* CalendarExportCommand.swift */,
+			);
+			path = CalendarExport;
+			sourceTree = "<group>";
+		};
+		111000080000000000000001 /* CalendarExport */ = {
+			isa = PBXGroup;
+			children = (
+				111000040000000000000001 /* CalendarExportPayload.swift */,
+			);
+			path = CalendarExport;
 			sourceTree = "<group>";
 		};
 		2B0000250000000000000001 /* Models */ = {
@@ -570,6 +595,8 @@
 				2D0000020000000000000001 /* PeekComponents.swift in Sources */,
 				2D0000030000000000000001 /* OnboardingView.swift in Sources */,
 				2D0000040000000000000001 /* StartingNowHUD.swift in Sources */,
+				111000010000000000000001 /* CalendarExportCommand.swift in Sources */,
+				111000030000000000000001 /* CalendarExportPayload.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
 				1A0000110000000000000002 /* PreferencesView.swift in Sources */,
 			);
@@ -594,6 +621,7 @@
 				2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */,
 				2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */,
 				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
+				111000050000000000000001 /* CalendarExportTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

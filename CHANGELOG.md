@@ -4,6 +4,16 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.5.0 - 2026-08-13
+
+### Added
+
+- PEEK-111: `Peek --export --from <signed-days> --to <signed-days> --json`
+  emits a versioned, local-calendar JSON snapshot to stdout without starting
+  the menu bar app. It honors Peek's saved calendar selection, includes
+  all-day and declined events that intersect the requested local-day window,
+  and refuses to emit partial output without existing EventKit Full Access.
+
 ## 1.4.1 - 2026-08-13
 
 ### Fixed

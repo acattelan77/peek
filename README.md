@@ -67,6 +67,54 @@ xcodebuild -scheme "Peek" -destination "platform=macOS" -derivedDataPath ./build
 
 On first launch (before selecting calendars), Peek shows events from all available calendars.
 
+## Headless calendar export
+
+Peek can export the currently selected local calendars as versioned JSON without
+opening its menu bar UI. It does not request Calendar permission: grant Peek
+**Full Access** first in System Settings > Privacy & Security > Calendars.
+
+```zsh
+/Applications/Peek.app/Contents/MacOS/Peek --export --from -3 --to 14 --json
+```
+
+`--from` and `--to` are signed local-day offsets. The range begins at local
+midnight on `from` and ends exclusively at local midnight after `to`. Stdout is
+JSON only; errors go to stderr and return a non-zero exit status. This is an
+export interface only: Peek neither reads nor writes any external cache or
+vault.
+
+The output can contain personal data. Do not commit it, write it to logs, or
+share it without the calendar owner's permission. Example output uses fictional
+data:
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-13T06:45:00+02:00",
+  "timeZone": "Europe/Rome",
+  "window": {
+    "from": "2026-08-10T00:00:00+02:00",
+    "toExclusive": "2026-08-28T00:00:00+02:00"
+  },
+  "events": [
+    {
+      "id": "opaque-example-occurrence-id",
+      "title": "Project review",
+      "startAt": "2026-08-13T09:30:00+02:00",
+      "endAt": "2026-08-13T10:00:00+02:00",
+      "allDay": false,
+      "calendar": { "id": "example-calendar", "title": "Work" },
+      "location": null,
+      "organizer": { "name": "Ada Lovelace" },
+      "attendees": [],
+      "notes": null,
+      "links": [{ "kind": "join", "url": "https://meet.google.com/abc-defg-hij" }],
+      "currentUserResponse": "accepted"
+    }
+  ]
+}
+```
+
 ## Keyboard Shortcuts
 
 - Esc: close the popup
