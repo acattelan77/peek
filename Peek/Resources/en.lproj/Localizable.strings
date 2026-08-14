@@ -163,7 +163,9 @@
 "Attendees" = "Attendees";
 "Organizer" = "Organizer";
 "No additional details" = "No additional details";
+"Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders." = "Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders.";
 "+%d more" = "+%d more";
+"Some reminders could not be scheduled. Peek will retry shortly." = "Some reminders could not be scheduled. Peek will retry shortly.";
 "Unknown attendee" = "Unknown attendee";
 "Expanded" = "Expanded";
 "Collapsed" = "Collapsed";

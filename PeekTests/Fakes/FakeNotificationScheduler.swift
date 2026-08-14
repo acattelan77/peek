@@ -6,6 +6,7 @@ import EventKit
 /// `UNUserNotificationCenter`.
 final class FakeNotificationScheduler: NotificationScheduling {
     var permissionGranted = false
+    var schedulingResult: NotificationSchedulingResult = .scheduled
 
     private(set) var requestedPermission = false
     private(set) var checkedPermission = false
@@ -31,8 +32,15 @@ final class FakeNotificationScheduler: NotificationScheduling {
         cleared = true
     }
 
-    func scheduleNotifications(for events: [EKEvent], timing: NotificationTiming) {
+    func scheduleNotifications(
+        for events: [EKEvent],
+        timing: NotificationTiming,
+        completion: @escaping (NotificationSchedulingResult) -> Void
+    ) {
         scheduledEvents = events
         lastTiming = timing
+        DispatchQueue.main.async {
+            completion(self.schedulingResult)
+        }
     }
 }

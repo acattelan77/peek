@@ -35,6 +35,10 @@ class CalendarManager: ObservableObject {
     /// global-hotkey registration. `nil` means the current hotkey is active.
     @Published var hotkeyStatusMessage: String?
 
+    /// Transient (not persisted) result of scheduling meeting reminders. The UI
+    /// deliberately contains no event details so it cannot expose calendar content.
+    @Published var notificationStatusMessage: String?
+
     private let defaults: any PreferencesStoring
     private let enabledCalendarsKey = "enabledCalendarIDs"
     private let hasCustomCalendarsKey = "hasCustomCalendarSelection"
@@ -207,7 +211,10 @@ class CalendarManager: ObservableObject {
         eventStoreChangedObserver = NotificationCenter.default.addObserver(
             forName: .EKEventStoreChanged,
             object: eventStore.notificationObject,
-            queue: nil
+            // EventKit may post this notification from a background thread. The
+            // caller refreshes observable state and AppKit lifecycle objects, so
+            // keep the whole refresh entry point main-thread confined.
+            queue: .main
         ) { _ in
             handler()
         }

@@ -79,64 +79,68 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         notificationCenter.removeAllPendingNotificationRequests()
     }
 
-    func scheduleNotifications(for events: [EKEvent], timing: NotificationTiming) {
+    func scheduleNotifications(
+        for events: [EKEvent],
+        timing: NotificationTiming,
+        completion: @escaping (NotificationSchedulingResult) -> Void
+    ) {
         guard timing != .none else {
-            removePendingEventNotifications(excludingSnoozed: true)
+            removePendingEventNotifications(excludingSnoozed: true) { [weak self] in
+                self?.complete(.disabled, completion: completion)
+            }
             return
         }
-        guard hasNotificationPermission else { return }
+        guard hasNotificationPermission else {
+            complete(.authorizationRequired, completion: completion)
+            return
+        }
+
         removePendingEventNotifications(excludingSnoozed: true) { [weak self] in
             guard let self = self else { return }
 
             let now = Date()
             let minutesBefore = TimeInterval(timing.rawValue * 60)
+            let requests = events.compactMap {
+                self.makeNotificationRequest(for: $0, minutesBefore: minutesBefore, now: now)
+            }
 
-            for event in events {
-                guard let eventID = event.eventIdentifier else { continue }
-                let identifier = "\(self.eventNotificationIdentifierPrefix)\(eventID)"
+            guard !requests.isEmpty else {
+                self.complete(.scheduled, completion: completion)
+                return
+            }
 
-                // Only schedule for future events that haven't started
-                guard event.startDate > now else { continue }
+            let expectedIdentifiers = Set(requests.map(\.identifier))
+            let resultLock = NSLock()
+            var schedulingFailed = false
+            let schedulingGroup = DispatchGroup()
 
-                // Calculate notification time
-                let notificationTime = event.startDate.addingTimeInterval(-minutesBefore)
+            for request in requests {
+                schedulingGroup.enter()
+                self.notificationCenter.add(request) { error in
+                    if error != nil {
+                        resultLock.lock()
+                        schedulingFailed = true
+                        resultLock.unlock()
+                    }
+                    schedulingGroup.leave()
+                }
+            }
 
-                // Only schedule if notification time is in the future
-                guard notificationTime > now else { continue }
-
-                let content = UNMutableNotificationContent()
-                content.title = event.title ?? NSLocalizedString("Upcoming Event", comment: "Notification title fallback")
-                content.body = formatEventDetails(event, minutesBefore: timing.rawValue)
-                content.sound = .default
-                content.userInfo = [self.eventIDKey: eventID]
-
-                // Attach the join/snooze actions if a meeting URL is detected. The
-                // category itself is registered once at init; here we only opt this
-                // notification into it and carry the per-event URL in userInfo.
-                if let meetingURL = MeetingURLDetector.extract(from: event) {
-                    content.userInfo["meetingURL"] = meetingURL.absoluteString
-                    content.categoryIdentifier = self.eventCategoryIdentifier
+            schedulingGroup.notify(queue: .main) {
+                resultLock.lock()
+                let failed = schedulingFailed
+                resultLock.unlock()
+                guard !failed else {
+                    self.complete(.failed, completion: completion)
+                    return
                 }
 
-                // Create trigger
-                let triggerDate = Calendar.current.dateComponents(
-                    [.year, .month, .day, .hour, .minute, .second],
-                    from: notificationTime
-                )
-                let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-
-                // Create request
-                let request = UNNotificationRequest(
-                    identifier: identifier,
-                    content: content,
-                    trigger: trigger
-                )
-
-                // Schedule notification
-                notificationCenter.add(request) { error in
-                    if let error = error {
-                        print("Error scheduling notification: \(error.localizedDescription)")
-                    }
+                self.notificationCenter.getPendingNotificationRequests { pendingRequests in
+                    let pendingIdentifiers = Set(pendingRequests.map(\.identifier))
+                    let result: NotificationSchedulingResult = expectedIdentifiers.isSubset(of: pendingIdentifiers)
+                        ? .scheduled
+                        : .failed
+                    self.complete(result, completion: completion)
                 }
             }
         }
@@ -158,6 +162,51 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
 
         return details
+    }
+
+    private func makeNotificationRequest(
+        for event: EKEvent,
+        minutesBefore: TimeInterval,
+        now: Date
+    ) -> UNNotificationRequest? {
+        guard let eventID = event.eventIdentifier else { return nil }
+        guard event.startDate > now else { return nil }
+
+        let notificationTime = event.startDate.addingTimeInterval(-minutesBefore)
+        guard notificationTime > now else { return nil }
+
+        let content = UNMutableNotificationContent()
+        content.title = event.title ?? NSLocalizedString("Upcoming Event", comment: "Notification title fallback")
+        content.body = formatEventDetails(event, minutesBefore: Int(minutesBefore / 60))
+        content.sound = .default
+        content.userInfo = [eventIDKey: eventID]
+
+        // The category is static. Only the safe, per-event meeting URL is carried
+        // in userInfo for the Join action.
+        if let meetingURL = MeetingURLDetector.extract(from: event) {
+            content.userInfo["meetingURL"] = meetingURL.absoluteString
+            content.categoryIdentifier = eventCategoryIdentifier
+        }
+
+        let triggerDate = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: notificationTime
+        )
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+        return UNNotificationRequest(
+            identifier: "\(eventNotificationIdentifierPrefix)\(eventID)",
+            content: content,
+            trigger: trigger
+        )
+    }
+
+    private func complete(
+        _ result: NotificationSchedulingResult,
+        completion: @escaping (NotificationSchedulingResult) -> Void
+    ) {
+        DispatchQueue.main.async {
+            completion(result)
+        }
     }
 
     private func removePendingEventNotifications(excludingSnoozed: Bool, completion: (() -> Void)? = nil) {

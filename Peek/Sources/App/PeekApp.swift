@@ -70,6 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let popoverAnchorController = PopoverAnchorController()
     private let hudController = StartingNowHUDController()
     private var refreshWorkItem: DispatchWorkItem?
+    private var notificationRetryWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
     private var onboardingWindow: NSWindow?
 
@@ -207,18 +208,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if isEnabled {
                     self.notificationManager.checkPermission { granted in
                         if granted {
+                            self.calendarManager.notificationStatusMessage = nil
                             self.maybeRescheduleNotifications(force: true)
                         } else {
                             self.notificationManager.requestPermission { permissionGranted in
                                 if permissionGranted {
+                                    self.calendarManager.notificationStatusMessage = nil
                                     self.maybeRescheduleNotifications(force: true)
                                 } else {
                                     self.notificationManager.clearAllPendingNotifications()
+                                    self.calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: .authorizationRequired)
                                 }
                             }
                         }
                     }
                 } else {
+                    self.notificationRetryWorkItem?.cancel()
+                    self.notificationRetryWorkItem = nil
+                    self.calendarManager.notificationStatusMessage = nil
                     self.maybeRescheduleNotifications(force: true)
                 }
             }
@@ -284,6 +291,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.notificationManager.requestPermission { notificationGranted in
                         if notificationGranted {
                             self?.rescheduleNotifications()
+                        } else {
+                            self?.notificationManager.clearAllPendingNotifications()
+                            self?.calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: .authorizationRequired)
                         }
                     }
                 }
@@ -329,7 +339,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         handleCalendarAccessChange(granted: granted, shouldRefresh: true)
         if granted && calendarManager.notificationsEnabled {
             notificationManager.requestPermission { [weak self] ok in
-                if ok { self?.rescheduleNotifications() }
+                if ok {
+                    self?.rescheduleNotifications()
+                } else {
+                    self?.notificationManager.clearAllPendingNotifications()
+                    self?.calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: .authorizationRequired)
+                }
             }
         }
     }
@@ -340,6 +355,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateTimer = nil
         pulseTimer?.invalidate()
         pulseTimer = nil
+        notificationRetryWorkItem?.cancel()
+        notificationRetryWorkItem = nil
 
         if let monitor = outsideClickEventMonitor {
             NSEvent.removeMonitor(monitor)
@@ -361,6 +378,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.maybeRescheduleNotifications(force: true)
             } else {
                 self?.notificationManager.clearAllPendingNotifications()
+                self?.calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: .authorizationRequired)
             }
         }
     }
@@ -684,7 +702,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updatePulsingState(urgency: MeetingUrgency) {
-        if urgency == .critical && calendarManager.urgencyColorsEnabled {
+        if StatusItemPulsePolicy.shouldPulse(
+            urgency: urgency,
+            urgencyColorsEnabled: calendarManager.urgencyColorsEnabled,
+            reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        ) {
             startPulsing()
         } else {
             stopPulsing()
@@ -729,9 +751,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func rescheduleNotifications() {
         guard calendarManager.notificationsEnabled else {
             // Clear all pending notifications if disabled
+            notificationRetryWorkItem?.cancel()
+            notificationRetryWorkItem = nil
+            calendarManager.notificationStatusMessage = nil
             notificationManager.clearAllPendingNotifications()
             return
         }
+
+        notificationRetryWorkItem?.cancel()
+        notificationRetryWorkItem = nil
 
         let eventsToSchedule = calendarManager.allUpcomingEvents.isEmpty
             ? calendarManager.upcomingEvents
@@ -740,7 +768,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         notificationManager.scheduleNotifications(
             for: eventsToSchedule,
             timing: calendarManager.notificationTiming
-        )
+        ) { [weak self] result in
+            self?.handleNotificationSchedulingResult(result)
+        }
+    }
+
+    private func handleNotificationSchedulingResult(_ result: NotificationSchedulingResult) {
+        calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: result)
+        guard NotificationSchedulingFeedback.shouldRetry(result), calendarManager.notificationsEnabled else {
+            notificationRetryWorkItem?.cancel()
+            notificationRetryWorkItem = nil
+            return
+        }
+
+        let retry = DispatchWorkItem { [weak self] in
+            self?.maybeRescheduleNotifications(force: true)
+        }
+        notificationRetryWorkItem?.cancel()
+        notificationRetryWorkItem = retry
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: retry)
     }
 
     private func currentNotificationEventSignature() -> [String] {

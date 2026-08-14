@@ -67,4 +67,80 @@ final class GlobalHotkeyCoordinatorTests: XCTestCase {
         XCTAssertEqual(shiftRegistrar.registeredKeyCode, optionRegistrar.registeredKeyCode)
         XCTAssertNotEqual(shiftRegistrar.registeredModifiers, optionRegistrar.registeredModifiers)
     }
+
+    func testStatusItemPulsePolicyRespectsReduceMotionAndUrgencyColorPreference() {
+        XCTAssertTrue(
+            StatusItemPulsePolicy.shouldPulse(
+                urgency: .critical,
+                urgencyColorsEnabled: true,
+                reduceMotion: false
+            )
+        )
+        XCTAssertFalse(
+            StatusItemPulsePolicy.shouldPulse(
+                urgency: .critical,
+                urgencyColorsEnabled: true,
+                reduceMotion: true
+            )
+        )
+        XCTAssertFalse(
+            StatusItemPulsePolicy.shouldPulse(
+                urgency: .critical,
+                urgencyColorsEnabled: false,
+                reduceMotion: false
+            )
+        )
+        XCTAssertFalse(
+            StatusItemPulsePolicy.shouldPulse(
+                urgency: .urgent,
+                urgencyColorsEnabled: true,
+                reduceMotion: false
+            )
+        )
+    }
+
+    func testNotificationSchedulingFeedbackIsGenericAndRetriesOnlyFailures() {
+        XCTAssertNil(NotificationSchedulingFeedback.message(for: .scheduled))
+        XCTAssertNil(NotificationSchedulingFeedback.message(for: .disabled))
+        XCTAssertNotNil(NotificationSchedulingFeedback.message(for: .authorizationRequired))
+        XCTAssertNotNil(NotificationSchedulingFeedback.message(for: .failed))
+        XCTAssertFalse(NotificationSchedulingFeedback.shouldRetry(.authorizationRequired))
+        XCTAssertTrue(NotificationSchedulingFeedback.shouldRetry(.failed))
+    }
+
+    func testHUDPresentationHistorySuppressesDuplicatesAndPrunesExpiredEvents() {
+        var history = StartingNowHUDPresentationHistory()
+        let now = Date(timeIntervalSinceReferenceDate: 1_000)
+
+        XCTAssertTrue(history.shouldPresent(eventID: "event-1", eventEndDate: now.addingTimeInterval(600), now: now))
+        XCTAssertFalse(history.shouldPresent(eventID: "event-1", eventEndDate: now.addingTimeInterval(600), now: now))
+
+        let afterEventEnds = now.addingTimeInterval(601)
+        XCTAssertTrue(history.shouldPresent(eventID: "event-1", eventEndDate: afterEventEnds.addingTimeInterval(600), now: afterEventEnds))
+        XCTAssertEqual(history.count, 1)
+    }
+
+    func testHUDPresentationHistoryHasABoundedFallbackForLongRunningSessions() {
+        var history = StartingNowHUDPresentationHistory()
+        let now = Date(timeIntervalSinceReferenceDate: 1_000)
+
+        for index in 0...256 {
+            XCTAssertTrue(
+                history.shouldPresent(
+                    eventID: "event-\(index)",
+                    eventEndDate: now.addingTimeInterval(TimeInterval(600 + index)),
+                    now: now
+                )
+            )
+        }
+
+        XCTAssertEqual(history.count, 256)
+        XCTAssertTrue(
+            history.shouldPresent(
+                eventID: "event-0",
+                eventEndDate: now.addingTimeInterval(1_000),
+                now: now
+            )
+        )
+    }
 }

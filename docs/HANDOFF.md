@@ -1,13 +1,14 @@
 # Project handoff
 
-Last updated: 2026-08-13
+Last updated: 2026-08-14
 
 ## Read this first
 
-Peek is currently at **1.5.0 (build 29)**. The current work has passed
-automated and physical QA. The repository is organized as a layered monolith
-with a refreshed icon and popover presentation. Inspect `git status` before
-working.
+Peek is currently at **1.5.5 (build 34)**. The current work has passed full
+automated QA. Physical validation of the EventKit-change refresh path remains
+required because the available desktop UI controller cannot inspect the
+accessory menu-bar app. The repository is organized as a layered monolith with
+a refreshed icon and popover presentation. Inspect `git status` before working.
 
 ## Integrated state
 
@@ -84,21 +85,52 @@ working.
   new schema version plus a consumer migration for breaking changes, preserve
   the no-vault-write and no-content-logging boundary, and update tests, README,
   ADR 0003, and this handoff with every contract change.
+- PEEK-AUD-01 integrated (1.5.1): EventKit store-change observation now
+  delivers its refresh handler on the main operation queue. This prevents a
+  background EventKit notification from entering `AppDelegate` lifecycle and
+  observable refresh coordination off-main. The regression test posts the
+  notification from a background queue and asserts main-thread delivery. No
+  EventKit query, notification, or PEEK-111 CLI/JSON v1 behavior changed.
+- PEEK-AUD-02 integrated (1.5.2): the critical-event status-item pulse now
+  honors macOS Reduce Motion. Urgency colors remain available; only repeated
+  alpha animation is suppressed. No calendar, notification, or export behavior
+  changed.
+- PEEK-AUD-03 integrated (1.5.3): notification scheduling now reports generic
+  authorization or scheduling results to Preferences, verifies that every
+  expected notification request is pending, and retries a failed pass after 60
+  seconds. Event titles, locations, and meeting links are not logged. No
+  notification content, EventKit selection, or PEEK-111 CLI/JSON v1 behavior
+  changed.
+- PEEK-AUD-04 integrated (1.5.4): `scripts/release.sh` now fails closed before
+  packaging unless the app has a strict valid nested signature, Developer ID
+  identity for the configured team, Hardened Runtime, calendar entitlement, and
+  no `get-task-allow`. It then verifies DMG integrity, staple validity,
+  Gatekeeper assessment, and mounted app/link contents before declaring the
+  release ready. A real signed/notarized execution remains required.
+- PEEK-AUD-05 integrated: README, development, project-status, and security
+  documentation now state the current version and CI topology, acknowledge the
+  removed Preferences settings import/export feature, and distinguish scripted
+  release checks from unperformed signed/notarized and physical validation.
+- PEEK-AUD-06 integrated (1.5.5): the Starting now HUD's shown-event history
+  now removes expired events and evicts the oldest expiry at 256 entries. It
+  retains a minimum 60-second deduplication window for zero-duration or
+  malformed events, preserving the original first-minute single-show behavior.
 - Latest automated validation: `bash scripts/check-version.sh`,
-  `git diff --check`, unsigned Debug build, and the macOS test suite all passed
-  on 2026-08-13 (89 tests, zero failures). The PEEK-111 `--help` and invalid
-  CLI paths were also exercised against the unsigned Debug binary. The signed,
-  installed app then completed the Northwind Notes LaunchAgent's first end-to-end
-  calendar export successfully with existing Full Access; the renderer
-  generated both private cache files and the job exited 0. Do not inspect or
-  log cache content merely to recheck this integration.
+  `git diff --check`, plist/localization lint, `bash -n scripts/release.sh`,
+  unsigned Debug build, and the macOS test suite all passed on 2026-08-14 (95
+  tests, zero failures). The current 1.5.5 unsigned Debug binary also returned
+  the protected PEEK-111 `--help` text and rejected an invalid signed-day input
+  on stderr with exit status 1, without emitting JSON. The signed, installed app
+  previously completed the Northwind Notes LaunchAgent's first end-to-end calendar
+  export with existing Full Access; do not inspect or log cache content merely
+  to recheck it.
 - Last full validation: 80 tests passed with zero failures on 2026-08-12 on
   `codex/event-detail-expansion`, including physical QA of the expansion
   interactions and card styling.
 
 ## Where to start next
 
-PEEK-101 through PEEK-110, the full design-system refresh, and the app-icon re-render are complete. There are no remaining `Ready` items in `docs/ROADMAP.md`; the next candidates are in the **Next** bucket:
+PEEK-101 through PEEK-110, the full design-system refresh, and the app-icon re-render are complete. PEEK-AUD-01 is integrated. The prioritized audit follow-ups are recorded in `docs/ROADMAP.md`; the next product candidates are in the **Next** bucket:
 
 - Conflict and overlap warnings.
 - Multiple time-zone display.
@@ -107,6 +139,10 @@ PEEK-101 through PEEK-110, the full design-system refresh, and the app-icon re-r
 Outstanding follow-ups from this cycle:
 
 - Visual QA of the redesign on a running build (light/dark, Reduce Motion, Increased Contrast, and a live "Starting now" HUD trigger).
+- Physical Calendar-change refresh validation for PEEK-AUD-01. The desktop UI
+  controller timed out again while inspecting the unsigned Debug accessory-app
+  instance (Computer Use error `-10005`), so it cannot observe the menu-bar
+  result in this environment. No UI setting or permission was changed.
 - Real macOS 13 hardware validation (CI-hosted macOS 13 is no longer available).
 
 PEEK-111 is a live local integration and must be maintained. Before modifying

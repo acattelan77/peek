@@ -10,11 +10,17 @@
 ## Verification
 
 1. Run unit tests and a Release build.
-2. Inspect the built entitlements and confirm calendar access remains present.
-3. Test first launch on a clean user account: calendar prompt, notification opt-in, denied access, and recovery.
-4. Test event refresh, filters, join links, snooze, launch at login, hotkey, and quit.
-5. Verify app and status icons in light and dark menu bars.
-6. Test VoiceOver navigation and keyboard-only operation.
+2. Run `scripts/release.sh`; it fails closed unless the built app passes strict
+   nested-signature verification, uses a Developer ID Application identity for
+   the configured team, has the Hardened Runtime, contains the calendar-access
+   entitlement, and does not enable `get-task-allow`.
+3. The same script verifies the final DMG checksum structure, stapled ticket,
+   Gatekeeper assessment, mounted app signature, and `/Applications` link. Keep
+   the GitHub Actions job log and uploaded DMG as release evidence.
+4. Test first launch on a clean user account: calendar prompt, notification opt-in, denied access, and recovery.
+5. Test event refresh, filters, join links, snooze, launch at login, hotkey, and quit.
+6. Verify app and status icons in light and dark menu bars.
+7. Test VoiceOver navigation and keyboard-only operation.
 
 ## Distribution
 
@@ -34,8 +40,11 @@ The workflow performs the following steps:
 
 1. Validates version metadata with `scripts/check-version.sh`.
 2. Imports the Developer ID certificate into a temporary keychain.
-3. Runs `scripts/release.sh` to build a signed Release app, package a DMG, submit it for notarization, and staple the ticket.
-4. Uploads the DMG as a workflow artifact.
+3. Runs `scripts/release.sh` to build a signed Release app, verify its strict
+   signature and entitlements, package a DMG, submit it for notarization,
+   staple the ticket, and verify the final mounted DMG with Gatekeeper.
+4. Uploads the verified DMG as a workflow artifact; the job log is the
+   accompanying signature/notarization/Gatekeeper evidence.
 5. Creates a GitHub Release and attaches the DMG.
 
 To create a release locally, ensure the secrets above are exported as environment variables and run:

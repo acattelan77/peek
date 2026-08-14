@@ -7,19 +7,20 @@ import EventKit
 /// top-right of the active screen until dismissed.
 final class StartingNowHUDController {
     private var hudWindow: NSPanel?
-    private var shownEventIDs = Set<String>()
+    private var presentationHistory = StartingNowHUDPresentationHistory()
     private var snoozeWorkItem: DispatchWorkItem?
 
     /// Shows the heads-up card once when an event reaches its start time.
     func maybeShow(for event: EKEvent, urgency: MeetingUrgency, appearanceMode: AppearanceMode) {
+        let now = Date()
+        presentationHistory.prune(now: now)
         guard urgency == .critical, !event.isAllDay, let eventID = event.eventIdentifier else { return }
 
-        let now = Date()
         // Fire only in the first minute after the start time, and only once per event.
         let started = event.startDate.timeIntervalSince(now)
-        guard started <= 0, started > -60, !shownEventIDs.contains(eventID) else { return }
+        guard started <= 0, started > -60,
+              presentationHistory.shouldPresent(eventID: eventID, eventEndDate: event.endDate, now: now) else { return }
 
-        shownEventIDs.insert(eventID)
         show(for: event, appearanceMode: appearanceMode)
     }
 

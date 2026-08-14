@@ -50,6 +50,68 @@ struct NotificationContentSignature {
     }
 }
 
+enum StatusItemPulsePolicy {
+    static func shouldPulse(
+        urgency: MeetingUrgency,
+        urgencyColorsEnabled: Bool,
+        reduceMotion: Bool
+    ) -> Bool {
+        urgency == .critical && urgencyColorsEnabled && !reduceMotion
+    }
+}
+
+enum NotificationSchedulingFeedback {
+    static func message(for result: NotificationSchedulingResult) -> String? {
+        switch result {
+        case .authorizationRequired:
+            return NSLocalizedString(
+                "Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders.",
+                comment: "Notification scheduling failure caused by denied macOS permission"
+            )
+        case .failed:
+            return NSLocalizedString(
+                "Some reminders could not be scheduled. Peek will retry shortly.",
+                comment: "Notification scheduling failure that will be retried"
+            )
+        case .scheduled, .disabled:
+            return nil
+        }
+    }
+
+    static func shouldRetry(_ result: NotificationSchedulingResult) -> Bool {
+        result == .failed
+    }
+}
+
+struct StartingNowHUDPresentationHistory {
+    private static let minimumRetention: TimeInterval = 60
+    private static let maximumEntries = 256
+
+    private var shownEventExpiryDates: [String: Date] = [:]
+
+    var count: Int {
+        shownEventExpiryDates.count
+    }
+
+    mutating func shouldPresent(eventID: String, eventEndDate: Date, now: Date) -> Bool {
+        prune(now: now)
+        guard shownEventExpiryDates[eventID] == nil else { return false }
+
+        if shownEventExpiryDates.count >= Self.maximumEntries,
+           let oldestEventID = shownEventExpiryDates.min(by: { $0.value < $1.value })?.key {
+            shownEventExpiryDates.removeValue(forKey: oldestEventID)
+        }
+
+        let minimumExpiry = now.addingTimeInterval(Self.minimumRetention)
+        shownEventExpiryDates[eventID] = max(eventEndDate, minimumExpiry)
+        return true
+    }
+
+    mutating func prune(now: Date) {
+        shownEventExpiryDates = shownEventExpiryDates.filter { $0.value > now }
+    }
+}
+
 protocol LaunchAtLoginControlling {
     var currentValue: Bool { get }
     func setEnabled(_ enabled: Bool) throws

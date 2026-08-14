@@ -22,7 +22,10 @@ Use `./scripts/build-unsigned.sh` for a local ad-hoc-signed Release app with cal
 
 ## Continuous integration
 
-CI runs the build and test suite on both `macos-latest` and `macos-13` runners (see `.github/workflows/ci.yml`). The `macos-13` job acts as the project's automated proxy for validating behavior on macOS 13 until dedicated hardware is available.
+CI runs the unsigned build and test suite on `macos-latest` with a 30-minute
+timeout (see `.github/workflows/ci.yml`). GitHub's hosted `macos-13` runner was
+removed because it queued indefinitely; macOS 13 compatibility still requires
+physical hardware validation before release.
 
 ## Starting or handing off work
 
@@ -61,7 +64,7 @@ Add source files to both the app and test target only when tests compile the sou
 
 Each behavior change should include a focused test. Priority coverage:
 
-- boundary values for urgency, dates, filters, and imported preferences;
+- boundary values for urgency, dates, filters, and persisted preferences;
 - malicious or malformed meeting URLs;
 - event ordering when meetings are ongoing;
 - notification disable/reschedule behavior through a fake scheduler;

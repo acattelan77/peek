@@ -460,6 +460,9 @@ struct GeneralTab: View {
                     ) {
                         switchToggle($calendarManager.notificationsEnabled)
                     }
+                    if let notificationStatusMessage = calendarManager.notificationStatusMessage {
+                        rowFootnote(notificationStatusMessage, isError: true)
+                    }
                     if calendarManager.notificationsEnabled {
                         RowDivider()
                         SettingRow(NSLocalizedString("Alert timing", comment: "Alert timing setting")) {

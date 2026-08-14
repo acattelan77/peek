@@ -2,7 +2,7 @@
 
 Peek is a lightweight macOS menu bar calendar companion. It shows your upcoming events from the macOS Calendar app, highlights urgency as meeting time approaches, and provides one-click join links for common meeting providers.
 
-Current development version: **1.4.1 (build 28)**.
+Current development version: **1.5.5 (build 34)**.
 
 ## About This Repo
 

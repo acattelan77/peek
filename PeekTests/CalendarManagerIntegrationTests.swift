@@ -259,6 +259,23 @@ final class CalendarManagerIntegrationTests: XCTestCase {
         XCTAssertEqual(calendarManager.upcomingEvents.map(\.title), ["New Event"])
     }
 
+    func testEventStoreChangedNotificationDeliversHandlerOnMainThread() {
+        let handlerExpectation = expectation(description: "change handler delivered")
+        calendarManager.startObservingChanges {
+            XCTAssertTrue(Thread.isMainThread)
+            handlerExpectation.fulfill()
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async { [eventStore] in
+            NotificationCenter.default.post(
+                name: .EKEventStoreChanged,
+                object: eventStore?.notificationObject
+            )
+        }
+
+        waitForExpectations(timeout: 1)
+    }
+
     // MARK: - Notifications
 
     func testFakeNotificationSchedulerRecordsScheduleCalls() {
@@ -271,10 +288,27 @@ final class CalendarManagerIntegrationTests: XCTestCase {
             calendar: calendar
         )
 
-        notificationScheduler.scheduleNotifications(for: [event], timing: .fifteenMinutes)
+        let expectation = expectation(description: "schedule completion")
+        notificationScheduler.scheduleNotifications(for: [event], timing: .fifteenMinutes) { result in
+            XCTAssertEqual(result, .scheduled)
+            expectation.fulfill()
+        }
 
+        waitForExpectations(timeout: 1)
         XCTAssertEqual(notificationScheduler.scheduledEvents.map(\.title), [event.title])
         XCTAssertEqual(notificationScheduler.lastTiming, .fifteenMinutes)
+    }
+
+    func testFakeNotificationSchedulerReportsSchedulingFailure() {
+        notificationScheduler.schedulingResult = .failed
+
+        let expectation = expectation(description: "failed schedule completion")
+        notificationScheduler.scheduleNotifications(for: [], timing: .fifteenMinutes) { result in
+            XCTAssertEqual(result, .failed)
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 1)
     }
 
     func testFakeNotificationSchedulerRecordsPermissionRequest() {

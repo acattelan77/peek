@@ -8,6 +8,16 @@ Every actionable item has a stable ID and a state. `Ready` means an agent may cl
 
 Before starting an item, follow `AGENTS.md`, confirm that no active workstream claims the same files or subsystem, and copy `docs/workstreams/TEMPLATE.md`. When pausing or finishing, update the workstream and handoff in the same change.
 
+## Now — audit remediation plan
+
+- **PEEK-AUD-01 — Done:** EventKit store-change refresh delivery is confined to the main thread, with regression coverage that posts the change notification from a background queue. The existing calendar UI and PEEK-111 export contract remain unchanged. Physical Calendar-change UI validation remains part of PEEK-AUD-07.
+- **PEEK-AUD-02 — Done:** The critical-event status-item pulse honors the system Reduce Motion preference, with focused policy coverage. Physical accessibility validation remains part of PEEK-AUD-07.
+- **PEEK-AUD-03 — Done:** Notification scheduling reports authorization and scheduling results through a testable seam, verifies expected pending requests, surfaces generic recoverable feedback in Preferences, and retries failed passes after 60 seconds without logging calendar content.
+- **PEEK-AUD-04 — Done:** The release script fails closed unless strict app signature, expected entitlements, notarization stapling, Gatekeeper assessment, DMG integrity, and mounted-DMG contents checks pass. A real signed/notarized run still requires release credentials and tag authority.
+- **PEEK-AUD-05 — Done:** README, development, project-status, and security documentation now reflect the current version, single `macos-latest` CI runner, removed settings import/export, protected PEEK-111 export boundary, and release evidence limitations.
+- **PEEK-AUD-06 — Done:** The Starting now HUD deduplication history prunes expired events and has a deterministic 256-entry bound, with focused duplicate, expiry, and long-session coverage.
+- **PEEK-AUD-07 — Blocked:** Complete physical release validation on real macOS 13 hardware and representative notched/external displays, including Full Access transitions, notification delivery, VoiceOver, Increased Contrast, and Reduce Motion. Computer Use timed out again on 2026-08-14 before interaction (error `-10005`); suitable hardware and user-authorized permission/UI checks remain required.
+
 ## Now — reliability and release readiness
 
 - **PEEK-101 — Done:** Add notch-safe adaptive compact mode for crowded menu bars. Peek should proactively fall back to its icon before macOS hides the status item, restore text when space returns, and avoid rapid mode switching. Provide `Automatic`, `Always show icon`, and `Always show text` preferences, with `Automatic` as the default.

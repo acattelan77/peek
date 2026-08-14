@@ -4,6 +4,45 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.5.5 - 2026-08-14
+
+### Fixed
+
+- PEEK-AUD-06: bounded the in-process Starting now HUD deduplication history
+  and prune completed events so long-running sessions do not retain every
+  shown event identifier.
+
+## 1.5.4 - 2026-08-14
+
+### Fixed
+
+- PEEK-AUD-04: release packaging now fails closed unless strict signature,
+  entitlement, notarization-staple, Gatekeeper, DMG integrity, and mounted-DMG
+  contents checks pass.
+
+## 1.5.3 - 2026-08-14
+
+### Fixed
+
+- PEEK-AUD-03: notification scheduling now verifies that expected requests are
+  pending, shows a generic recoverable failure in Preferences, and retries a
+  failed pass after a bounded delay without logging calendar content.
+
+## 1.5.2 - 2026-08-14
+
+### Fixed
+
+- PEEK-AUD-02: the critical-event status-item pulse now honors macOS Reduce
+  Motion while preserving urgency colors.
+
+## 1.5.1 - 2026-08-14
+
+### Fixed
+
+- PEEK-AUD-01: EventKit store-change notifications now enter Peek's refresh
+  path on the main operation queue, preventing a background notification from
+  racing AppKit and observable-state lifecycle coordination.
+
 ## 1.5.0 - 2026-08-13
 
 ### Added
