@@ -61,6 +61,19 @@ Peek does not include an automatic updater. New versions are published as GitHub
 
 Do not describe an ad-hoc-signed DMG as a public production release.
 
+## Test installer (not a release)
+
+`.github/workflows/test-installer.yml` builds an ad-hoc signed DMG on every push
+to `main` (and on demand) and uploads it as the `Peek-test-installer` workflow
+artifact for 30 days. It is for the owner's own testing: it is not Developer ID
+signed or notarized, so macOS asks for confirmation on first launch (Control-click
+Peek in Applications, choose Open, then Open). Never publish it as a release.
+
+As of 2026-11-23 the Developer ID secrets used by `release.yml` are not set in the
+repository (`Install Apple signing certificate` fails with "signing certificate
+secrets are not configured"), so a signed, notarized DMG needs either those
+secrets or `scripts/release.sh` run on the owner's Mac.
+
 ## Rollback
 
 Keep the previous notarized artifact and release notes until the new build has completed a clean-install smoke test. If permission, launch, or data-loss regressions appear, remove the new artifact and publish the known-good version.

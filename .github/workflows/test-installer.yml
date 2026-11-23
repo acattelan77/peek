@@ -1,0 +1,60 @@
+name: Test installer
+
+# Builds an ad-hoc signed DMG for testing on the owner's Mac. It is not a
+# public release: it is not Developer ID signed or notarized, so Gatekeeper
+# asks for confirmation on first launch. Public releases use release.yml.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/test-installer.yml
+
+jobs:
+  test-installer:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version metadata
+        run: ./scripts/check-version.sh
+
+      - name: Build Release app (ad-hoc signed)
+        run: |
+          xcodebuild -scheme "Peek" -configuration Release -derivedDataPath ./build \
+            CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" \
+            CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES build
+
+      - name: Verify signature and entitlements
+        run: |
+          APP="build/Build/Products/Release/Peek.app"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d --entitlements :- "$APP" > entitlements.plist
+          for key in com.apple.security.app-sandbox com.apple.security.personal-information.calendars com.apple.security.network.client; do
+            /usr/libexec/PlistBuddy -c "Print :$key" entitlements.plist | grep -q true
+          done
+
+      - name: Package DMG
+        run: |
+          VERSION=$(awk -F ' = ' '/^MARKETING_VERSION = / { print $2 }' Configuration/Version.xcconfig)
+          BUILD=$(awk -F ' = ' '/^CURRENT_PROJECT_VERSION = / { print $2 }' Configuration/Version.xcconfig)
+          STAGING=$(mktemp -d)
+          cp -R build/Build/Products/Release/Peek.app "$STAGING/"
+          ln -s /Applications "$STAGING/Applications"
+          mkdir -p artifacts
+          hdiutil create -volname "Peek" -srcfolder "$STAGING" -ov -format UDZO \
+            "artifacts/Peek-${VERSION}.${BUILD}-test.dmg"
+          hdiutil verify "artifacts/Peek-${VERSION}.${BUILD}-test.dmg"
+          shasum -a 256 artifacts/*.dmg
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: Peek-test-installer
+          path: artifacts/*.dmg
+          retention-days: 30
