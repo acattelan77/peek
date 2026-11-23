@@ -10,6 +10,8 @@ class CalendarManager: ObservableObject {
     @Published var nextEvent: EKEvent?
     @Published var upcomingEvents: [EKEvent] = []
     private(set) var allUpcomingEvents: [EKEvent] = []
+    /// Visible events not yet ended, including running ones (join shortcut).
+    private(set) var activeEvents: [EKEvent] = []
     private(set) var hasCustomCalendarSelection: Bool = false
     @Published var hasCalendarAccess = false
     @Published var enabledCalendarIDs: Set<String> = []
@@ -23,6 +25,11 @@ class CalendarManager: ObservableObject {
     @Published var showEventCount: Bool = true
     @Published var appearanceMode: AppearanceMode = .auto
     @Published var globalHotkey: HotkeyOption = .cmdShiftC
+    @Published var joinHotkey: JoinHotkeyOption = .ctrlOptionJ
+    @Published var joinHotkeyStatusMessage: String?
+    @Published var statusBarOnlyMeetings: Bool = false
+    @Published var statusBarLabelStyle: StatusBarLabelStyle = .eventTitle
+    @Published var worldClockZones: [String] = []
     @Published var notificationsEnabled: Bool = false
     @Published var notificationTiming: NotificationTiming = .fifteenMinutes
     @Published var urgencyColorsEnabled: Bool = true
@@ -68,6 +75,10 @@ class CalendarManager: ObservableObject {
     private let showMonthCalendarKey = "showMonthCalendar"
     private let startAlertStyleKey = "startAlertStyle"
     private let interruptOnlyForMeetingsKey = "interruptOnlyForMeetings"
+    private let joinHotkeyKey = "joinHotkey"
+    private let statusBarOnlyMeetingsKey = "statusBarOnlyMeetings"
+    private let statusBarLabelStyleKey = "statusBarLabelStyle"
+    private let worldClockZonesKey = "worldClockZones"
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -140,6 +151,10 @@ class CalendarManager: ObservableObject {
         startAlertStyle = defaults.string(forKey: startAlertStyleKey).flatMap(StartAlertStyle.init(rawValue:)) ?? .hud
         interruptOnlyForMeetings = defaults.object(forKey: interruptOnlyForMeetingsKey) as? Bool ?? true
         meetingContextUsesContacts = defaults.bool(forKey: MeetingContextProvider.useContactsKey)
+        joinHotkey = defaults.string(forKey: joinHotkeyKey).flatMap(JoinHotkeyOption.init(rawValue:)) ?? .ctrlOptionJ
+        statusBarOnlyMeetings = defaults.bool(forKey: statusBarOnlyMeetingsKey)
+        statusBarLabelStyle = defaults.string(forKey: statusBarLabelStyleKey).flatMap(StatusBarLabelStyle.init(rawValue:)) ?? .eventTitle
+        worldClockZones = WorldClock.sanitized(defaults.array(forKey: worldClockZonesKey) as? [String] ?? [])
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -169,6 +184,22 @@ class CalendarManager: ObservableObject {
         defaults.set(startAlertStyle.rawValue, forKey: startAlertStyleKey)
         defaults.set(interruptOnlyForMeetings, forKey: interruptOnlyForMeetingsKey)
         defaults.set(meetingContextUsesContacts, forKey: MeetingContextProvider.useContactsKey)
+        defaults.set(joinHotkey.rawValue, forKey: joinHotkeyKey)
+        defaults.set(statusBarOnlyMeetings, forKey: statusBarOnlyMeetingsKey)
+        defaults.set(statusBarLabelStyle.rawValue, forKey: statusBarLabelStyleKey)
+        defaults.set(worldClockZones, forKey: worldClockZonesKey)
+    }
+
+    // MARK: - World clocks (PEEK-233)
+
+    func addWorldClock(_ identifier: String) {
+        worldClockZones = WorldClock.sanitized(worldClockZones + [identifier])
+        defaults.set(worldClockZones, forKey: worldClockZonesKey)
+    }
+
+    func removeWorldClock(_ identifier: String) {
+        worldClockZones.removeAll { $0 == identifier }
+        defaults.set(worldClockZones, forKey: worldClockZonesKey)
     }
 
     func saveEnabledCalendars() {
@@ -223,6 +254,7 @@ class CalendarManager: ObservableObject {
             nextEvent = nil
             upcomingEvents = []
             allUpcomingEvents = []
+            activeEvents = []
         }
 
         return granted
@@ -292,6 +324,7 @@ class CalendarManager: ObservableObject {
                     self.nextEvent = nil
                     self.upcomingEvents = []
                     self.allUpcomingEvents = []
+                    self.activeEvents = []
                     completion(nil)
                 }
                 return
@@ -325,6 +358,7 @@ class CalendarManager: ObservableObject {
                     self.nextEvent = nil
                     self.upcomingEvents = []
                     self.allUpcomingEvents = []
+                    self.activeEvents = []
                     completion(nil)
                 }
                 return
@@ -347,6 +381,7 @@ class CalendarManager: ObservableObject {
                 self.nextEvent = result.nextEvent
                 self.upcomingEvents = result.limitedEvents
                 self.allUpcomingEvents = result.upcomingEvents
+                self.activeEvents = result.activeEvents
                 completion(result.nextEvent)
             }
         }

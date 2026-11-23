@@ -6,14 +6,16 @@ import Foundation
 /// unregistering any previous binding first. This is the only place that touches
 /// Carbon's hot-key API.
 final class CarbonHotkeyRegistrar: HotkeyRegistering {
-    private static let hotKeyID: UInt32 = 1
+    /// Each registrar owns one shortcut; the handler ignores the others' presses.
+    private let hotKeyID: UInt32
 
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandlerRef: EventHandlerRef?
     private let handler: () -> Void
     private let signature = OSType("PEEK".fourCharCodeValue)
 
-    init(handler: @escaping () -> Void) {
+    init(id: UInt32 = 1, handler: @escaping () -> Void) {
+        self.hotKeyID = id
         self.handler = handler
         installEventHandler()
     }
@@ -32,9 +34,22 @@ final class CarbonHotkeyRegistrar: HotkeyRegistering {
         )
         InstallEventHandler(
             GetEventDispatcherTarget(),
-            { _, _, userData in
-                guard let userData else { return noErr }
+            { _, event, userData in
+                guard let event, let userData else { return OSStatus(eventNotHandledErr) }
                 let registrar = Unmanaged<CarbonHotkeyRegistrar>.fromOpaque(userData).takeUnretainedValue()
+                var pressed = EventHotKeyID()
+                let status = GetEventParameter(
+                    event,
+                    EventParamName(kEventParamDirectObject),
+                    EventParamType(typeEventHotKeyID),
+                    nil,
+                    MemoryLayout<EventHotKeyID>.size,
+                    nil,
+                    &pressed
+                )
+                guard status == noErr, pressed.signature == registrar.signature, pressed.id == registrar.hotKeyID else {
+                    return OSStatus(eventNotHandledErr)
+                }
                 registrar.handler()
                 return noErr
             },
@@ -48,7 +63,7 @@ final class CarbonHotkeyRegistrar: HotkeyRegistering {
     @discardableResult
     func register(keyCode: UInt32, modifiers: UInt32) -> OSStatus {
         unregister()
-        let hotKeyID = EventHotKeyID(signature: signature, id: Self.hotKeyID)
+        let hotKeyID = EventHotKeyID(signature: signature, id: self.hotKeyID)
         return RegisterEventHotKey(
             keyCode,
             modifiers,

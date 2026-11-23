@@ -77,6 +77,44 @@ enum HotkeyOption: String, CaseIterable {
     }
 }
 
+/// Global shortcut that joins the next meeting (PEEK-231). J for "join".
+enum JoinHotkeyOption: String, CaseIterable {
+    case off = "Off"
+    case ctrlOptionJ = "⌃⌥J"
+    case cmdShiftJ = "⌘⇧J"
+    case cmdOptionJ = "⌘⌥J"
+
+    var displayName: String {
+        self == .off ? NSLocalizedString("Off", comment: "Start alert style: off") : rawValue
+    }
+
+    var keyCode: UInt32 { 38 }
+
+    var modifiers: UInt32 {
+        switch self {
+        case .off: return 0
+        case .ctrlOptionJ: return UInt32(controlKey | optionKey)
+        case .cmdShiftJ: return UInt32(cmdKey | shiftKey)
+        case .cmdOptionJ: return UInt32(cmdKey | optionKey)
+        }
+    }
+}
+
+/// What the menu-bar countdown names (PEEK-232).
+enum StatusBarLabelStyle: String, CaseIterable {
+    case eventTitle = "Event title"
+    case person = "Who you're meeting"
+
+    var displayName: String {
+        switch self {
+        case .eventTitle:
+            return NSLocalizedString("Event title", comment: "Menu bar label: event title")
+        case .person:
+            return NSLocalizedString("Who you're meeting", comment: "Menu bar label: first person you're meeting")
+        }
+    }
+}
+
 enum NotificationTiming: Int, CaseIterable {
     case none = 0
     case fiveMinutes = 5

@@ -72,6 +72,11 @@ struct MenuBarView: View {
             header
             Divider().overlay(PeekColor.innerDivider)
 
+            if !calendarManager.worldClockZones.isEmpty {
+                WorldClockStrip(zones: calendarManager.worldClockZones)
+                Divider().overlay(PeekColor.innerDivider)
+            }
+
             if calendarManager.showMonthCalendar && calendarManager.hasCalendarAccess {
                 MonthCalendarView(
                     grid: monthGrid,
@@ -172,6 +177,7 @@ struct MenuBarView: View {
                 ForEach(Array(calendarManager.upcomingEvents.enumerated()), id: \.element.eventIdentifier) { index, event in
                     EventRow(
                         event: event,
+                        worldClockZones: calendarManager.worldClockZones,
                         isHero: index == 0,
                         isSelected: index == selectedEventIndex,
                         isExpanded: expandedEventID != nil && expandedEventID == event.eventIdentifier,
@@ -215,6 +221,7 @@ struct MenuBarView: View {
                     ForEach(dayEvents, id: \.eventIdentifier) { event in
                         EventRow(
                             event: event,
+                            worldClockZones: calendarManager.worldClockZones,
                             isExpanded: expandedEventID != nil && expandedEventID == event.eventIdentifier,
                             onToggleExpand: { toggleExpansion(for: event) }
                         )
@@ -429,6 +436,8 @@ struct MenuBarView: View {
 
 struct EventRow: View {
     let event: EKEvent
+    /// Zones from Preferences; the expanded row converts the meeting time (PEEK-233).
+    var worldClockZones: [String] = []
     var isHero: Bool = false
     var isSelected: Bool = false
     var isExpanded: Bool = false
@@ -667,6 +676,7 @@ struct EventRow: View {
             RowDivider()
 
             briefSection
+            timeZonesSection
 
             if detail.isEmpty && context.isEmpty {
                 Text(NSLocalizedString("No additional details", comment: "Expanded event row with no notes, attendees, or attachments"))
@@ -706,6 +716,35 @@ struct EventRow: View {
             }
         }
         .padding(.top, PeekSpacing.xxs)
+    }
+
+    // MARK: Time zones
+
+    @ViewBuilder
+    private var timeZonesSection: some View {
+        if !event.isAllDay, !worldClockZones.isEmpty {
+            detailSection(NSLocalizedString("Time zones", comment: "Expanded event section: meeting time in other zones")) {
+                VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
+                    ForEach(worldClockZones, id: \.self) { identifier in
+                        if let range = WorldClock.rangeText(start: event.startDate, end: event.endDate, in: identifier) {
+                            HStack(spacing: PeekSpacing.sm) {
+                                Text(WorldClock.cityName(for: identifier))
+                                    .font(PeekFont.bodyMeta)
+                                    .foregroundColor(PeekColor.secondaryText)
+                                    .lineLimit(1)
+                                Spacer(minLength: PeekSpacing.sm)
+                                Text(range)
+                                    .font(PeekFont.bodyMeta)
+                                    .foregroundColor(PeekColor.bodyText)
+                                    .monospacedDigit()
+                                    .lineLimit(1)
+                            }
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: Brief
@@ -1000,5 +1039,41 @@ struct EventContextMenu: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(event.title ?? "", forType: .string)
         }
+    }
+}
+
+// MARK: - World clocks (PEEK-233)
+
+/// The current time in the cities chosen in Preferences, under the header.
+struct WorldClockStrip: View {
+    let zones: [String]
+
+    var body: some View {
+        TimelineView(.everyMinute) { context in
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: PeekMetrics.worldClockMinWidth), spacing: PeekSpacing.sm, alignment: .leading)],
+                alignment: .leading,
+                spacing: PeekSpacing.xs
+            ) {
+                ForEach(WorldClock.entries(at: context.date, zones: zones), id: \.identifier) { entry in
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(entry.city)
+                            .font(PeekFont.caption)
+                            .foregroundColor(PeekColor.tertiaryText)
+                            .lineLimit(1)
+                        Text(entry.text)
+                            .font(PeekFont.bodyMetaMedium)
+                            .foregroundColor(PeekColor.bodyText)
+                            .monospacedDigit()
+                            .lineLimit(1)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+            .padding(.horizontal, PeekSpacing.lg)
+            .padding(.vertical, PeekSpacing.sm)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(NSLocalizedString("World clocks", comment: "Accessibility: world clock strip")))
     }
 }

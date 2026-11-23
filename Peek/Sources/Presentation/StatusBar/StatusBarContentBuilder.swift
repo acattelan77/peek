@@ -9,6 +9,7 @@ struct StatusBarContent: Equatable {
 enum StatusBarContentBuilder {
     static func make(
         eventTitle: String?,
+        fullTitle: String? = nil,
         startDate: Date,
         eventCount: Int,
         mode: StatusBarDisplayMode,
@@ -32,11 +33,13 @@ enum StatusBarContentBuilder {
         let time = timeText(startDate: startDate, mode: mode, now: now)
         let titleFormat = NSLocalizedString("%@ - %@%@", comment: "Status bar title format: time - title (+count)")
         let statusTitle = String(format: titleFormat, time, compactTitle, countSuffix)
-        let tooltip = title.count > maxTitleLength
+        // A shortened label, or one that names a person, keeps the event title in the tooltip.
+        let fullText = fullTitle ?? title
+        let tooltip = title.count > maxTitleLength || fullText != title
             ? String(
                 format: NSLocalizedString("%@ - %@", comment: "Status bar tooltip format: time - title"),
                 time,
-                title
+                fullText
             )
             : nil
 

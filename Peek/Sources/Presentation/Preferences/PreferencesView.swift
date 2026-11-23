@@ -409,6 +409,25 @@ struct GeneralTab: View {
                         .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
                     }
                     RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"),
+                        subtitle: NSLocalizedString("Skip events without a join link. Declined events follow the Filters tab.", comment: "Status bar: only meetings subtitle")
+                    ) {
+                        switchToggle($calendarManager.statusBarOnlyMeetings, label: NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"))
+                    }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"),
+                        subtitle: NSLocalizedString("A person's name needs attendees, Contacts or a context folder.", comment: "Status bar label subtitle")
+                    ) {
+                        Picker("", selection: $calendarManager.statusBarLabelStyle) {
+                            ForEach(StatusBarLabelStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        }
+                        .labelsHidden()
+                        .frame(width: PeekMetrics.pickerWide)
+                        .accessibilityLabel(NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"))
+                    }
+                    RowDivider()
                     SettingRow(NSLocalizedString("Show event count badge", comment: "Show count toggle")) {
                         switchToggle($calendarManager.showEventCount, label: NSLocalizedString("Show event count badge", comment: "Show count toggle"))
                     }
@@ -425,6 +444,44 @@ struct GeneralTab: View {
                         subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
                     ) {
                         switchToggle($calendarManager.urgencyColorsEnabled, label: NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"))
+                    }
+                }
+
+                // Time zones
+                settingsGroup(NSLocalizedString("Time zones", comment: "Group label: time zones")) {
+                    VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                        SettingRow(
+                            NSLocalizedString("World clocks", comment: "World clocks setting"),
+                            subtitle: NSLocalizedString("Shown under the date, and next to each meeting's time when you expand it.", comment: "World clocks subtitle")
+                        ) {
+                            Menu(NSLocalizedString("Add city…", comment: "Add world clock city")) {
+                                ForEach(WorldClock.suggestedIdentifiers.filter { !calendarManager.worldClockZones.contains($0) }, id: \.self) { identifier in
+                                    Button(WorldClock.cityName(for: identifier)) {
+                                        calendarManager.addWorldClock(identifier)
+                                    }
+                                }
+                            }
+                            .fixedSize()
+                            .disabled(calendarManager.worldClockZones.count >= WorldClock.maxZones)
+                            .accessibilityLabel(NSLocalizedString("Add city…", comment: "Add world clock city"))
+                        }
+                        if !calendarManager.worldClockZones.isEmpty {
+                            LazyVGrid(
+                                columns: [GridItem(.adaptive(minimum: PeekMetrics.chipMinWidth), spacing: PeekSpacing.iconGap, alignment: .leading)],
+                                alignment: .leading,
+                                spacing: PeekSpacing.iconGap
+                            ) {
+                                ForEach(calendarManager.worldClockZones, id: \.self) { identifier in
+                                    PeekKeywordChip(
+                                        title: WorldClock.cityName(for: identifier),
+                                        removeHelp: NSLocalizedString("Remove city", comment: "World clock chip remove help")
+                                    ) {
+                                        calendarManager.removeWorldClock(identifier)
+                                    }
+                                }
+                            }
+                            .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
+                        }
                     }
                 }
 
@@ -453,6 +510,21 @@ struct GeneralTab: View {
                     }
                     if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
                         rowFootnote(hotkeyStatusMessage, isError: true)
+                    }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Join next meeting", comment: "Join hotkey setting"),
+                        subtitle: NSLocalizedString("Opens the meeting starting soon, or the one you're late for.", comment: "Join hotkey subtitle")
+                    ) {
+                        Picker("", selection: $calendarManager.joinHotkey) {
+                            ForEach(JoinHotkeyOption.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        }
+                        .labelsHidden()
+                        .frame(width: PeekMetrics.pickerHotkey)
+                        .accessibilityLabel(NSLocalizedString("Join next meeting", comment: "Join hotkey setting"))
+                    }
+                    if let joinHotkeyStatusMessage = calendarManager.joinHotkeyStatusMessage {
+                        rowFootnote(joinHotkeyStatusMessage, isError: true)
                     }
                     RowDivider()
                     SettingRow(
@@ -606,6 +678,7 @@ struct GeneralTab: View {
                                 EmptyView()
                             }
                             KeywordChipEditor(text: briefKeywordsBinding)
+                                .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
                         }
                     }
                 }

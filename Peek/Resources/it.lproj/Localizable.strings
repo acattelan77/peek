@@ -19,7 +19,9 @@
 "5 minutes before" = "5 minuti prima";
 "A compact month above your events. Choose a day to see its agenda." = "Un mese compatto sopra i tuoi eventi. Scegli un giorno per vederne l'agenda.";
 "A few points on what to prepare, 15 minutes before a meeting with people or notes." = "Qualche punto su cosa preparare, 15 minuti prima di un meeting con persone o note.";
+"A person's name needs attendees, Contacts or a context folder." = "Il nome di una persona richiede partecipanti, Contatti o una cartella di contesto.";
 "Actual Time" = "Orario";
+"Add city…" = "Aggiungi città…";
 "Add keyword" = "Aggiungi parola chiave";
 "Add keyword…" = "Aggiungi parola chiave…";
 "Add your Anthropic API key in Preferences." = "Aggiungi la tua chiave API Anthropic nelle Preferenze.";
@@ -62,6 +64,7 @@
 "Couldn't reach the brief service. Check your connection." = "Impossibile raggiungere il servizio del brief. Controlla la connessione.";
 "Couldn't register %@. Another app may be using this shortcut. Try a different one." = "Impossibile registrare %@. Un'altra app potrebbe usare questa scorciatoia. Provane un'altra.";
 "Couldn't save the key to your keychain." = "Impossibile salvare la chiave nel portachiavi.";
+"Count down to meetings only" = "Conto alla rovescia solo per i meeting";
 "Dark" = "Scuro";
 "Deselect all" = "Deseleziona tutto";
 "Disabled" = "Disattivato";
@@ -69,6 +72,7 @@
 "Done" = "Fine";
 "Esc to dismiss" = "Esc per chiudere";
 "Event filters" = "Filtri eventi";
+"Event title" = "Titolo dell'evento";
 "Exchange" = "Exchange";
 "Expanded" = "Espanso";
 "Filters" = "Filtri";
@@ -93,6 +97,7 @@
 "Join %@" = "Entra su %@";
 "Join %@ on %@" = "Partecipa a %@ su %@";
 "Join Meeting" = "Partecipa alla riunione";
+"Join next meeting" = "Entra nel prossimo meeting";
 "Join now" = "Entra ora";
 "Keyword filter" = "Filtro parole chiave";
 "Launch at login" = "Apri al login";
@@ -111,6 +116,7 @@
 "Meeting context" = "Contesto del meeting";
 "Meeting notifications" = "Notifiche riunioni";
 "Meetings whose title or notes contain these words." = "Meeting il cui titolo o le cui note contengono queste parole.";
+"Name in the menu bar" = "Nome nella barra dei menu";
 "Never brief" = "Nessun brief per";
 "NEXT" = "PROSSIMO";
 "Next 14 days" = "Prossimi 14 giorni";
@@ -125,6 +131,7 @@
 "No events on this day." = "Nessun evento in questo giorno.";
 "No upcoming events" = "Nessun evento in arrivo";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "Nessun evento in arrivo. Peek si accende appena qualcosa arriva nel tuo calendario.";
+"No upcoming meetings" = "Nessun meeting in arrivo";
 "Notes" = "Note";
 "Notes another app prepares for your meetings, such as a personal knowledge system." = "Note che un'altra app prepara per i tuoi meeting, come un sistema personale di conoscenza.";
 "Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders." = "Le notifiche non sono disponibili. Consenti le notifiche di Peek in Impostazioni di Sistema per ricevere i promemoria.";
@@ -138,6 +145,7 @@
 "Open in Calendar" = "Apri in Calendario";
 "Open meetings in the app" = "Apri le riunioni nell'app";
 "Open System Settings" = "Apri Impostazioni di Sistema";
+"Opens the meeting starting soon, or the one you're late for." = "Apre il meeting che sta per iniziare, o quello per cui sei in ritardo.";
 "Organizer" = "Organizzatore";
 "Peek" = "Peek";
 "Peek couldn't keep access to that folder. Try choosing it again." = "Peek non è riuscito a mantenere l'accesso a quella cartella. Prova a sceglierla di nuovo.";
@@ -156,6 +164,7 @@
 "Refreshing…" = "Aggiornamento…";
 "Remove" = "Rimuovi";
 "Remove %@" = "Rimuovi %@";
+"Remove city" = "Rimuovi città";
 "Remove keyword" = "Rimuovi parola chiave";
 "Requesting…" = "Richiesta in corso…";
 "Return to join · Esc to dismiss" = "Invio per entrare · Esc per chiudere";
@@ -169,7 +178,9 @@
 "Show event count badge" = "Mostra il numero di eventi";
 "Show month calendar" = "Mostra calendario mensile";
 "Show who you're meeting" = "Mostra chi incontri";
+"Shown under the date, and next to each meeting's time when you expand it." = "Mostrati sotto la data e accanto all'orario di ogni meeting quando lo espandi.";
 "sk-ant-…" = "sk-ant-…";
+"Skip events without a join link. Declined events follow the Filters tab." = "Salta gli eventi senza link per partecipare. Gli eventi rifiutati seguono la scheda Filtri.";
 "Snooze (%d min)" = "Posticipa (%d min)";
 "Snooze 5 min" = "Posticipa 5 min";
 "Some reminders could not be scheduled. Peek will retry shortly." = "Non è stato possibile programmare alcuni promemoria. Peek riproverà a breve.";
@@ -198,6 +209,7 @@
 "This Mac doesn't support Apple Intelligence." = "Questo Mac non supporta Apple Intelligence.";
 "Time format" = "Formato orario";
 "Time Until" = "Tempo mancante";
+"Time zones" = "Fusi orari";
 "Tint the title amber, then red, as time runs out." = "Colora il titolo di ambra, poi di rosso, man mano che il tempo stringe.";
 "Today" = "Oggi";
 "Today only" = "Solo oggi";
@@ -216,6 +228,8 @@
 "Welcome to Peek" = "Benvenuto in Peek";
 "What should Peek watch?" = "Cosa deve seguire Peek?";
 "When a meeting starts" = "All'inizio di una riunione";
+"Who you're meeting" = "Chi incontri";
+"World clocks" = "Orologi del mondo";
 "Written by" = "Scritto da";
 "Written by Claude" = "Scritto da Claude";
 "Written on this Mac" = "Scritto su questo Mac";
