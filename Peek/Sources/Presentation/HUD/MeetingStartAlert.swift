@@ -9,6 +9,8 @@ struct MeetingStartAlert: View {
     let detail: String
     /// "You're about to meet Marco, CEO at Northwind" when known.
     var contextLine: String? = nil
+    /// Up to three "what to prepare" points from the meeting brief.
+    var briefPoints: [String] = []
     /// Provider label such as "Zoom"; when non-nil the Join button is shown.
     let joinProviderLabel: String?
     var appearanceMode: AppearanceMode = .auto
@@ -71,6 +73,26 @@ struct MeetingStartAlert: View {
                         .foregroundColor(PeekColor.ink)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if !briefPoints.isEmpty {
+                    VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+                        ForEach(Array(briefPoints.enumerated()), id: \.offset) { _, point in
+                            HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+                                Image(systemName: "checkmark.circle")
+                                    .font(PeekIcon.detail)
+                                    .foregroundColor(PeekColor.tertiaryText)
+                                    .accessibilityHidden(true)
+                                Text(point)
+                                    .font(PeekFont.body)
+                                    .foregroundColor(PeekColor.bodyText)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                    .padding(.top, PeekSpacing.xs)
+                    .accessibilityElement(children: .combine)
                 }
             }
 

@@ -433,6 +433,7 @@ struct EventRow: View {
     var isSelected: Bool = false
     var isExpanded: Bool = false
     var onToggleExpand: (() -> Void)? = nil
+    @ObservedObject var briefService: MeetingBriefService = .shared
 
     private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
 
@@ -519,6 +520,10 @@ struct EventRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                }
+
+                if !isExpanded, let brief = heroBrief {
+                    briefPoints(Array(brief.points.prefix(MeetingBrief.heroPointLimit)), tint: tone.text)
                 }
 
                 if let meetingURL {
@@ -650,11 +655,18 @@ struct EventRow: View {
         isHero && !event.isAllDay ? MeetingContextProvider.context(for: event) : .empty
     }
 
+    /// The brief shown on the hero row; built only for the hero row.
+    private var heroBrief: MeetingBrief? {
+        isHero && !event.isAllDay ? briefService.brief(for: event) : nil
+    }
+
     private var expandedDetail: some View {
         let detail = EventDetailBuilder.make(from: event)
         let context = MeetingContextProvider.context(for: event)
         return VStack(alignment: .leading, spacing: PeekSpacing.sm) {
             RowDivider()
+
+            briefSection
 
             if detail.isEmpty && context.isEmpty {
                 Text(NSLocalizedString("No additional details", comment: "Expanded event row with no notes, attendees, or attachments"))
@@ -694,6 +706,94 @@ struct EventRow: View {
             }
         }
         .padding(.top, PeekSpacing.xxs)
+    }
+
+    // MARK: Brief
+
+    @ViewBuilder
+    private var briefSection: some View {
+        if !event.isAllDay {
+            let brief = briefService.brief(for: event)
+            let preparing = briefService.isPreparing(event)
+            let canPrepare = briefService.canPrepare(event)
+            let error = briefService.error(for: event)
+            if brief != nil || preparing || canPrepare || error != nil {
+                detailSection(NSLocalizedString("Brief", comment: "Expanded event section: meeting brief")) {
+                    VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+                        if let brief {
+                            briefPoints(brief.points, tint: PeekColor.tertiaryText)
+                            Text(Self.sourceLabel(for: brief.source))
+                                .font(PeekFont.caption)
+                                .foregroundColor(PeekColor.tertiaryText)
+                        } else if preparing {
+                            HStack(spacing: PeekSpacing.xs) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text(NSLocalizedString("Preparing brief…", comment: "Brief is being generated"))
+                                    .font(PeekFont.caption)
+                                    .foregroundColor(PeekColor.secondaryText)
+                            }
+                        } else {
+                            if let error {
+                                Text(error)
+                                    .font(PeekFont.caption)
+                                    .foregroundColor(PeekColor.secondaryText)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            if canPrepare {
+                                Button {
+                                    briefService.prepare(event)
+                                } label: {
+                                    HStack(spacing: PeekSpacing.xs) {
+                                        Image(systemName: "sparkles")
+                                            .font(PeekIcon.detail)
+                                            .accessibilityHidden(true)
+                                        Text(error == nil
+                                            ? NSLocalizedString("Prepare brief", comment: "Button: generate a meeting brief now")
+                                            : NSLocalizedString("Try again", comment: "Button: retry generating a meeting brief"))
+                                            .font(PeekFont.caption)
+                                    }
+                                    .foregroundColor(PeekColor.accentText)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func briefPoints(_ points: [String], tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
+            ForEach(Array(points.enumerated()), id: \.offset) { _, point in
+                HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+                    Image(systemName: "checkmark.circle")
+                        .font(PeekIcon.detail)
+                        .foregroundColor(tint)
+                        .frame(width: PeekMetrics.metaIconWidth)
+                        .accessibilityHidden(true)
+                    Text(point)
+                        .font(PeekFont.bodyMeta)
+                        .foregroundColor(PeekColor.bodyText)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(NSLocalizedString("Brief", comment: "Expanded event section: meeting brief") + ": " + points.joined(separator: ". ")))
+    }
+
+    static func sourceLabel(for source: BriefSource) -> String {
+        switch source {
+        case .contextFolder:
+            return NSLocalizedString("From your context folder", comment: "Brief source label: context file")
+        case .onDevice:
+            return NSLocalizedString("Written on this Mac", comment: "Brief source label: on-device model")
+        case .cloud:
+            return NSLocalizedString("Written by Claude", comment: "Brief source label: cloud model")
+        }
     }
 
     private func detailSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

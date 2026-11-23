@@ -326,6 +326,10 @@ struct GeneralTab: View {
     @Binding var launchAtLogin: Bool
     let launchAtLoginController: any LaunchAtLoginControlling
     @State private var launchAtLoginErrorMessage: String?
+    @ObservedObject private var briefService = MeetingBriefService.shared
+    @State private var apiKeyDraft = ""
+    @State private var apiKeyMessage: String?
+    @State private var hasAPIKey = AnthropicKeyStore.hasKey
 
     private var launchAtLoginBinding: Binding<Bool> {
         Binding(
@@ -537,9 +541,131 @@ struct GeneralTab: View {
                     }
                 }
                 .onAppear { calendarManager.refreshContextFolderState() }
+
+                // Meeting brief
+                settingsGroup(NSLocalizedString("Meeting brief", comment: "Group label: meeting brief")) {
+                    SettingRow(
+                        NSLocalizedString("Brief before meetings", comment: "Meeting brief toggle"),
+                        subtitle: NSLocalizedString("A few points on what to prepare, 15 minutes before a meeting with people or notes.", comment: "Meeting brief toggle subtitle")
+                    ) {
+                        switchToggle(briefEnabledBinding, label: NSLocalizedString("Brief before meetings", comment: "Meeting brief toggle"))
+                    }
+                    if briefService.isEnabled {
+                        RowDivider()
+                        SettingRow(NSLocalizedString("Written by", comment: "Brief engine setting")) {
+                            Picker("", selection: briefEngineBinding) {
+                                ForEach(MeetingBriefService.EngineChoice.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerWide)
+                            .accessibilityLabel(NSLocalizedString("Written by", comment: "Brief engine setting"))
+                        }
+                        if let reason = briefService.availability(of: briefService.engineChoice).message {
+                            rowFootnote(reason, isError: false)
+                        }
+                        if briefService.engineChoice == .cloud {
+                            RowDivider()
+                            SettingRow(
+                                NSLocalizedString("Anthropic API key", comment: "API key setting"),
+                                subtitle: hasAPIKey
+                                    ? NSLocalizedString("Saved in your keychain.", comment: "API key saved subtitle")
+                                    : NSLocalizedString("Stored in your keychain, never in Peek's files.", comment: "API key empty subtitle")
+                            ) {
+                                HStack(spacing: PeekSpacing.sm) {
+                                    if hasAPIKey {
+                                        Button(NSLocalizedString("Remove", comment: "Remove API key")) {
+                                            AnthropicKeyStore.delete()
+                                            hasAPIKey = false
+                                            briefService.keyDidChange()
+                                        }
+                                        .buttonStyle(SecondaryFillButtonStyle())
+                                    } else {
+                                        SecureField(NSLocalizedString("sk-ant-…", comment: "API key field placeholder"), text: $apiKeyDraft)
+                                            .textFieldStyle(.roundedBorder)
+                                            .frame(width: PeekMetrics.pickerWide)
+                                            .onSubmit(saveAPIKey)
+                                            .accessibilityLabel(NSLocalizedString("Anthropic API key", comment: "API key setting"))
+                                        Button(NSLocalizedString("Save", comment: "Save API key")) {
+                                            saveAPIKey()
+                                        }
+                                        .buttonStyle(SecondaryFillButtonStyle())
+                                        .disabled(apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                    }
+                                }
+                            }
+                            if let apiKeyMessage {
+                                rowFootnote(apiKeyMessage, isError: true)
+                            }
+                        }
+                        RowDivider()
+                        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                            SettingRow(
+                                NSLocalizedString("Never brief", comment: "Brief exclusion keywords setting"),
+                                subtitle: NSLocalizedString("Meetings whose title or notes contain these words.", comment: "Brief exclusion keywords subtitle")
+                            ) {
+                                EmptyView()
+                            }
+                            KeywordChipEditor(text: briefKeywordsBinding)
+                        }
+                    }
+                }
             }
             .padding(PeekSpacing.xl)
         }
+    }
+
+    private var briefEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { briefService.isEnabled },
+            set: { briefService.setEnabled($0) }
+        )
+    }
+
+    private var briefEngineBinding: Binding<MeetingBriefService.EngineChoice> {
+        Binding(
+            get: { briefService.engineChoice },
+            set: { choice in
+                if choice == .cloud && !briefService.hasCloudConsent {
+                    briefService.setEngine(.cloud, consented: Self.askCloudConsent())
+                } else {
+                    briefService.setEngine(choice)
+                }
+            }
+        )
+    }
+
+    private var briefKeywordsBinding: Binding<String> {
+        Binding(
+            get: { briefService.excludedKeywordsText },
+            set: { briefService.setExcludedKeywords($0) }
+        )
+    }
+
+    private func saveAPIKey() {
+        if AnthropicKeyStore.save(apiKeyDraft) {
+            apiKeyDraft = ""
+            apiKeyMessage = nil
+            hasAPIKey = true
+            briefService.keyDidChange()
+        } else {
+            apiKeyMessage = NSLocalizedString("Couldn't save the key to your keychain.", comment: "API key save failed")
+        }
+    }
+
+    /// The consent screen for sending meeting details to Claude (PEEK-223).
+    /// It lists exactly the fields in `BriefInput`.
+    static func askCloudConsent() -> Bool {
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = NSLocalizedString("Send meeting details to Claude?", comment: "Cloud consent title")
+        alert.informativeText = NSLocalizedString(
+            "For each meeting that gets a brief, Peek sends Anthropic, using your API key: the title, how soon it starts, the names and roles of the people, your notes about them, the cleaned-up invitation text, and the summary and points from your context folder.\n\nPeek never sends email addresses, locations, meeting links, calendar names or replies. Anthropic's terms for your API account apply. You can switch back to “On this Mac” at any time.",
+            comment: "Cloud consent body; lists the fields sent and not sent"
+        )
+        alert.addButton(withTitle: NSLocalizedString("Use Claude", comment: "Cloud consent accept"))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cloud consent cancel"))
+        NSApp.activate(ignoringOtherApps: true)
+        return alert.runModal() == .alertFirstButtonReturn
     }
 
     private var contactsContextBinding: Binding<Bool> {

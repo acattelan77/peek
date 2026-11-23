@@ -4,6 +4,25 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.9.0 - 2026-11-23
+
+### Added
+
+- PEEK-221 to PEEK-224: a meeting brief, three to five points on what to prepare,
+  shown in the next-event row, the expanded row and the full-screen alert. Off by
+  default. It is prepared 15 minutes before a meeting that has people or notes, or
+  on request with "Prepare brief". The source is always shown: "From your context
+  folder" (no model), "Written on this Mac" (Apple Intelligence, macOS 26) or
+  "Written by Claude" (the user's Anthropic API key, after a consent screen that
+  lists the fields sent). Keywords exclude meetings from briefs. Briefs are cached
+  for three days in Peek's container and dropped when the event changes or briefs
+  are turned off (ADR 0005).
+
+### Changed
+
+- New sandbox entitlement: outgoing network connections, used only for Claude
+  briefs. FoundationModels is weak-linked so macOS 13 to 15 still launch.
+
 ## 1.8.0 - 2026-11-23
 
 ### Added
