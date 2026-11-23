@@ -1,3 +1,4 @@
 "NSCalendarsUsageDescription" = "Peek needs access to your calendar to display upcoming events in the menu bar.";
-"NSCalendarsFullAccessUsageDescription" = "Peek needs full calendar access to display upcoming events in the menu bar.";
 "NSUserNotificationsUsageDescription" = "Peek would like to send you notifications to remind you about upcoming events.";
+"NSCalendarsFullAccessUsageDescription" = "Peek needs full calendar access to display upcoming events in the menu bar.";
+"NSContactsUsageDescription" = "Peek matches meeting attendees with your contacts to show their role and company. Nothing leaves your Mac.";

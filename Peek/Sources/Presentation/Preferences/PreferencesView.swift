@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import EventKit
 import Foundation
 
@@ -499,8 +500,68 @@ struct GeneralTab: View {
                         switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"))
                     }
                 }
+
+                // Meeting context
+                settingsGroup(NSLocalizedString("Meeting context", comment: "Group label: meeting context")) {
+                    SettingRow(
+                        NSLocalizedString("Show who you're meeting", comment: "Contacts enrichment toggle"),
+                        subtitle: NSLocalizedString("Match attendees with your Contacts for role and company. Stays on your Mac.", comment: "Contacts enrichment subtitle")
+                    ) {
+                        switchToggle(contactsContextBinding, label: NSLocalizedString("Show who you're meeting", comment: "Contacts enrichment toggle"))
+                    }
+                    if let contactsStatusMessage = calendarManager.contactsStatusMessage {
+                        rowFootnote(contactsStatusMessage, isError: true)
+                    }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Context folder", comment: "Context folder setting"),
+                        subtitle: calendarManager.contextFolderName.map {
+                            String(format: NSLocalizedString("Reading %@ in “%@”.", comment: "Context folder chosen; file name and folder name"), MeetingContextFile.fileName, $0)
+                        } ?? NSLocalizedString("Notes another app prepares for your meetings, such as a personal knowledge system.", comment: "Context folder subtitle")
+                    ) {
+                        HStack(spacing: PeekSpacing.sm) {
+                            if calendarManager.contextFolderName != nil {
+                                Button(NSLocalizedString("Remove", comment: "Remove context folder")) {
+                                    calendarManager.removeContextFolder()
+                                }
+                                .buttonStyle(SecondaryFillButtonStyle())
+                            }
+                            Button(NSLocalizedString("Choose…", comment: "Choose context folder")) {
+                                chooseContextFolder()
+                            }
+                            .buttonStyle(SecondaryFillButtonStyle())
+                        }
+                    }
+                    if let contextFolderStatusMessage = calendarManager.contextFolderStatusMessage {
+                        rowFootnote(contextFolderStatusMessage, isError: false)
+                    }
+                }
+                .onAppear { calendarManager.refreshContextFolderState() }
             }
             .padding(PeekSpacing.xl)
+        }
+    }
+
+    private var contactsContextBinding: Binding<Bool> {
+        Binding(
+            get: { calendarManager.meetingContextUsesContacts },
+            set: { calendarManager.setContactsContext(enabled: $0) }
+        )
+    }
+
+    private func chooseContextFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = NSLocalizedString("Use Folder", comment: "Context folder open panel button")
+        panel.message = String(
+            format: NSLocalizedString("Choose the folder where %@ is written. Peek only reads it.", comment: "Context folder open panel message"),
+            MeetingContextFile.fileName
+        )
+        NSApp.activate(ignoringOtherApps: true)
+        if panel.runModal() == .OK, let url = panel.url {
+            calendarManager.setContextFolder(url)
         }
     }
 

@@ -1,0 +1,63 @@
+# ADR 0004: Meeting-context file contract
+
+- Status: Proposed (PEEK-213)
+- Date: 2026-11-23
+
+## Context
+
+Peek's meeting-context card ("You're about to meet Marco, CEO at Northwind")
+needs context that only another local system has, such as Northwind Notes's notes
+about people and projects. PEEK-111 already exports Peek's agenda to such a
+system. The reverse direction must work in the sandboxed App Store build, keep
+Peek free of Northwind Notes knowledge, and stay read-only.
+
+## Decision
+
+The user chooses a folder in Preferences. Peek stores an app-scoped,
+read-only security bookmark and reads one file in it:
+`peek-context.json`. Peek never writes, moves or deletes anything there.
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-23T08:00:00+01:00",
+  "events": [
+    {
+      "id": "<the PEEK-111 export id>",
+      "startAt": "2026-11-24T10:00:00+01:00",
+      "headline": "Renewal call with Northwind",
+      "summary": "Short paragraph shown under Context.",
+      "bullets": ["Up to six points to prepare"],
+      "people": [
+        {"email": "marco@northwind.example", "name": "Ada Lovelace",
+         "role": "CEO", "company": "Northwind", "note": "Prefers short calls"}
+      ],
+      "links": [{"title": "Account notes", "url": "https://example.com/notes"}]
+    }
+  ]
+}
+```
+
+* `schemaVersion` is required and must be `1`; any other value disables the
+  file and Preferences says why. `events[].id` is required; every other field
+  is optional. Unknown fields are ignored, so writers may add fields.
+* `id` is the opaque `id` of the PEEK-111 export JSON v1 for the same event.
+  Recurring events share an `id`: an entry with `startAt` (ISO 8601 with
+  offset) matches only the occurrence that starts within a minute of it and
+  wins over an entry without `startAt`, which matches every occurrence.
+* `headline` replaces Peek's own headline. People are matched by email;
+  their `name`, `role` and `company` win over Contacts, which win over the
+  email domain.
+* Limits: 1 MiB per file, 1000 events, 6 bullets, 25 people, 6 links; long
+  strings are clipped. Links must be `https`.
+* Peek checks the file's modification date at most every 30 seconds.
+
+## Consequences
+
+* The writer owns atomic replacement (write to a temporary file in the same
+  folder, then rename) and what the file contains. Like the export, the file
+  holds personal data and must not be committed or logged.
+* Removing or retyping a v1 field needs `schemaVersion: 2` and a migration
+  planned with the writer. The PEEK-111 export contract is unchanged.
+* A phase 3 AI brief from Northwind Notes can travel in `summary` and `bullets`
+  without Peek calling any model.

@@ -42,6 +42,15 @@ Plan: "Peek: piano di sviluppo verso l'App Store" (phase 0 mockups approved 2026
 - **PEEK-203 — In review:** Start alert choice (off, heads-up card, full screen over all Spaces and full-screen apps), with full screen limited by default to events with a join link or attendees. Focus status is not read yet.
 - **PEEK-204 — In review:** Italian, German, French and Spanish localization with a CI table check.
 
+## Now — Peek 2.0 phase 2: meeting context
+
+Workstream: `docs/workstreams/phase-2-meeting-context.md`. Ships in 1.8.0, stacked on phase 1.
+
+- **PEEK-211 — In review:** Attendees matched with Contacts (opt-in) for the "You're about to meet" headline and attendee roles; email-domain fallback.
+- **PEEK-212 — In review:** Invitation boilerplate removed from notes.
+- **PEEK-213 — In review:** Read-only meeting-context file in a user-chosen folder (ADR 0004, proposed); the Northwind Notes writer is not built yet.
+- **PEEK-214 — Deferred:** Google Calendar direct access, after 2.0.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.

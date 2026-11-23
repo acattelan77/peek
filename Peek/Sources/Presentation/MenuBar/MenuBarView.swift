@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import EventKit
 import Foundation
 
@@ -505,6 +506,21 @@ struct EventRow: View {
                 metaRow(accented: true)
                 detailRow
 
+                if let headline = heroContext.headline {
+                    HStack(alignment: .top, spacing: PeekSpacing.sm) {
+                        Image(systemName: "person.2")
+                            .font(PeekIcon.detail)
+                            .foregroundColor(tone.text)
+                            .frame(width: PeekMetrics.metaIconWidth)
+                            .accessibilityHidden(true)
+                        Text(headline)
+                            .font(PeekFont.bodyMetaMedium)
+                            .foregroundColor(PeekColor.bodyText)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
                 if let meetingURL {
                     joinButton(url: meetingURL)
                 }
@@ -629,12 +645,18 @@ struct EventRow: View {
 
     // MARK: Expanded detail
 
+    /// Context for the hero row's headline; built only for the hero row.
+    private var heroContext: MeetingContext {
+        isHero && !event.isAllDay ? MeetingContextProvider.context(for: event) : .empty
+    }
+
     private var expandedDetail: some View {
         let detail = EventDetailBuilder.make(from: event)
+        let context = MeetingContextProvider.context(for: event)
         return VStack(alignment: .leading, spacing: PeekSpacing.sm) {
             RowDivider()
 
-            if detail.isEmpty {
+            if detail.isEmpty && context.isEmpty {
                 Text(NSLocalizedString("No additional details", comment: "Expanded event row with no notes, attendees, or attachments"))
                     .font(PeekFont.caption)
                     .foregroundColor(PeekColor.tertiaryText)
@@ -644,7 +666,13 @@ struct EventRow: View {
                     joinButton(url: meetingURL)
                 }
 
-                if let notes = detail.notes {
+                if context.hasExternalContext {
+                    detailSection(NSLocalizedString("Context", comment: "Expanded event section: context from the context folder")) {
+                        externalContextRows(context)
+                    }
+                }
+
+                if let notes = context.agenda ?? detail.notes {
                     detailSection(NSLocalizedString("Notes", comment: "Expanded event section: notes")) {
                         Text(notes)
                             .font(PeekFont.bodyMeta)
@@ -654,7 +682,11 @@ struct EventRow: View {
                     }
                 }
 
-                if !detail.attendees.isEmpty {
+                if !context.people.isEmpty {
+                    detailSection(NSLocalizedString("Attendees", comment: "Expanded event section: attendees")) {
+                        personRows(context.people)
+                    }
+                } else if !detail.attendees.isEmpty {
                     detailSection(NSLocalizedString("Attendees", comment: "Expanded event section: attendees")) {
                         attendeeRows(detail: detail)
                     }
@@ -672,6 +704,94 @@ struct EventRow: View {
                 .foregroundColor(PeekColor.tertiaryText)
                 .accessibilityAddTraits(.isHeader)
             content()
+        }
+    }
+
+    private func externalContextRows(_ context: MeetingContext) -> some View {
+        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+            if let summary = context.summary {
+                Text(summary)
+                    .font(PeekFont.bodyMeta)
+                    .foregroundColor(PeekColor.bodyText)
+                    .lineLimit(5)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            ForEach(Array(context.bullets.enumerated()), id: \.offset) { _, bullet in
+                HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+                    Text(verbatim: "•")
+                        .font(PeekFont.bodyMeta)
+                        .foregroundColor(PeekColor.tertiaryText)
+                        .accessibilityHidden(true)
+                    Text(bullet)
+                        .font(PeekFont.bodyMeta)
+                        .foregroundColor(PeekColor.bodyText)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            ForEach(Array(context.links.enumerated()), id: \.offset) { _, link in
+                Button {
+                    NSWorkspace.shared.open(link.url)
+                } label: {
+                    HStack(spacing: PeekSpacing.xs) {
+                        Image(systemName: "link")
+                            .font(PeekIcon.detail)
+                            .accessibilityHidden(true)
+                        Text(link.title)
+                            .font(PeekFont.caption)
+                            .lineLimit(1)
+                    }
+                    .foregroundColor(PeekColor.accentText)
+                }
+                .buttonStyle(.plain)
+                .help(link.url.absoluteString)
+            }
+        }
+    }
+
+    private func personRows(_ people: [MeetingPerson]) -> some View {
+        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+            ForEach(Array(people.prefix(EventDetail.maxVisibleAttendees).enumerated()), id: \.offset) { _, person in
+                HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+                    Image(systemName: attendeeResponseIcon(person.response))
+                        .font(PeekIcon.detail)
+                        .foregroundColor(attendeeResponseColor(person.response))
+                        .frame(width: PeekMetrics.metaIconWidth)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: PeekSpacing.iconGap) {
+                            Text(person.name)
+                                .font(PeekFont.bodyMeta)
+                                .foregroundColor(PeekColor.bodyText)
+                                .lineLimit(1)
+                            if person.isOrganizer {
+                                Text(NSLocalizedString("Organizer", comment: "Marks the event organizer in the attendee list"))
+                                    .font(PeekFont.caption)
+                                    .foregroundColor(PeekColor.tertiaryText)
+                            }
+                        }
+                        if let descriptor = person.descriptor {
+                            Text(descriptor)
+                                .font(PeekFont.caption)
+                                .foregroundColor(PeekColor.secondaryText)
+                                .lineLimit(1)
+                        }
+                        if let note = person.note {
+                            Text(note)
+                                .font(PeekFont.caption)
+                                .foregroundColor(PeekColor.tertiaryText)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .accessibilityElement(children: .combine)
+            }
+            if people.count > EventDetail.maxVisibleAttendees {
+                Text(String(format: NSLocalizedString("+%d more", comment: "Count of attendees not shown in the expanded event row"), people.count - EventDetail.maxVisibleAttendees))
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.tertiaryText)
+            }
         }
     }
 

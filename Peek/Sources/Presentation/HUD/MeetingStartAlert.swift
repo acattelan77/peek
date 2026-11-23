@@ -7,6 +7,8 @@ struct MeetingStartAlert: View {
     let title: String
     let startTime: String
     let detail: String
+    /// "You're about to meet Marco, CEO at Northwind" when known.
+    var contextLine: String? = nil
     /// Provider label such as "Zoom"; when non-nil the Join button is shown.
     let joinProviderLabel: String?
     var appearanceMode: AppearanceMode = .auto
@@ -62,6 +64,14 @@ struct MeetingStartAlert: View {
                     .font(PeekFont.body)
                     .foregroundColor(PeekColor.bodyText)
                     .lineLimit(2)
+
+                if let contextLine {
+                    Text(contextLine)
+                        .font(PeekFont.bodyEmphasis)
+                        .foregroundColor(PeekColor.ink)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             HStack(spacing: PeekSpacing.sm) {

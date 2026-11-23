@@ -37,10 +37,12 @@
 		1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006E0000000000000001 /* EventCandidate+EventKit.swift */; };
 		1A0000720000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
 		1A0000730000000000000001 /* EventPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006F0000000000000001 /* EventPipelineTests.swift */; };
+		6A0000220000000000000002 /* MeetingContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000220000000000000001 /* MeetingContextTests.swift */; };
 		6A0000080000000000000002 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000080000000000000001 /* LocalizationTests.swift */; };
 		6A0000050000000000000002 /* StartAlertPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000050000000000000001 /* StartAlertPolicyTests.swift */; };
 		6A0000030000000000000002 /* MonthGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000030000000000000001 /* MonthGridTests.swift */; };
 		1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
+		6A0000200000000000000002 /* MeetingContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000200000000000000001 /* MeetingContextProvider.swift */; };
 		1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356A21502F22CFCE0059351D /* NotificationManager.swift */; };
 		2B0000010000000000000001 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000110000000000000001 /* AppPreferences.swift */; };
@@ -73,6 +75,11 @@
 		111000010000000000000001 /* CalendarExportCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000020000000000000001 /* CalendarExportCommand.swift */; };
 		111000030000000000000001 /* CalendarExportPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000040000000000000001 /* CalendarExportPayload.swift */; };
 		111000050000000000000001 /* CalendarExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000060000000000000001 /* CalendarExportTests.swift */; };
+		6A0000100000000000000002 /* InvitationTextCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000100000000000000001 /* InvitationTextCleaner.swift */; };
+		6A0000110000000000000002 /* MeetingContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000110000000000000001 /* MeetingContext.swift */; };
+		6A0000120000000000000002 /* MeetingContextFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000120000000000000001 /* MeetingContextFile.swift */; };
+		6A0000130000000000000002 /* SystemContactsDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000130000000000000001 /* SystemContactsDirectory.swift */; };
+		6A0000140000000000000002 /* ContextFolderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000140000000000000001 /* ContextFolderStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,10 +120,12 @@
 		6A0000010000000000000001 /* MonthGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthGrid.swift; sourceTree = "<group>"; };
 		1A00006E0000000000000001 /* EventCandidate+EventKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventCandidate+EventKit.swift"; sourceTree = "<group>"; };
 		1A00006F0000000000000001 /* EventPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipelineTests.swift; sourceTree = "<group>"; };
+		6A0000220000000000000001 /* MeetingContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingContextTests.swift; sourceTree = "<group>"; };
 		6A0000080000000000000001 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
 		6A0000050000000000000001 /* StartAlertPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartAlertPolicyTests.swift; sourceTree = "<group>"; };
 		6A0000030000000000000001 /* MonthGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthGridTests.swift; sourceTree = "<group>"; };
 		1A0000760000000000000001 /* AppBehaviorSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBehaviorSupport.swift; sourceTree = "<group>"; };
+		6A0000200000000000000001 /* MeetingContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingContextProvider.swift; sourceTree = "<group>"; };
 		1A0000290000000000000001 /* Peek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peek.entitlements; sourceTree = "<group>"; };
 		1A0000310000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1A0000330000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -157,6 +166,11 @@
 		111000040000000000000001 /* CalendarExportPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportPayload.swift; sourceTree = "<group>"; };
 		111000060000000000000001 /* CalendarExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportTests.swift; sourceTree = "<group>"; };
 		2C0000130000000000000001 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
+		6A0000100000000000000001 /* InvitationTextCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvitationTextCleaner.swift; sourceTree = "<group>"; };
+		6A0000110000000000000001 /* MeetingContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingContext.swift; sourceTree = "<group>"; };
+		6A0000120000000000000001 /* MeetingContextFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingContextFile.swift; sourceTree = "<group>"; };
+		6A0000130000000000000001 /* SystemContactsDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemContactsDirectory.swift; sourceTree = "<group>"; };
+		6A0000140000000000000001 /* ContextFolderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextFolderStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -177,6 +191,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6A00000A0000000000000003 /* Context */ = {
+			isa = PBXGroup;
+			children = (
+				6A0000130000000000000001 /* SystemContactsDirectory.swift */,
+				6A0000140000000000000001 /* ContextFolderStore.swift */,
+			);
+			path = Context;
+			sourceTree = "<group>";
+		};
+		6A0000090000000000000003 /* Context */ = {
+			isa = PBXGroup;
+			children = (
+				6A0000100000000000000001 /* InvitationTextCleaner.swift */,
+				6A0000110000000000000001 /* MeetingContext.swift */,
+				6A0000120000000000000001 /* MeetingContextFile.swift */,
+			);
+			path = Context;
+			sourceTree = "<group>";
+		};
 		1A0000110000000000000001 = {
 			isa = PBXGroup;
 			children = (
@@ -232,6 +265,7 @@
 				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
 				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
+				6A0000220000000000000001 /* MeetingContextTests.swift */,
 				6A0000080000000000000001 /* LocalizationTests.swift */,
 				6A0000050000000000000001 /* StartAlertPolicyTests.swift */,
 				6A0000030000000000000001 /* MonthGridTests.swift */,
@@ -272,6 +306,7 @@
 				111000070000000000000001 /* CalendarExport */,
 				2B0000140000000000000001 /* AppEnvironment.swift */,
 				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
+				6A0000200000000000000001 /* MeetingContextProvider.swift */,
 				2C0000110000000000000001 /* AppVersion.swift */,
 				2B0000170000000000000001 /* StatusBarSpacePolicy.swift */,
 				2B0000440000000000000001 /* StatusBarSpaceMetrics.swift */,
@@ -287,6 +322,7 @@
 				2B0000250000000000000001 /* Models */,
 				2B0000260000000000000001 /* Events */,
 				2B0000270000000000000001 /* Meetings */,
+				6A0000090000000000000003 /* Context */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -297,6 +333,7 @@
 				2B0000280000000000000001 /* Calendar */,
 				2B0000290000000000000001 /* Notifications */,
 				2B0000300000000000000001 /* Preferences */,
+				6A00000A0000000000000003 /* Context */,
 			);
 			path = Infrastructure;
 			sourceTree = "<group>";
@@ -639,6 +676,12 @@
 				111000010000000000000001 /* CalendarExportCommand.swift in Sources */,
 				111000030000000000000001 /* CalendarExportPayload.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
+				6A0000200000000000000002 /* MeetingContextProvider.swift in Sources */,
+				6A0000100000000000000002 /* InvitationTextCleaner.swift in Sources */,
+				6A0000110000000000000002 /* MeetingContext.swift in Sources */,
+				6A0000120000000000000002 /* MeetingContextFile.swift in Sources */,
+				6A0000130000000000000002 /* SystemContactsDirectory.swift in Sources */,
+				6A0000140000000000000002 /* ContextFolderStore.swift in Sources */,
 				6A0000040000000000000002 /* MeetingStartAlert.swift in Sources */,
 				6A0000020000000000000002 /* MonthCalendarView.swift in Sources */,
 				6A0000010000000000000002 /* MonthGrid.swift in Sources */,
@@ -667,6 +710,7 @@
 				2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */,
 				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
 				111000050000000000000001 /* CalendarExportTests.swift in Sources */,
+				6A0000220000000000000002 /* MeetingContextTests.swift in Sources */,
 				6A0000080000000000000002 /* LocalizationTests.swift in Sources */,
 				6A0000050000000000000002 /* StartAlertPolicyTests.swift in Sources */,
 				6A0000030000000000000002 /* MonthGridTests.swift in Sources */,
