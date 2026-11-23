@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import EventKit
 import ServiceManagement
 
@@ -209,5 +210,72 @@ enum LaunchAtLoginCoordinator {
             )
 
         return LaunchAtLoginUpdateResult(effectiveValue: effectiveValue, errorMessage: errorMessage)
+    }
+}
+
+/// Opens a meeting link, preferring the provider's Mac app (Zoom, Teams) when the
+/// user allows it and an app is registered for the scheme; otherwise the browser.
+enum MeetingLinkOpener {
+    static let preferNativeAppKey = "openMeetingsInNativeApp"
+
+    static func prefersNativeApp(_ defaults: any PreferencesStoring = UserDefaults.standard) -> Bool {
+        defaults.object(forKey: preferNativeAppKey) as? Bool ?? true
+    }
+
+    /// The URL to open for `url`, or `nil` when the link is not a trusted
+    /// meeting link. `canOpen` reports whether an installed app handles a URL.
+    static func destination(for url: URL, preferNativeApp: Bool, canOpen: (URL) -> Bool) -> URL? {
+        guard MeetingURLDetector.isURLSafe(url) else { return nil }
+        if preferNativeApp, let native = MeetingProvider.nativeAppURL(for: url), canOpen(native) {
+            return native
+        }
+        return url
+    }
+
+    static func open(_ url: URL) {
+        let target = destination(
+            for: url,
+            preferNativeApp: prefersNativeApp(),
+            canOpen: { NSWorkspace.shared.urlForApplication(toOpen: $0) != nil }
+        )
+        if let target {
+            NSWorkspace.shared.open(target)
+        }
+    }
+}
+
+/// How the app presents a meeting at its start time (PEEK-203).
+enum StartAlertPresentation: Equatable {
+    case none
+    case hud
+    case fullScreen
+}
+
+enum StartAlertPolicy {
+    /// Full screen interrupts only when the user allows it for this kind of event:
+    /// with "only meetings" on, an event without a join link or attendees (a focus
+    /// block, a reminder) gets the heads-up card instead.
+    static func presentation(
+        style: StartAlertStyle,
+        interruptOnlyForMeetings: Bool,
+        hasJoinLink: Bool,
+        hasAttendees: Bool
+    ) -> StartAlertPresentation {
+        switch style {
+        case .off:
+            return .none
+        case .hud:
+            return .hud
+        case .fullScreen:
+            if interruptOnlyForMeetings && !hasJoinLink && !hasAttendees {
+                return .hud
+            }
+            return .fullScreen
+        }
+    }
+
+    /// Snooze delay per presentation: a full-screen alert comes back sooner.
+    static func snoozeDelay(for presentation: StartAlertPresentation) -> TimeInterval {
+        presentation == .fullScreen ? 60 : 300
     }
 }

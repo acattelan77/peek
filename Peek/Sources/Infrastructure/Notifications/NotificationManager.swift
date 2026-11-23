@@ -247,9 +247,8 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         switch response.actionIdentifier {
         case "JOIN_MEETING":
             if let urlString = userInfo["meetingURL"] as? String,
-               let url = URL(string: urlString),
-               MeetingURLDetector.isURLSafe(url) {
-                NSWorkspace.shared.open(url)
+               let url = URL(string: urlString) {
+                MeetingLinkOpener.open(url)
             }
 
         case "SNOOZE":

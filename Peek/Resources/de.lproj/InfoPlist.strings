@@ -1,0 +1,3 @@
+"NSCalendarsUsageDescription" = "Peek benötigt Zugriff auf deinen Kalender, um anstehende Termine in der Menüleiste anzuzeigen.";
+"NSCalendarsFullAccessUsageDescription" = "Peek benötigt vollen Kalenderzugriff, um anstehende Termine in der Menüleiste anzuzeigen.";
+"NSUserNotificationsUsageDescription" = "Peek möchte dir Mitteilungen senden, um dich an anstehende Termine zu erinnern.";

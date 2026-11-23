@@ -99,4 +99,23 @@ struct EventPipeline {
             nextEvent: nextEvent?.event
         )
     }
+
+    /// Applies the user's visibility filters (all-day, declined, keywords) without
+    /// any time window, sorted by start. Used for a chosen day in the month view.
+    static func visibleEvents<T: EventCandidate>(_ events: [T], settings: EventFilterSettings) -> [T] {
+        events.filter { event in
+            guard event.candidateStartDate != nil, event.candidateEndDate != nil else { return false }
+            if settings.hideAllDayEvents && event.isAllDay { return false }
+            if settings.hideDeclinedEvents && event.currentUserDeclined { return false }
+            if !settings.keywords.isEmpty {
+                let titleLower = (event.candidateTitle ?? "").lowercased()
+                let notesLower = (event.candidateNotes ?? "").lowercased()
+                if settings.keywords.contains(where: { titleLower.contains($0) || notesLower.contains($0) }) {
+                    return false
+                }
+            }
+            return true
+        }
+        .sorted { ($0.candidateStartDate ?? .distantPast) < ($1.candidateStartDate ?? .distantPast) }
+    }
 }

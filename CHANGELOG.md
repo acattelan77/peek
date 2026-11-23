@@ -4,6 +4,33 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.7.0 - 2026-11-23
+
+### Added
+
+- PEEK-202: meeting-link detection covers Zoom personal rooms, webinars, the web client
+  and Zoom for Government, Teams `/meet/` and teams.live.com links, Google Meet lookup
+  links, GoTo, Slack huddles, Amazon Chime, Jitsi, FaceTime and RingCentral, and fixes
+  Zoom links without a company subdomain. The event's URL field is checked before the
+  location and notes, and the earliest link in a text wins.
+- PEEK-202: Join opens Zoom and Teams meetings in their Mac apps when installed, with a
+  Preferences switch to always use the browser.
+- PEEK-201: a compact, read-only month calendar above the event list. Days with events
+  carry a dot; choosing another day shows its agenda, and Today returns to the upcoming
+  list. It follows the user's first weekday and can be hidden in Preferences.
+- PEEK-203: a choice of start alert in Preferences: off, the heads-up card, or a
+  full-screen alert that appears over every Space and full-screen app. Return joins,
+  Esc dismisses, and "In 1 minute" brings it back. By default the full-screen alert is
+  only used for events with a join link or attendees; focus blocks get the card.
+- PEEK-204: Peek is available in Italian, German, French and Spanish, including the
+  calendar and notification permission prompts. CI checks that every table covers
+  every string with matching format specifiers.
+
+### Compatibility
+
+- The PEEK-111 export JSON v1 keeps its original `join` link classification; new
+  providers only affect in-app detection.
+
 ## 1.6.0 - 2026-11-23
 
 ### Changed

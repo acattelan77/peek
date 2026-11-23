@@ -409,6 +409,13 @@ struct GeneralTab: View {
                     }
                     RowDivider()
                     SettingRow(
+                        NSLocalizedString("Show month calendar", comment: "Month view toggle"),
+                        subtitle: NSLocalizedString("A compact month above your events. Choose a day to see its agenda.", comment: "Month view toggle subtitle")
+                    ) {
+                        switchToggle($calendarManager.showMonthCalendar, label: NSLocalizedString("Show month calendar", comment: "Month view toggle"))
+                    }
+                    RowDivider()
+                    SettingRow(
                         NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
                         subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
                     ) {
@@ -462,6 +469,34 @@ struct GeneralTab: View {
                             .frame(width: PeekMetrics.pickerMedium)
                             .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
                         }
+                    }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("When a meeting starts", comment: "Start alert style setting"),
+                        subtitle: NSLocalizedString("Full screen interrupts whatever you are doing.", comment: "Start alert style subtitle")
+                    ) {
+                        Picker("", selection: $calendarManager.startAlertStyle) {
+                            ForEach(StartAlertStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        }
+                        .labelsHidden()
+                        .frame(width: PeekMetrics.pickerMedium)
+                        .accessibilityLabel(NSLocalizedString("When a meeting starts", comment: "Start alert style setting"))
+                    }
+                    if calendarManager.startAlertStyle == .fullScreen {
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"),
+                            subtitle: NSLocalizedString("Use the heads-up card for events without a join link or attendees.", comment: "Interrupt only for meetings subtitle")
+                        ) {
+                            switchToggle($calendarManager.interruptOnlyForMeetings, label: NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"))
+                        }
+                    }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"),
+                        subtitle: NSLocalizedString("Use Zoom or Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
+                    ) {
+                        switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"))
                     }
                 }
             }
