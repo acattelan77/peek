@@ -45,8 +45,8 @@ final class StartingNowHUDController {
             joinProviderLabel: providerLabel,
             appearanceMode: appearanceMode,
             onJoin: { [weak self] in
-                if let url = meetingURL, MeetingURLDetector.isURLSafe(url) {
-                    NSWorkspace.shared.open(url)
+                if let url = meetingURL {
+                    MeetingLinkOpener.open(url)
                 }
                 self?.close()
             },

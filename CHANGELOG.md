@@ -4,6 +4,23 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.7.0 - 2026-11-23
+
+### Added
+
+- PEEK-202: meeting-link detection covers Zoom personal rooms, webinars, the web client
+  and Zoom for Government, Teams `/meet/` and teams.live.com links, Google Meet lookup
+  links, GoTo, Slack huddles, Amazon Chime, Jitsi, FaceTime and RingCentral, and fixes
+  Zoom links without a company subdomain. The event's URL field is checked before the
+  location and notes, and the earliest link in a text wins.
+- PEEK-202: Join opens Zoom and Teams meetings in their Mac apps when installed, with a
+  Preferences switch to always use the browser.
+
+### Compatibility
+
+- The PEEK-111 export JSON v1 keeps its original `join` link classification; new
+  providers only affect in-app detection.
+
 ## 1.6.0 - 2026-11-23
 
 ### Changed

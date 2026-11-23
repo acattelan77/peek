@@ -463,6 +463,13 @@ struct GeneralTab: View {
                             .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
                         }
                     }
+                    RowDivider()
+                    SettingRow(
+                        NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"),
+                        subtitle: NSLocalizedString("Use Zoom or Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
+                    ) {
+                        switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"))
+                    }
                 }
             }
             .padding(PeekSpacing.xl)

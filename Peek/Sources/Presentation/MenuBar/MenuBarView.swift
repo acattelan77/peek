@@ -597,9 +597,7 @@ struct EventRow: View {
 
     private func joinButton(url: URL) -> some View {
         Button {
-            if MeetingURLDetector.isURLSafe(url) {
-                NSWorkspace.shared.open(url)
-            }
+            MeetingLinkOpener.open(url)
         } label: {
             HStack(spacing: PeekSpacing.tightGap) {
                 Image(systemName: "video.fill")

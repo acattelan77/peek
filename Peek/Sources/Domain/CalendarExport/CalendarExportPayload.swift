@@ -224,7 +224,7 @@ enum CalendarExportEventMapper {
         guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return }
         let value = url.absoluteString
         guard seen.insert(value).inserted else { return }
-        links.append(.init(kind: MeetingURLDetector.isURLSafe(url) ? .join : fallbackKind, url: value))
+        links.append(.init(kind: MeetingURLDetector.isExportV1JoinURL(url) ? .join : fallbackKind, url: value))
     }
 
     private static func normalized(_ value: String?) -> String? {

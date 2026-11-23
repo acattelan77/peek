@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import EventKit
 import ServiceManagement
 
@@ -209,5 +210,36 @@ enum LaunchAtLoginCoordinator {
             )
 
         return LaunchAtLoginUpdateResult(effectiveValue: effectiveValue, errorMessage: errorMessage)
+    }
+}
+
+/// Opens a meeting link, preferring the provider's Mac app (Zoom, Teams) when the
+/// user allows it and an app is registered for the scheme; otherwise the browser.
+enum MeetingLinkOpener {
+    static let preferNativeAppKey = "openMeetingsInNativeApp"
+
+    static func prefersNativeApp(_ defaults: any PreferencesStoring = UserDefaults.standard) -> Bool {
+        defaults.object(forKey: preferNativeAppKey) as? Bool ?? true
+    }
+
+    /// The URL to open for `url`, or `nil` when the link is not a trusted
+    /// meeting link. `canOpen` reports whether an installed app handles a URL.
+    static func destination(for url: URL, preferNativeApp: Bool, canOpen: (URL) -> Bool) -> URL? {
+        guard MeetingURLDetector.isURLSafe(url) else { return nil }
+        if preferNativeApp, let native = MeetingProvider.nativeAppURL(for: url), canOpen(native) {
+            return native
+        }
+        return url
+    }
+
+    static func open(_ url: URL) {
+        let target = destination(
+            for: url,
+            preferNativeApp: prefersNativeApp(),
+            canOpen: { NSWorkspace.shared.urlForApplication(toOpen: $0) != nil }
+        )
+        if let target {
+            NSWorkspace.shared.open(target)
+        }
     }
 }

@@ -26,6 +26,7 @@ class CalendarManager: ObservableObject {
     @Published var notificationsEnabled: Bool = false
     @Published var notificationTiming: NotificationTiming = .fifteenMinutes
     @Published var urgencyColorsEnabled: Bool = true
+    @Published var openMeetingsInNativeApp: Bool = true
 
     /// Whether the first-run onboarding flow has been completed. Persisted so it is
     /// only shown once.
@@ -56,6 +57,7 @@ class CalendarManager: ObservableObject {
     private let notificationTimingKey = "notificationTiming"
     private let urgencyColorsEnabledKey = "urgencyColorsEnabled"
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+    private let openMeetingsInNativeAppKey = MeetingLinkOpener.preferNativeAppKey
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -123,6 +125,7 @@ class CalendarManager: ObservableObject {
         }
 
         urgencyColorsEnabled = defaults.object(forKey: urgencyColorsEnabledKey) as? Bool ?? true
+        openMeetingsInNativeApp = MeetingLinkOpener.prefersNativeApp(defaults)
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -147,6 +150,7 @@ class CalendarManager: ObservableObject {
         defaults.set(notificationsEnabled, forKey: notificationsEnabledKey)
         defaults.set(notificationTiming.rawValue, forKey: notificationTimingKey)
         defaults.set(urgencyColorsEnabled, forKey: urgencyColorsEnabledKey)
+        defaults.set(openMeetingsInNativeApp, forKey: openMeetingsInNativeAppKey)
     }
 
     func saveEnabledCalendars() {
