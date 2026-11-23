@@ -4,6 +4,24 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.10.0 - 2026-11-23
+
+### Added
+
+- PEEK-231: a global "Join next meeting" shortcut, ⌃⌥J by default, with ⌘⇧J, ⌘⌥J or
+  off in Preferences. It opens the meeting starting within two minutes, then one that
+  started in the last fifteen, then the next within thirty; with none, the popover opens.
+- PEEK-232: "Count down to meetings only" skips events without a join link in the menu
+  bar, and "Name in the menu bar" can show the first person you're meeting instead of
+  the title, which stays in the tooltip. The start alert still follows the next event.
+- PEEK-233: world clocks for up to six cities under the popover header, and the
+  meeting's time in those cities when a row is expanded, with +1 or −1 on another day.
+
+### Fixed
+
+- Each global shortcut now reacts only to its own key combination.
+- The brief's "Never brief" keywords editor has its card padding.
+
 ## 1.9.0 - 2026-11-23
 
 ### Added

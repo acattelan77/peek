@@ -58,6 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var calendarManager: CalendarManager!
     private var cancellables = Set<AnyCancellable>()
     private var hotkeyRegistrar: CarbonHotkeyRegistrar!
+    private var joinHotkeyRegistrar: CarbonHotkeyRegistrar!
     private var updateTimer: Timer?
     private var notificationManager: (any NotificationScheduling)!
     private var pulseTimer: Timer?
@@ -85,6 +86,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // re-applied live and its Carbon event handler is installed exactly once.
         hotkeyRegistrar = CarbonHotkeyRegistrar { [weak self] in
             self?.handleHotkeyPressed()
+        }
+        joinHotkeyRegistrar = CarbonHotkeyRegistrar(id: 2) { [weak self] in
+            self?.joinNextMeeting()
         }
 
         // Create status item in menu bar
@@ -248,6 +252,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Register the initial global hotkey.
         applyGlobalHotkey(calendarManager.globalHotkey)
 
+        calendarManager.$joinHotkey
+            .sink { [weak self] hotkey in
+                guard let self else { return }
+                let result = GlobalHotkeyCoordinator.apply(hotkey, using: self.joinHotkeyRegistrar)
+                self.calendarManager.joinHotkeyStatusMessage = result.errorMessage
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$statusBarOnlyMeetings
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateMenuBar()
+            }
+            .store(in: &cancellables)
+
+        calendarManager.$statusBarLabelStyle
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateMenuBar()
+            }
+            .store(in: &cancellables)
+
         // Observe app activation to refresh permissions and events
         NotificationCenter.default.addObserver(
             self,
@@ -351,6 +377,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         hotkeyRegistrar?.unregister()
+        joinHotkeyRegistrar?.unregister()
         updateTimer?.invalidate()
         updateTimer = nil
         pulseTimer?.invalidate()
@@ -444,6 +471,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleHotkeyPressed() {
         NSApp.activate(ignoringOtherApps: true)
         togglePopover()
+    }
+
+    /// The join shortcut (PEEK-231): opens the meeting `JoinTargetPolicy`
+    /// picks, or shows the popover when no meeting with a link is near.
+    private func joinNextMeeting() {
+        let events = calendarManager.activeEvents
+        let candidates = events.map {
+            JoinCandidate(start: $0.startDate, end: $0.endDate, hasJoinLink: MeetingURLDetector.extract(from: $0) != nil)
+        }
+        if let index = JoinTargetPolicy.pick(candidates, now: Date()),
+           let url = MeetingURLDetector.extract(from: events[index]) {
+            MeetingLinkOpener.open(url)
+            return
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        if !popover.isShown {
+            togglePopover()
+        }
     }
 
     @objc func togglePopover() {
@@ -563,39 +608,66 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             let eventCount = self.calendarManager.upcomingEvents.count
             let content: StatusBarContent
+            let onlyMeetings = self.calendarManager.statusBarOnlyMeetings
+            // The countdown may follow the next meeting with a link (PEEK-232);
+            // the start alert and the brief always follow the next event.
+            let displayEvent = event.flatMap { next in
+                StatusBarEventChooser.pick(
+                    next: next,
+                    upcoming: self.calendarManager.allUpcomingEvents,
+                    onlyMeetings: onlyMeetings,
+                    hasJoinLink: { MeetingURLDetector.extract(from: $0) != nil }
+                )
+            }
 
             if let event = event, eventCount > 0 {
+                MeetingBriefService.shared.prepareIfDue(for: event)
+                let nextUrgency = MeetingUrgency.from(minutesUntil: Int(event.startDate.timeIntervalSince(Date())) / 60)
+                self.hudController.maybeShow(
+                    for: event,
+                    urgency: nextUrgency,
+                    appearanceMode: self.calendarManager.appearanceMode,
+                    style: self.calendarManager.startAlertStyle,
+                    interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
+                )
+            }
+
+            if let shown = displayEvent, eventCount > 0 {
                 var displayCount = eventCount
-                if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == event.eventIdentifier }) {
+                if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == shown.eventIdentifier }) {
                     displayCount = eventCount - index
+                }
+                let label: String?
+                switch self.calendarManager.statusBarLabelStyle {
+                case .eventTitle:
+                    label = shown.title
+                case .person:
+                    label = MeetingContextProvider.context(for: shown).people.first?.shortName ?? shown.title
                 }
 
                 content = StatusBarContentBuilder.make(
-                    eventTitle: event.title,
-                    startDate: event.startDate,
-                    eventCount: displayCount,
+                    eventTitle: label,
+                    fullTitle: shown.title,
+                    startDate: shown.startDate,
+                    eventCount: onlyMeetings ? 1 : displayCount,
                     mode: self.calendarManager.statusBarMode,
                     showCount: self.calendarManager.showEventCount
                 )
 
                 self.updatePulsingState(urgency: content.urgency)
                 self.adjustTimerForUrgency(content.urgency)
-                self.hudController.maybeShow(
-                    for: event,
-                    urgency: content.urgency,
-                    appearanceMode: self.calendarManager.appearanceMode,
-                    style: self.calendarManager.startAlertStyle,
-                    interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
-                )
-                MeetingBriefService.shared.prepareIfDue(for: event)
             } else {
                 content = StatusBarContent(
-                    title: NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),
+                    title: event != nil && onlyMeetings
+                        ? NSLocalizedString("No upcoming meetings", comment: "Status bar title when only meetings are counted down and none is coming")
+                        : NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),
                     tooltip: nil,
                     urgency: .normal
                 )
                 self.stopPulsing()
-                self.adjustTimerForUrgency(.normal)
+                // Keep the next event's refresh rate so the start alert stays on time.
+                let nextUrgency = event.map { MeetingUrgency.from(minutesUntil: Int($0.startDate.timeIntervalSince(Date())) / 60) } ?? .normal
+                self.adjustTimerForUrgency(nextUrgency)
             }
 
             self.applyStatusBarContent(button: button, content: content)

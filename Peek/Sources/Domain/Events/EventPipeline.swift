@@ -32,6 +32,8 @@ struct EventSelectionResult<T> {
     let upcomingEvents: [T]
     let limitedEvents: [T]
     let nextEvent: T?
+    /// Every visible event that has not ended, including ones already running.
+    var activeEvents: [T] = []
 }
 
 struct EventPipeline {
@@ -96,7 +98,8 @@ struct EventPipeline {
         return EventSelectionResult(
             upcomingEvents: relevantEvents.map { $0.event },
             limitedEvents: limitedEvents.map { $0.event },
-            nextEvent: nextEvent?.event
+            nextEvent: nextEvent?.event,
+            activeEvents: filtered.map { $0.event }
         )
     }
 

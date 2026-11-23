@@ -388,6 +388,7 @@ struct PeekCheckboxRow<Trailing: View>: View {
 
 struct PeekKeywordChip: View {
     let title: String
+    var removeHelp: String = NSLocalizedString("Remove keyword", comment: "Keyword chip remove help")
     let onRemove: () -> Void
 
     var body: some View {
@@ -406,7 +407,7 @@ struct PeekKeywordChip: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(NSLocalizedString("Remove keyword", comment: "Keyword chip remove help"))
+            .help(removeHelp)
             .accessibilityLabel(Text(String(
                 format: NSLocalizedString("Remove %@", comment: "Accessibility: remove keyword"),
                 title

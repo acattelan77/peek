@@ -163,14 +163,35 @@ enum GlobalHotkeyCoordinator {
         _ hotkey: HotkeyOption,
         using registrar: any HotkeyRegistering
     ) -> HotkeyRegistrationResult {
-        let status = registrar.register(keyCode: hotkey.keyCode, modifiers: hotkey.modifiers)
+        apply(keyCode: hotkey.keyCode, modifiers: hotkey.modifiers, label: hotkey.rawValue, using: registrar)
+    }
+
+    /// The join shortcut (PEEK-231); `.off` unregisters it.
+    static func apply(
+        _ hotkey: JoinHotkeyOption,
+        using registrar: any HotkeyRegistering
+    ) -> HotkeyRegistrationResult {
+        guard hotkey != .off else {
+            registrar.unregister()
+            return .active
+        }
+        return apply(keyCode: hotkey.keyCode, modifiers: hotkey.modifiers, label: hotkey.rawValue, using: registrar)
+    }
+
+    static func apply(
+        keyCode: UInt32,
+        modifiers: UInt32,
+        label: String,
+        using registrar: any HotkeyRegistering
+    ) -> HotkeyRegistrationResult {
+        let status = registrar.register(keyCode: keyCode, modifiers: modifiers)
         guard status == noErr else {
             let message = String(
                 format: NSLocalizedString(
                     "Couldn't register %@. Another app may be using this shortcut. Try a different one.",
                     comment: "Error shown when a global hotkey cannot be registered"
                 ),
-                hotkey.rawValue
+                label
             )
             return HotkeyRegistrationResult(isActive: false, errorMessage: message)
         }

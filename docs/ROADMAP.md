@@ -60,11 +60,19 @@ Workstream: `docs/workstreams/phase-3-ai-brief.md`. Ships in 1.9.0, stacked on p
 - **PEEK-223 — In review:** Consent screen listing exactly the fields sent; versioned so a change asks again. Off by default; keyword exclusions.
 - **PEEK-224 — In review:** Briefs prepared 15 minutes before, cached for three days and invalidated when the event changes; a brief in the context file wins and calls no model. Fixture tests with fictional meetings.
 
+## Now — Peek 2.1 phase 4: join, countdown and time zones
+
+Workstream: `docs/workstreams/phase-4-glance-and-time-zones.md`. Ships in 1.10.0, stacked on phase 3. Added before the App Store release at the owner's request (2026-11-23); natural-language event creation stays after 2.0.
+
+- **PEEK-231 — In review:** Global "Join next meeting" shortcut (⌃⌥J by default, can be turned off). Opens the meeting about to start, the one you are late for, or the next within 30 minutes; otherwise shows the popover.
+- **PEEK-232 — In review:** Menu-bar countdown can follow only meetings with a join link and name the person you are meeting ("8m - Marco"). Declined events keep following the existing filter.
+- **PEEK-233 — In review:** World clocks under the popover header (up to six cities) and the meeting's time in those cities in the expanded row.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.
 - Conflict and overlap warnings.
-- Multiple time-zone display.
+- Multiple time-zone display: moved to PEEK-233.
 - Quick event creation with explicit confirmation and calendar selection.
 - Better Calendar deep linking when the OS exposes a stable event destination.
 - Travel-time and leave-now reminders.
