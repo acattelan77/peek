@@ -1,2 +1,3 @@
 "NSCalendarsUsageDescription" = "Peek a besoin d'accéder à votre calendrier pour afficher les événements à venir dans la barre des menus.";
+"NSCalendarsFullAccessUsageDescription" = "Peek a besoin d'un accès complet au calendrier pour afficher les événements à venir dans la barre des menus.";
 "NSUserNotificationsUsageDescription" = "Peek souhaite vous envoyer des notifications pour vous rappeler les événements à venir.";

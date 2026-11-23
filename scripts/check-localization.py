@@ -41,6 +41,28 @@ def specifiers(value):
     return [re.sub(r"\d+\$", "", s) for s in SPECIFIER.findall(value) if s != "%%"]
 
 
+def check_info_plist():
+    """Every usage description in Info.plist needs an InfoPlist.strings entry
+    in every language, or macOS shows the English prompt."""
+    import plistlib
+    with open(os.path.join(RESOURCES, "Info.plist"), "rb") as handle:
+        info = plistlib.load(handle)
+    usage_keys = {k for k in info if k.startswith("NS") and k.endswith("UsageDescription")}
+    errors = []
+    for d in sorted(os.listdir(RESOURCES)):
+        if not d.endswith(".lproj"):
+            continue
+        path = os.path.join(RESOURCES, d, "InfoPlist.strings")
+        rel = os.path.relpath(path, ROOT)
+        if not os.path.exists(path):
+            errors.append(f"{rel}: missing file")
+            continue
+        entries = dict(ENTRY.findall(open(path, encoding="utf-8").read()))
+        for key in sorted(usage_keys - entries.keys()):
+            errors.append(f"{rel}: missing \"{key}\"")
+    return errors
+
+
 def main():
     expected = source_keys()
     tables = sorted(
@@ -61,6 +83,7 @@ def main():
                 errors.append(f"{rel}: empty translation for \"{key}\"")
             elif sorted(specifiers(key)) != sorted(specifiers(value)):
                 errors.append(f"{rel}: format specifiers differ for \"{key}\"")
+    errors += check_info_plist()
     if errors:
         print("\n".join(errors))
         print(f"Localization check failed: {len(errors)} problem(s).")
