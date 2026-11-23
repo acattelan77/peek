@@ -76,6 +76,7 @@ final class StartingNowHUDController {
             startTime: DateFormatter.localizedString(from: event.startDate, dateStyle: .none, timeStyle: .short),
             detail: detailParts.joined(separator: " · "),
             contextLine: MeetingContextProvider.context(for: event).headline,
+            briefPoints: Array((MeetingBriefService.shared.brief(for: event)?.points ?? []).prefix(MeetingBrief.heroPointLimit)),
             joinProviderLabel: providerLabel,
             appearanceMode: appearanceMode,
             onJoin: { [weak self] in

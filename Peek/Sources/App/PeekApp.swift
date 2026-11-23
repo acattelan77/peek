@@ -587,6 +587,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     style: self.calendarManager.startAlertStyle,
                     interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
                 )
+                MeetingBriefService.shared.prepareIfDue(for: event)
             } else {
                 content = StatusBarContent(
                     title: NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),

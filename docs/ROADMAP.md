@@ -51,6 +51,15 @@ Workstream: `docs/workstreams/phase-2-meeting-context.md`. Ships in 1.8.0, stack
 - **PEEK-213 — In review:** Read-only meeting-context file in a user-chosen folder (ADR 0004, proposed); the Northwind Notes writer is not built yet.
 - **PEEK-214 — Deferred:** Google Calendar direct access, after 2.0.
 
+## Now — Peek 2.1 phase 3: meeting brief
+
+Workstream: `docs/workstreams/phase-3-ai-brief.md`. Ships in 1.9.0, stacked on phase 2. Decisions on data and consent in ADR 0005. App Store submission stays at the very end (owner, 2026-11-23).
+
+- **PEEK-221 — In review:** On-device brief with Apple's Foundation Models (macOS 26 with Apple Intelligence); unavailable states explained in Preferences.
+- **PEEK-222 — In review:** Optional brief by Claude with the user's own Anthropic API key, kept in the keychain (owner choice, 2026-11-23).
+- **PEEK-223 — In review:** Consent screen listing exactly the fields sent; versioned so a change asks again. Off by default; keyword exclusions.
+- **PEEK-224 — In review:** Briefs prepared 15 minutes before, cached for three days and invalidated when the event changes; a brief in the context file wins and calls no model. Fixture tests with fictional meetings.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.
