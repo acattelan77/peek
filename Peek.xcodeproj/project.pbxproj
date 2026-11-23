@@ -18,6 +18,7 @@
 		4E0000040000000000000001 /* EventDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000010000000000000001 /* EventDetail.swift */; };
 		4E0000050000000000000001 /* MeetingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000020000000000000001 /* MeetingProvider.swift */; };
 		4E0000060000000000000001 /* EventDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000030000000000000001 /* EventDetailTests.swift */; };
+		5D0000010000000000000001 /* DesignSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0000020000000000000001 /* DesignSystemTests.swift */; };
 		4E00000B0000000000000001 /* CarbonHotkeyRegistrar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000070000000000000001 /* CarbonHotkeyRegistrar.swift */; };
 		4E00000C0000000000000001 /* PopoverAnchorGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000080000000000000001 /* PopoverAnchorGeometry.swift */; };
 		4E00000D0000000000000001 /* PopoverAnchorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000090000000000000001 /* PopoverAnchorController.swift */; };
@@ -91,6 +92,7 @@
 		4E0000010000000000000001 /* EventDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetail.swift; sourceTree = "<group>"; };
 		4E0000020000000000000001 /* MeetingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingProvider.swift; sourceTree = "<group>"; };
 		4E0000030000000000000001 /* EventDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailTests.swift; sourceTree = "<group>"; };
+		5D0000020000000000000001 /* DesignSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemTests.swift; sourceTree = "<group>"; };
 		4E0000070000000000000001 /* CarbonHotkeyRegistrar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonHotkeyRegistrar.swift; sourceTree = "<group>"; };
 		4E0000080000000000000001 /* PopoverAnchorGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverAnchorGeometry.swift; sourceTree = "<group>"; };
 		4E0000090000000000000001 /* PopoverAnchorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverAnchorController.swift; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 				2C0000120000000000000001 /* AppVersionTests.swift */,
 				1A0000490000000000000001 /* MeetingURLDetectorTests.swift */,
 				4E0000030000000000000001 /* EventDetailTests.swift */,
+				5D0000020000000000000001 /* DesignSystemTests.swift */,
 				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
 				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
@@ -609,6 +612,7 @@
 				2C0000030000000000000001 /* AppVersionTests.swift in Sources */,
 				1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */,
 				4E0000060000000000000001 /* EventDetailTests.swift in Sources */,
+				5D0000010000000000000001 /* DesignSystemTests.swift in Sources */,
 				1A00004D0000000000000001 /* EventTimeFormatterTests.swift in Sources */,
 				1A00004E0000000000000001 /* MeetingUrgencyTests.swift in Sources */,
 				2B0000080000000000000001 /* StatusBarContentBuilderTests.swift in Sources */,

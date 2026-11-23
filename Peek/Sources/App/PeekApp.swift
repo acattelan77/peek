@@ -681,9 +681,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if calendarManager.urgencyColorsEnabled {
             switch urgency {
             case .critical:
-                color = PeekNSColor.menuBarRed
+                color = PeekNSColor.statusCritical
             case .urgent:
-                color = PeekNSColor.menuBarAmber
+                color = PeekNSColor.statusUrgent
             case .normal:
                 color = .labelColor // System default
             }

@@ -27,10 +27,11 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 - **PEEK-105 — Done (superseded):** Added visible success/error feedback for settings import and export. The import/export feature was later removed in 1.3.6 to simplify Preferences.
 - **PEEK-106 — Done (partial):** Validate macOS 13 behavior. The CI-hosted `macos-13` runner was removed because GitHub is retiring it and jobs hung queued indefinitely; validation on real macOS 13 hardware is still outstanding.
 - **PEEK-107 — Done:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.
-- **PEEK-108 — Done:** Complete VoiceOver labels, focus order, keyboard activation, and Dynamic Type-style scaling.
+- **PEEK-108 — Done:** Complete VoiceOver labels, focus order, and keyboard activation. Type uses fixed, centralized roles (macOS has no Dynamic Type for third-party apps; corrected 2026-11-23).
 - **PEEK-109 — Done:** Fix automatic menu-bar space policy so a crowded menu bar (including macOS having hidden Peek's item entirely) collapses Peek to its clickable icon; restore text when space returns.
 - **PEEK-110 — Done:** Event detail expansion: events in the popover are now bordered cards (the next event keeps its urgency color coding) that expand in place to show notes, attendees with response status and the organizer, and conference provider identity. Attachments are omitted because macOS EventKit does not expose `EKAttachment` (iOS-only).
 - **Design refresh — Done:** Adopt the Claude Design "calm glance" system via a shared token layer applied across the popover, Preferences, new onboarding flow, and "Starting now" HUD; re-render the app icon (handoff §6). Follow-up: visual QA on a running build. Fixed alongside: accessory-app popover activation so the popover stays open and controls render active.
+- **Design system v2 — In review:** Semantic color roles with Increased Contrast variants, WCAG AA contrast fixes, full token adoption on every surface, promoted shared components, CI token lint and contrast tests (1.6.0, `docs/workstreams/design-system-v2.md`). Awaits owner visual QA on a Mac.
 
 ## Next — calendar usefulness
 

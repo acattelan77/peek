@@ -53,26 +53,26 @@ struct PreferencesView: View {
             Divider().overlay(PeekColor.hairline)
             footer
         }
-        .frame(width: 500, height: 700)
+        .frame(width: PeekMetrics.preferencesSize.width, height: PeekMetrics.preferencesSize.height)
         .fixedSize()
         .background(PeekColor.canvas)
         .preferredColorScheme(preferredColorScheme)
     }
 
     private var tabBar: some View {
-        HStack(spacing: 22) {
-            TabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 0) { selectedTab = 0 }
-            TabButton(title: NSLocalizedString("Filters", comment: "Preferences tab title"), isSelected: selectedTab == 1) { selectedTab = 1 }
-            TabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 2) { selectedTab = 2 }
+        HStack(spacing: PeekMetrics.tabGap) {
+            PeekTabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 0) { selectedTab = 0 }
+            PeekTabButton(title: NSLocalizedString("Filters", comment: "Preferences tab title"), isSelected: selectedTab == 1) { selectedTab = 1 }
+            PeekTabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 2) { selectedTab = 2 }
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
+        .padding(.horizontal, PeekSpacing.lg)
+        .padding(.top, PeekSpacing.lg)
         .background(PeekColor.surface)
     }
 
     private var footer: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: PeekMetrics.headerGap) {
             Text(AppVersion.from().displayText)
                 .font(PeekFont.caption)
                 .foregroundColor(PeekColor.tertiaryText)
@@ -84,9 +84,9 @@ struct PreferencesView: View {
                 calendarManager.savePreferences()
                 dismiss()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PrimaryButtonStyle())
         }
-        .padding()
+        .padding(PeekSpacing.lg)
         .background(PeekColor.surface)
     }
 }
@@ -99,29 +99,19 @@ struct CalendarsTab: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(NSLocalizedString("Calendars to monitor", comment: "Calendars tab heading"))
-                    .font(Font.system(size: 15, weight: .semibold))
-                    .foregroundColor(PeekColor.ink)
-                Text(NSLocalizedString("Choose which calendars appear in the menu bar.", comment: "Calendars tab subtitle"))
-                    .font(PeekFont.bodyMeta)
-                    .foregroundColor(PeekColor.secondaryText)
+            VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                PeekSectionHeader(
+                    title: NSLocalizedString("Calendars to monitor", comment: "Calendars tab heading"),
+                    subtitle: NSLocalizedString("Choose which calendars appear in the menu bar.", comment: "Calendars tab subtitle")
+                )
 
                 if !calendarManager.hasCalendarAccess {
                     InsetCard {
-                        Text(NSLocalizedString("Calendar access not granted", comment: "No calendar access"))
-                            .font(PeekFont.bodyMeta)
-                            .foregroundColor(PeekColor.secondaryText)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(24)
+                        InsetCardMessage(text: NSLocalizedString("Calendar access not granted", comment: "No calendar access"))
                     }
                 } else if availableCalendars.isEmpty {
                     InsetCard {
-                        Text(NSLocalizedString("No calendars found", comment: "No calendars"))
-                            .font(PeekFont.bodyMeta)
-                            .foregroundColor(PeekColor.secondaryText)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(24)
+                        InsetCardMessage(text: NSLocalizedString("No calendars found", comment: "No calendars"))
                     }
                 } else {
                     InsetCard {
@@ -136,7 +126,7 @@ struct CalendarsTab: View {
                         }
                     }
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: PeekSpacing.sm) {
                         Button(NSLocalizedString("Select all", comment: "Select all calendars")) {
                             for calendar in availableCalendars where !calendarManager.isCalendarEnabled(calendar.calendarIdentifier) {
                                 calendarManager.toggleCalendar(calendar.calendarIdentifier)
@@ -155,7 +145,7 @@ struct CalendarsTab: View {
                     }
                 }
             }
-            .padding(20)
+            .padding(PeekSpacing.xl)
         }
     }
 }
@@ -197,40 +187,38 @@ struct FiltersTab: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(NSLocalizedString("Event filters", comment: "Filters tab heading"))
-                    .font(Font.system(size: 15, weight: .semibold))
-                    .foregroundColor(PeekColor.ink)
-                Text(NSLocalizedString("Control which events are displayed.", comment: "Filters tab subtitle"))
-                    .font(PeekFont.bodyMeta)
-                    .foregroundColor(PeekColor.secondaryText)
-                    .padding(.bottom, 8)
+            VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                PeekSectionHeader(
+                    title: NSLocalizedString("Event filters", comment: "Filters tab heading"),
+                    subtitle: NSLocalizedString("Control which events are displayed.", comment: "Filters tab subtitle")
+                )
+                .padding(.bottom, PeekSpacing.sm)
 
                 InsetCard {
                     SettingRow(NSLocalizedString("Hide all-day events", comment: "Filter toggle")) {
-                        switchToggle($calendarManager.hideAllDayEvents)
+                        switchToggle($calendarManager.hideAllDayEvents, label: NSLocalizedString("Hide all-day events", comment: "Filter toggle"))
                     }
                     RowDivider()
                     SettingRow(NSLocalizedString("Hide declined events", comment: "Filter toggle")) {
-                        switchToggle($calendarManager.hideDeclinedEvents)
+                        switchToggle($calendarManager.hideDeclinedEvents, label: NSLocalizedString("Hide declined events", comment: "Filter toggle"))
                     }
                 }
 
                 GroupLabel(NSLocalizedString("Keyword filter", comment: "Keyword filter group label"))
-                    .padding(.top, 16)
+                    .padding(.top, PeekSpacing.lg)
                 InsetCard {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: PeekMetrics.headerGap) {
                         Text(NSLocalizedString("Hide events whose title or notes contain these words (comma-separated).", comment: "Keyword filter description"))
                             .font(PeekFont.caption)
                             .foregroundColor(PeekColor.secondaryText)
                         KeywordChipEditor(text: $calendarManager.filterKeywords)
                     }
-                    .padding(14)
+                    .padding(PeekMetrics.cardContentPadding)
                 }
 
                 Spacer()
             }
-            .padding(20)
+            .padding(PeekSpacing.xl)
         }
     }
 }
@@ -244,12 +232,12 @@ private struct KeywordChipEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
             if !keywords.isEmpty {
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 84), spacing: 6, alignment: .leading)],
+                    columns: [GridItem(.adaptive(minimum: PeekMetrics.chipMinWidth), spacing: PeekSpacing.iconGap, alignment: .leading)],
                     alignment: .leading,
-                    spacing: 6
+                    spacing: PeekSpacing.iconGap
                 ) {
                     ForEach(keywords, id: \.self) { keyword in
                         PeekKeywordChip(title: keyword) {
@@ -259,7 +247,7 @@ private struct KeywordChipEditor: View {
                 }
             }
 
-            HStack(spacing: 6) {
+            HStack(spacing: PeekSpacing.iconGap) {
                 TextField(
                     NSLocalizedString("Add keyword…", comment: "Keyword chip input placeholder"),
                     text: $draft
@@ -274,22 +262,22 @@ private struct KeywordChipEditor: View {
                 }
                 Button(action: addDraftKeywords) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PeekColor.tertiaryText : PeekColor.accent)
-                        .frame(width: 18, height: 18)
+                        .font(PeekIcon.inlineAction)
+                        .foregroundColor(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PeekColor.tertiaryText : PeekColor.accentText)
+                        .frame(width: PeekMetrics.toolbarButton, height: PeekMetrics.toolbarButton)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .help(NSLocalizedString("Add keyword", comment: "Keyword chip add help"))
                 .accessibilityLabel(Text(NSLocalizedString("Add keyword", comment: "Keyword chip add accessibility label")))
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(PeekMetrics.inputInsets)
             .background(PeekColor.fill)
             .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous)
-                    .strokeBorder(PeekColor.innerDivider, lineWidth: 1)
+                    .strokeBorder(PeekColor.controlStroke, lineWidth: PeekSpacing.hairline)
             )
         }
         .accessibilityElement(children: .contain)
@@ -355,18 +343,19 @@ struct GeneralTab: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: PeekSpacing.lg) {
                 // Launch at login (ungrouped card)
                 InsetCard {
                     SettingRow(NSLocalizedString("Launch at login", comment: "Launch at login toggle")) {
-                        switchToggle(launchAtLoginBinding)
+                        switchToggle(launchAtLoginBinding, label: NSLocalizedString("Launch at login", comment: "Launch at login toggle"))
                     }
                 }
                 if let launchAtLoginErrorMessage {
                     Text(launchAtLoginErrorMessage)
                         .font(PeekFont.caption)
-                        .foregroundColor(PeekColor.critical)
-                        .padding(.horizontal, 4)
+                        .foregroundColor(PeekColor.criticalText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, PeekSpacing.xs)
                 }
 
                 // Schedule
@@ -380,7 +369,7 @@ struct GeneralTab: View {
                             Text(NSLocalizedString("Next 30 days", comment: "")).tag(30)
                         }
                         .labelsHidden()
-                        .frame(width: 150)
+                        .frame(width: PeekMetrics.pickerMedium)
                         .accessibilityLabel(NSLocalizedString("Look ahead", comment: "Accessibility label for look ahead picker"))
                     }
                     RowDivider()
@@ -389,7 +378,7 @@ struct GeneralTab: View {
                             ForEach([3, 5, 10, 15, 20], id: \.self) { Text("\($0)").tag($0) }
                         }
                         .labelsHidden()
-                        .frame(width: 90)
+                        .frame(width: PeekMetrics.pickerCompact)
                         .accessibilityLabel(NSLocalizedString("Max events to show", comment: "Accessibility label for max events picker"))
                     }
                 }
@@ -402,7 +391,7 @@ struct GeneralTab: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
-                        .frame(width: 200)
+                        .frame(width: PeekMetrics.pickerSegmented)
                         .accessibilityLabel(NSLocalizedString("Time format", comment: "Accessibility label for time format"))
                     }
                     RowDivider()
@@ -411,19 +400,19 @@ struct GeneralTab: View {
                             ForEach(MenuBarSpacePolicy.allCases, id: \.self) { Text($0.displayName).tag($0) }
                         }
                         .labelsHidden()
-                        .frame(width: 180)
+                        .frame(width: PeekMetrics.pickerWide)
                         .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
                     }
                     RowDivider()
                     SettingRow(NSLocalizedString("Show event count badge", comment: "Show count toggle")) {
-                        switchToggle($calendarManager.showEventCount)
+                        switchToggle($calendarManager.showEventCount, label: NSLocalizedString("Show event count badge", comment: "Show count toggle"))
                     }
                     RowDivider()
                     SettingRow(
                         NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
                         subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
                     ) {
-                        switchToggle($calendarManager.urgencyColorsEnabled)
+                        switchToggle($calendarManager.urgencyColorsEnabled, label: NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"))
                     }
                 }
 
@@ -435,7 +424,7 @@ struct GeneralTab: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
-                        .frame(width: 200)
+                        .frame(width: PeekMetrics.pickerSegmented)
                         .accessibilityLabel(NSLocalizedString("Theme", comment: "Accessibility label for theme"))
                     }
                 }
@@ -447,7 +436,7 @@ struct GeneralTab: View {
                             ForEach(HotkeyOption.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                         }
                         .labelsHidden()
-                        .frame(width: 110)
+                        .frame(width: PeekMetrics.pickerHotkey)
                         .accessibilityLabel(NSLocalizedString("Global hotkey", comment: "Accessibility label for global hotkey"))
                     }
                     if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
@@ -458,7 +447,7 @@ struct GeneralTab: View {
                         NSLocalizedString("Meeting notifications", comment: "Notifications toggle"),
                         subtitle: NSLocalizedString("Alert with a join link before an event starts.", comment: "Notifications subtitle")
                     ) {
-                        switchToggle($calendarManager.notificationsEnabled)
+                        switchToggle($calendarManager.notificationsEnabled, label: NSLocalizedString("Meeting notifications", comment: "Notifications toggle"))
                     }
                     if let notificationStatusMessage = calendarManager.notificationStatusMessage {
                         rowFootnote(notificationStatusMessage, isError: true)
@@ -470,13 +459,13 @@ struct GeneralTab: View {
                                 ForEach(NotificationTiming.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                             .labelsHidden()
-                            .frame(width: 150)
+                            .frame(width: PeekMetrics.pickerMedium)
                             .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
                         }
                     }
                 }
             }
-            .padding(20)
+            .padding(PeekSpacing.xl)
         }
     }
 
@@ -489,44 +478,12 @@ struct GeneralTab: View {
     }
 
     private func rowFootnote(_ text: String, isError: Bool) -> some View {
-        Text(text)
-            .font(PeekFont.caption)
-            .foregroundColor(isError ? PeekColor.critical : PeekColor.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 14)
-            .padding(.bottom, 10)
+        SettingFootnote(text: text, isError: isError)
     }
 }
 
 // MARK: - Shared trailing switch
 
-@ViewBuilder
-func switchToggle(_ isOn: Binding<Bool>) -> some View {
-    Toggle("", isOn: isOn)
-        .labelsHidden()
-        .toggleStyle(.switch)
-        .tint(PeekColor.accent)
-}
-
-// MARK: - Tab Button
-
-struct TabButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Text(title)
-                    .font(Font.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundColor(isSelected ? PeekColor.ink : PeekColor.secondaryText)
-                Rectangle()
-                    .fill(isSelected ? PeekColor.accent : Color.clear)
-                    .frame(height: 2)
-            }
-        }
-        .buttonStyle(.plain)
-        .padding(.vertical, 8)
-    }
+func switchToggle(_ isOn: Binding<Bool>, label: String) -> some View {
+    PeekSwitch(isOn: isOn, accessibilityLabel: label)
 }

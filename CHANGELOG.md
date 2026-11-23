@@ -4,6 +4,36 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.6.0 - 2026-11-23
+
+### Changed
+
+- Design system v2: one semantic color layer (`PeekNSColor` → `PeekColor`) with light,
+  dark and Increased Contrast variants, plus `PeekTone` for urgency-aware components.
+  Typography, SF Symbol sizes, spacing, radii and component metrics are now tokens, and
+  the popover, Preferences, onboarding and Starting now HUD use only tokens.
+- Shared components promoted into the design system: toolbar button, Join button style,
+  critical pulse, tabs, switch, status pill, icon tile, section header, setting footnote.
+- Preferences "Done" uses the Peek primary button instead of the system accent.
+
+### Fixed
+
+- Contrast (WCAG AA) across light and dark: tertiary and secondary text, white text on
+  amber and red fills, amber, red and green text on washes, accent text on dark surfaces,
+  and checkbox borders.
+- The dark-mode secondary button, input, and count-pill fill was nearly invisible.
+- Menu-bar SOON/NOW title tints were unreadable on a light menu bar.
+- The critical row ring and pulsing dots now start when an event turns critical while the
+  popover is open, and react live to Reduce Motion.
+- Primary and secondary buttons now show a disabled state. Preferences tabs, calendar rows
+  and section headings expose selected and header traits to VoiceOver, switches carry
+  their row's label, and decorative icons are hidden from VoiceOver.
+
+### Added
+
+- `scripts/check-design-tokens.sh` (run in CI) rejects hardcoded design values outside the
+  design system, and `DesignSystemTests` checks token contrast in every appearance.
+
 ## 1.5.5 - 2026-08-14
 
 ### Fixed

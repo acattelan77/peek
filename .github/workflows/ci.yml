@@ -19,6 +19,9 @@ jobs:
       - name: Validate version metadata
         run: ./scripts/check-version.sh
 
+      - name: Check design-system tokens
+        run: ./scripts/check-design-tokens.sh
+
       - name: Validate release-relevant version bump
         if: github.event_name == 'pull_request'
         run: ./scripts/check-version-bump.sh "${{ github.event.pull_request.base.sha }}"

@@ -5,7 +5,7 @@ import AppKit
 /// Pure presentation: the hosting window and timing live in the composition root.
 struct StartingNowHUD: View {
     /// Fixed card width, shared with the composition root for panel placement.
-    static let cardWidth: CGFloat = 380
+    static let cardWidth: CGFloat = PeekMetrics.hudWidth
     /// Transparent margin around the card so the drop shadow has room inside the
     /// hosting window. Without it the window bounds clip the shadow into a
     /// visible squared edge around the rounded card.
@@ -41,20 +41,20 @@ struct StartingNowHUD: View {
                 startPoint: .leading,
                 endPoint: .trailing
             )
-            .frame(height: 4)
+            .frame(height: PeekMetrics.hudAccentBar)
+            .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PeekSpacing.md) {
                 header
                 Text(title)
                     .font(PeekFont.onboardingTitle)
                     .foregroundColor(PeekColor.ink)
                     .lineLimit(2)
+                    .accessibilityAddTraits(.isHeader)
                 metaRow
                 actionRow
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 20)
+            .padding(PeekMetrics.hudInsets)
         }
         .frame(width: Self.cardWidth)
         .background(PeekColor.surface)
@@ -66,63 +66,54 @@ struct StartingNowHUD: View {
 
     private var header: some View {
         HStack {
-            HStack(spacing: 5) {
-                PulsingDot(color: PeekColor.critical, size: 6)
-                Text(NSLocalizedString("STARTING NOW", comment: "HUD status pill"))
-                    .font(PeekFont.captionStrong)
-                    .tracking(0.6)
-                    .foregroundColor(PeekColor.critical)
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(PeekColor.criticalWash)
-            .clipShape(Capsule())
+            PeekStatusPill(text: NSLocalizedString("STARTING NOW", comment: "HUD status pill"))
 
             Spacer()
 
-            HStack(spacing: 6) {
+            HStack(spacing: PeekSpacing.iconGap) {
                 Text("Peek")
                     .font(PeekFont.captionStrong)
                     .foregroundColor(PeekColor.secondaryText)
-                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
-                    .resizable()
-                    .frame(width: 16, height: 16)
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                PeekAppIcon(size: PeekMetrics.hudIcon, cornerRadius: PeekRadius.badge)
             }
         }
     }
 
     private var metaRow: some View {
-        HStack(spacing: 14) {
-            HStack(spacing: 6) {
+        HStack(spacing: PeekMetrics.hudMetaGap) {
+            HStack(spacing: PeekSpacing.iconGap) {
                 Image(systemName: "clock")
-                    .font(.system(size: 12))
+                    .font(PeekIcon.meta)
                     .foregroundColor(PeekColor.secondaryText)
+                    .accessibilityHidden(true)
                 Text(timeRange)
                     .font(PeekFont.bodyMeta)
                     .foregroundColor(PeekColor.bodyText)
             }
             if let calendarName {
-                HStack(spacing: 6) {
+                HStack(spacing: PeekSpacing.iconGap) {
                     Circle()
                         .fill(calendarColor ?? PeekColor.secondaryText)
-                        .frame(width: 8, height: 8)
+                        .frame(width: PeekMetrics.calendarDot, height: PeekMetrics.calendarDot)
+                        .accessibilityHidden(true)
                     Text(calendarName)
                         .font(PeekFont.bodyMeta)
                         .foregroundColor(PeekColor.secondaryText)
+                    .lineLimit(1)
                 }
             }
-            Spacer()
+            Spacer(minLength: 0)
         }
     }
 
     private var actionRow: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: PeekMetrics.headerGap) {
             if let joinProviderLabel {
                 Button(action: onJoin) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: PeekSpacing.iconGap) {
                         Image(systemName: "video.fill")
-                            .font(.system(size: 12))
+                            .font(PeekIcon.meta)
+                            .accessibilityHidden(true)
                         Text(String(
                             format: NSLocalizedString("Join %@", comment: "HUD join button with provider"),
                             joinProviderLabel
@@ -145,11 +136,12 @@ struct StartingNowHUD: View {
 
             Button(action: onClose) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(PeekIcon.dismiss)
                     .foregroundColor(PeekColor.secondaryText)
-                    .frame(width: 38, height: 38)
+                    .frame(width: PeekMetrics.hudDismissButton, height: PeekMetrics.hudDismissButton)
                     .background(PeekColor.fill)
                     .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(NSLocalizedString("Dismiss", comment: "HUD dismiss help"))

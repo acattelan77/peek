@@ -30,10 +30,10 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             progressDots
-                .padding(.top, 18)
-                .padding(.bottom, 20)
+                .padding(.top, PeekSpacing.lg)
+                .padding(.bottom, PeekSpacing.xl)
         }
-        .frame(width: 420, height: 460)
+        .frame(width: PeekMetrics.onboardingSize.width, height: PeekMetrics.onboardingSize.height)
         .background(PeekColor.surface)
         .preferredColorScheme(preferredColorScheme)
     }
@@ -41,15 +41,14 @@ struct OnboardingView: View {
     // MARK: Steps
 
     private var welcomeStep: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: PeekSpacing.lg) {
             Spacer()
-            Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
-                .resizable()
-                .frame(width: 84, height: 84)
-                .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+            PeekAppIcon(size: PeekMetrics.onboardingIcon, cornerRadius: PeekRadius.appIconLarge)
             Text(NSLocalizedString("Welcome to Peek", comment: "Onboarding welcome title"))
                 .font(PeekFont.display)
                 .foregroundColor(PeekColor.ink)
+                .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
             Text(NSLocalizedString(
                 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts.",
                 comment: "Onboarding welcome body"
@@ -57,32 +56,34 @@ struct OnboardingView: View {
             .font(PeekFont.bodyMeta)
             .foregroundColor(PeekColor.secondaryText)
             .multilineTextAlignment(.center)
-            .frame(maxWidth: 300)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: PeekMetrics.onboardingTextMaxWidth)
             Spacer()
             Button(NSLocalizedString("Get started", comment: "Onboarding welcome primary")) {
                 advance()
             }
             .buttonStyle(PrimaryButtonStyle(fullWidth: true))
-            .padding(.horizontal, 40)
+            .keyboardShortcut(.defaultAction)
+            .padding(.horizontal, PeekSpacing.huge)
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 32)
+        .padding(.horizontal, PeekSpacing.xxl)
+        .padding(.top, PeekSpacing.xxxl)
     }
 
     private var accessStep: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: PeekMetrics.cardContentPadding) {
             Spacer()
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(PeekColor.blueTint)
-                    .frame(width: 72, height: 72)
-                Image(systemName: "calendar")
-                    .font(.system(size: 32, weight: .regular))
-                    .foregroundColor(PeekColor.accent)
-            }
+            PeekIconTile(
+                systemName: "calendar",
+                size: PeekMetrics.onboardingTile,
+                cornerRadius: PeekRadius.hud,
+                iconFont: PeekIcon.hero
+            )
             Text(NSLocalizedString("Connect your calendar", comment: "Onboarding access title"))
                 .font(PeekFont.onboardingTitle)
                 .foregroundColor(PeekColor.ink)
+                .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
             Text(NSLocalizedString(
                 "Peek reads your events to show what's next. That's all — nothing leaves your Mac.",
                 comment: "Onboarding access body"
@@ -90,15 +91,17 @@ struct OnboardingView: View {
             .font(PeekFont.bodyMeta)
             .foregroundColor(PeekColor.secondaryText)
             .multilineTextAlignment(.center)
-            .frame(maxWidth: 300)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: PeekMetrics.onboardingTextMaxWidth)
 
-            HStack(spacing: 6) {
+            HStack(spacing: PeekSpacing.iconGap) {
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 11))
+                    .font(PeekIcon.detail)
+                    .accessibilityHidden(true)
                 Text(NSLocalizedString("Read-only · stays local", comment: "Onboarding trust line"))
                     .font(PeekFont.caption)
             }
-            .foregroundColor(PeekColor.calm)
+            .foregroundColor(PeekColor.calmText)
 
             Spacer()
 
@@ -110,8 +113,9 @@ struct OnboardingView: View {
                      : NSLocalizedString("Grant calendar access", comment: "Onboarding access primary"))
             }
             .buttonStyle(PrimaryButtonStyle(fullWidth: true))
+            .keyboardShortcut(.defaultAction)
             .disabled(isRequestingAccess)
-            .padding(.horizontal, 40)
+            .padding(.horizontal, PeekSpacing.huge)
 
             Button(NSLocalizedString("Maybe later", comment: "Onboarding skip access")) {
                 advance()
@@ -119,27 +123,23 @@ struct OnboardingView: View {
             .buttonStyle(.plain)
             .font(PeekFont.bodyMeta)
             .foregroundColor(PeekColor.secondaryText)
+            .disabled(isRequestingAccess)
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 32)
+        .padding(.horizontal, PeekSpacing.xxl)
+        .padding(.top, PeekSpacing.xxxl)
     }
 
     private var calendarsStep: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(NSLocalizedString("What should Peek watch?", comment: "Onboarding calendars title"))
-                .font(PeekFont.onboardingTitle)
-                .foregroundColor(PeekColor.ink)
-            Text(NSLocalizedString("You can change this anytime in Settings.", comment: "Onboarding calendars subtitle"))
-                .font(PeekFont.bodyMeta)
-                .foregroundColor(PeekColor.secondaryText)
+        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+            PeekSectionHeader(
+                title: NSLocalizedString("What should Peek watch?", comment: "Onboarding calendars title"),
+                subtitle: NSLocalizedString("You can change this anytime in Settings.", comment: "Onboarding calendars subtitle"),
+                titleFont: PeekFont.onboardingTitle
+            )
 
             InsetCard {
                 if !calendarManager.hasCalendarAccess {
-                    Text(NSLocalizedString("Calendar access not granted", comment: "Onboarding no access"))
-                        .font(PeekFont.bodyMeta)
-                        .foregroundColor(PeekColor.secondaryText)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(24)
+                    InsetCardMessage(text: NSLocalizedString("Calendar access not granted", comment: "Onboarding no access"))
                 } else {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -157,31 +157,33 @@ struct OnboardingView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: 200)
+                    .frame(maxHeight: PeekMetrics.onboardingListMaxHeight)
                 }
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: PeekSpacing.sm)
 
             Button(NSLocalizedString("Start using Peek", comment: "Onboarding finish primary")) {
                 onFinish()
             }
             .buttonStyle(PrimaryButtonStyle(fullWidth: true))
+            .keyboardShortcut(.defaultAction)
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 32)
+        .padding(.horizontal, PeekSpacing.xxl)
+        .padding(.top, PeekSpacing.xxxl)
     }
 
     // MARK: Progress
 
     private var progressDots: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: PeekSpacing.sm) {
             ForEach(0..<3, id: \.self) { index in
                 Circle()
-                    .fill(index == step ? PeekColor.accent : PeekColor.controlBorder)
-                    .frame(width: 7, height: 7)
+                    .fill(index == step ? PeekColor.accentRail : PeekColor.controlBorder)
+                    .frame(width: PeekMetrics.progressDot, height: PeekMetrics.progressDot)
             }
         }
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(String(
             format: NSLocalizedString("Step %d of 3", comment: "Onboarding progress"),
             step + 1
@@ -191,7 +193,7 @@ struct OnboardingView: View {
     // MARK: Actions
 
     private func advance() {
-        withAnimation(PeekMotion.reduceMotion ? nil : .easeOut(duration: 0.2)) {
+        withAnimation(PeekMotion.reduceMotion ? nil : .easeOut(duration: PeekDuration.step)) {
             step = min(step + 1, 2)
         }
     }
