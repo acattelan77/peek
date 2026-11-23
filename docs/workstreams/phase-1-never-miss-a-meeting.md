@@ -1,7 +1,7 @@
 # Workstream: Phase 1, never miss a meeting
 
 - Roadmap ID: PEEK-201, PEEK-202, PEEK-203, PEEK-204
-- Status: Active
+- Status: In review
 - Owner: Claude Code (cloud session, project thread "Pianificare Peek 2.0 per l'App Store")
 - Branch/worktree: `claude/project-thread-t3424o`
 - Last updated: 2026-11-23
@@ -48,7 +48,24 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
 
 ## Validation
 
-- Not run yet.
+- Linux cloud session: `bash scripts/check-version.sh`, `bash scripts/check-design-tokens.sh`,
+  `python3 scripts/check-localization.py` (162 keys, 5 tables) and `git diff --check` pass.
+- Build and tests ran in CI only (`build-and-test` on `macos-latest`, PR #10), not locally.
+
+### Owner checks on a Mac
+
+1. Month view: dots on days with events, previous/next/Today, choosing a day shows its
+   agenda, "Back to upcoming"; light, dark and Increased Contrast; hide it in Preferences.
+2. Join: a Zoom `/j/` link and a Teams link open the native app when installed, the
+   browser when the Preferences switch is off or the app is missing.
+3. Start alert set to Full screen: appears over a full-screen app and on the current
+   Space; Return joins, Esc dismisses, "In 1 minute" brings it back once; a focus block
+   without link or attendees gets the card instead; Off shows nothing.
+4. Language: set Peek to Italian in System Settings > General > Language & Region >
+   Applications, check the popover, Preferences, onboarding and the permission prompts
+   for truncation. A native read of de, fr and es before App Store submission.
+5. PEEK-111: `Peek --export --from 0 --to 7 --json` still classifies Zoom, Meet and Teams
+   links as `join` and the Northwind Notes renderer reads it unchanged.
 
 ## Decisions and open questions
 
@@ -71,4 +88,4 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
 
 ## Exact next action
 
-Implement PEEK-204.
+Owner runs the checks above on a Mac, then merges PR #10. Phase 2 (meeting context) follows.

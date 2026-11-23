@@ -33,6 +33,15 @@ Before starting an item, follow `AGENTS.md`, confirm that no active workstream c
 - **Design refresh — Done:** Adopt the Claude Design "calm glance" system via a shared token layer applied across the popover, Preferences, new onboarding flow, and "Starting now" HUD; re-render the app icon (handoff §6). Follow-up: visual QA on a running build. Fixed alongside: accessory-app popover activation so the popover stays open and controls render active.
 - **Design system v2 — In review:** Semantic color roles with Increased Contrast variants, WCAG AA contrast fixes, full token adoption on every surface, promoted shared components, CI token lint and contrast tests (1.6.0, `docs/workstreams/design-system-v2.md`). Awaits owner visual QA on a Mac.
 
+## Now — Peek 2.0 phase 1: never miss a meeting
+
+Plan: "Peek: piano di sviluppo verso l'App Store" (phase 0 mockups approved 2026-11-23). Workstream: `docs/workstreams/phase-1-never-miss-a-meeting.md`. All four items ship in 1.7.0 and await owner checks on a Mac.
+
+- **PEEK-201 — In review:** Compact read-only month calendar above the event list, with a day agenda; can be hidden in Preferences.
+- **PEEK-202 — In review:** Broader meeting-link detection (Zoom variants, Teams personal, Meet lookup, GoTo, Slack, Chime, Jitsi, FaceTime, RingCentral) and Join in the Zoom or Teams app when installed. Export JSON v1 join classification frozen.
+- **PEEK-203 — In review:** Start alert choice (off, heads-up card, full screen over all Spaces and full-screen apps), with full screen limited by default to events with a join link or attendees. Focus status is not read yet.
+- **PEEK-204 — In review:** Italian, German, French and Spanish localization with a CI table check.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.
