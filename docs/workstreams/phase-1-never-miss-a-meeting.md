@@ -44,7 +44,7 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
 - [x] PEEK-202 link detection, native-app join, export v1 classification frozen
 - [x] PEEK-201 compact month view (`MonthGrid`, `MonthCalendarView`, day agenda in `MenuBarView`)
 - [x] PEEK-203 alert levels and full-screen alert
-- [ ] PEEK-204 localization
+- [x] PEEK-204 localization (it, de, fr, es `.lproj` tables, `scripts/check-localization.py` in CI)
 
 ## Validation
 
@@ -63,6 +63,11 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
   choose Full screen. The full-screen alert does not read Focus status yet: that needs
   the Communication Notifications capability and `INFocusStatusCenter` authorization.
   Open question for the owner: should full screen respect Focus before App Store?
+- PEEK-204 keeps `.strings` tables instead of migrating to a String Catalog: the
+  project file is hand-maintained and a catalog's JSON is harder to review in diffs.
+  The English table was regenerated from source (27 unused keys removed, 31 added).
+  Translations are mine and need a native read for de, fr and es before release.
+  The test action is pinned to en-US so string assertions pass on non-English Macs.
 
 ## Exact next action
 

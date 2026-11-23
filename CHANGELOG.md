@@ -22,6 +22,9 @@ This project follows Keep a Changelog conventions. Versions are released from `m
   full-screen alert that appears over every Space and full-screen app. Return joins,
   Esc dismisses, and "In 1 minute" brings it back. By default the full-screen alert is
   only used for events with a join link or attendees; focus blocks get the card.
+- PEEK-204: Peek is available in Italian, German, French and Spanish, including the
+  calendar and notification permission prompts. CI checks that every table covers
+  every string with matching format specifiers.
 
 ### Compatibility
 
