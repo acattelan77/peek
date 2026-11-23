@@ -16,10 +16,28 @@ struct MenuBarView: View {
     @State private var eventMonitor: Any?
     @State private var isRefreshing = false
     @State private var showRefreshConfirmation = false
+    @State private var displayedMonth = Date()
+    @State private var selectedDay: Date?
+    @State private var eventDays: Set<Date> = []
+    @State private var dayEvents: [EKEvent] = []
     var closePopover: (() -> Void)?
     var refreshStatusBar: ((EKEvent?) -> Void)? = nil
     private let refreshFeedbackMinDuration: TimeInterval = 0.4
     private let refreshConfirmationDuration: TimeInterval = 0.9
+
+    private static let dayAgendaFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("EEEE d MMMM")
+        return formatter
+    }()
+
+    private var monthGrid: MonthGrid { MonthGrid.make(containing: displayedMonth) }
+
+    /// A chosen day other than today replaces the upcoming list with that day's agenda.
+    private var chosenOtherDay: Date? {
+        guard let selectedDay, !Calendar.current.isDateInToday(selectedDay) else { return nil }
+        return selectedDay
+    }
 
     private static let headerDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -53,7 +71,22 @@ struct MenuBarView: View {
             header
             Divider().overlay(PeekColor.innerDivider)
 
-            if calendarManager.upcomingEvents.isEmpty {
+            if calendarManager.showMonthCalendar && calendarManager.hasCalendarAccess {
+                MonthCalendarView(
+                    grid: monthGrid,
+                    eventDays: eventDays,
+                    selectedDay: selectedDay,
+                    onSelectDay: selectDay,
+                    onPreviousMonth: { shiftMonth(by: -1) },
+                    onNextMonth: { shiftMonth(by: 1) },
+                    onToday: showToday
+                )
+                Divider().overlay(PeekColor.innerDivider)
+            }
+
+            if let day = chosenOtherDay {
+                dayAgenda(for: day)
+            } else if calendarManager.upcomingEvents.isEmpty {
                 emptyState
             } else {
                 eventList
@@ -70,6 +103,7 @@ struct MenuBarView: View {
             PreferencesView(calendarManager: calendarManager)
         }
         .onAppear {
+            reloadEventDays()
             if let existingMonitor = eventMonitor {
                 NSEvent.removeMonitor(existingMonitor)
             }
@@ -91,6 +125,10 @@ struct MenuBarView: View {
         .onChange(of: calendarManager.upcomingEvents.map(\.eventIdentifier)) { identifiers in
             if let expandedEventID, !identifiers.contains(expandedEventID) {
                 self.expandedEventID = nil
+            }
+            reloadEventDays()
+            if let day = chosenOtherDay {
+                reloadDayEvents(for: day)
             }
         }
     }
@@ -147,6 +185,93 @@ struct MenuBarView: View {
         }
         .frame(maxHeight: PeekMetrics.popoverListMaxHeight)
         .background(PeekColor.canvas)
+    }
+
+    // MARK: - Month view (PEEK-201)
+
+    private func dayAgenda(for day: Date) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: PeekMetrics.rowGap) {
+                HStack(spacing: PeekSpacing.xs) {
+                    Text(Self.dayAgendaFormatter.string(from: day).capitalized)
+                        .font(PeekFont.bodyEmphasis)
+                        .foregroundColor(PeekColor.ink)
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer()
+                    Button(NSLocalizedString("Back to upcoming", comment: "Month view: return to upcoming events"), action: showToday)
+                        .buttonStyle(SecondaryFillButtonStyle())
+                        .controlSize(.small)
+                }
+                .padding(.horizontal, PeekSpacing.xs)
+                .padding(.bottom, PeekSpacing.xxs)
+
+                if dayEvents.isEmpty {
+                    Text(NSLocalizedString("No events on this day.", comment: "Month view: empty day"))
+                        .font(PeekFont.bodyMeta)
+                        .foregroundColor(PeekColor.secondaryText)
+                        .padding(PeekSpacing.sm)
+                } else {
+                    ForEach(dayEvents, id: \.eventIdentifier) { event in
+                        EventRow(
+                            event: event,
+                            isExpanded: expandedEventID != nil && expandedEventID == event.eventIdentifier,
+                            onToggleExpand: { toggleExpansion(for: event) }
+                        )
+                        .contextMenu {
+                            EventContextMenu(event: event)
+                        }
+                    }
+                }
+            }
+            .padding(PeekSpacing.sm)
+        }
+        .frame(maxHeight: PeekMetrics.popoverListMaxHeight)
+        .background(PeekColor.canvas)
+    }
+
+    private func selectDay(_ day: Date) {
+        if Calendar.current.isDateInToday(day) || selectedDay == day {
+            selectedDay = nil
+            dayEvents = []
+            return
+        }
+        selectedDay = day
+        dayEvents = []
+        if !Calendar.current.isDate(day, equalTo: displayedMonth, toGranularity: .month) {
+            displayedMonth = day
+            reloadEventDays()
+        }
+        reloadDayEvents(for: day)
+    }
+
+    private func shiftMonth(by months: Int) {
+        displayedMonth = Calendar.current.date(byAdding: .month, value: months, to: displayedMonth) ?? displayedMonth
+        reloadEventDays()
+    }
+
+    private func showToday() {
+        displayedMonth = Date()
+        selectedDay = nil
+        dayEvents = []
+        reloadEventDays()
+    }
+
+    private func reloadEventDays() {
+        guard calendarManager.showMonthCalendar else { return }
+        let grid = monthGrid
+        calendarManager.fetchEventDays(in: grid) { days in
+            if grid.monthStart == monthGrid.monthStart {
+                eventDays = days
+            }
+        }
+    }
+
+    private func reloadDayEvents(for day: Date) {
+        calendarManager.fetchEvents(on: day) { events in
+            if selectedDay == day {
+                dayEvents = events
+            }
+        }
     }
 
     // MARK: - Empty / no-access states
@@ -315,7 +440,9 @@ struct EventRow: View {
     }
 
     private var urgency: MeetingUrgency {
-        MeetingUrgency.from(minutesUntil: minutesUntil)
+        // A finished event (shown from a past day in the month view) is never urgent.
+        if event.endDate <= Date() { return .normal }
+        return MeetingUrgency.from(minutesUntil: minutesUntil)
     }
 
     private var isUpcoming: Bool { event.startDate > Date() }

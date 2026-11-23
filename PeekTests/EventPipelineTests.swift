@@ -416,4 +416,29 @@ final class LaunchAtLoginCoordinatorTests: XCTestCase {
         XCTAssertEqual(result.effectiveValue, false)
         XCTAssertEqual(result.errorMessage, "macOS did not enable Launch at Login for Peek.")
     }
+
+    func testVisibleEventsAppliesFiltersWithoutTimeWindowAndSorts() {
+        let base = Date(timeIntervalSince1970: 1_000_000)
+        func event(_ id: String, offset: TimeInterval, allDay: Bool = false, title: String = "Meeting", declined: Bool = false) -> TestEvent {
+            TestEvent(
+                id: id,
+                candidateStartDate: base.addingTimeInterval(offset),
+                candidateEndDate: base.addingTimeInterval(offset + 1800),
+                isAllDay: allDay,
+                candidateTitle: title,
+                candidateNotes: nil,
+                currentUserDeclined: declined
+            )
+        }
+        let past = event("past", offset: -86_400)
+        let later = event("later", offset: 7200)
+        let allDay = event("allDay", offset: 0, allDay: true)
+        let declined = event("declined", offset: 60, declined: true)
+        let filtered = event("lunch", offset: 120, title: "Lunch")
+
+        let settings = EventFilterSettings(hideAllDayEvents: true, hideDeclinedEvents: true, filterKeywords: "lunch")
+        let result = EventPipeline.visibleEvents([later, allDay, declined, filtered, past], settings: settings)
+
+        XCTAssertEqual(result, [past, later])
+    }
 }

@@ -337,6 +337,13 @@ enum PeekMetrics {
     static let emptyTextMaxWidth: CGFloat = 230
     static let toolbarButton: CGFloat = 18
 
+    // Month view (PEEK-201)
+    static let monthDayCellHeight: CGFloat = 30
+    static let monthDayNumber = CGSize(width: 24, height: 20)
+    static let monthEventDot: CGFloat = 4
+    static let monthNavButton: CGFloat = 24
+    static let monthDotGap: CGFloat = 2
+
     // Buttons
     static let primaryButtonInsets = EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
     static let smallButtonInsets = EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12)

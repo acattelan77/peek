@@ -42,7 +42,7 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
 ## Progress
 
 - [x] PEEK-202 link detection, native-app join, export v1 classification frozen
-- [ ] PEEK-201 compact month view
+- [x] PEEK-201 compact month view (`MonthGrid`, `MonthCalendarView`, day agenda in `MenuBarView`)
 - [ ] PEEK-203 alert levels and full-screen alert
 - [ ] PEEK-204 localization
 
@@ -54,9 +54,12 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
 
 - Export JSON v1 keeps the original eight join domains through
   `MeetingURLDetector.exportV1JoinDomains`, so Northwind Notes sees no classification change.
+- The month view is read-only. A double click that opens Calendar on that date was
+  dropped: Calendar.app has no documented date deep link; the footer's Open Calendar
+  remains.
 - Detection order changed to URL field, location, notes (calendar providers put the
   conference link in the URL field; notes often hold secondary links).
 
 ## Exact next action
 
-Implement PEEK-201.
+Implement PEEK-203.

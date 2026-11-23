@@ -15,6 +15,9 @@ This project follows Keep a Changelog conventions. Versions are released from `m
   location and notes, and the earliest link in a text wins.
 - PEEK-202: Join opens Zoom and Teams meetings in their Mac apps when installed, with a
   Preferences switch to always use the browser.
+- PEEK-201: a compact, read-only month calendar above the event list. Days with events
+  carry a dot; choosing another day shows its agenda, and Today returns to the upcoming
+  list. It follows the user's first weekday and can be hidden in Preferences.
 
 ### Compatibility
 

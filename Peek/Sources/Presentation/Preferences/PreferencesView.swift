@@ -409,6 +409,13 @@ struct GeneralTab: View {
                     }
                     RowDivider()
                     SettingRow(
+                        NSLocalizedString("Show month calendar", comment: "Month view toggle"),
+                        subtitle: NSLocalizedString("A compact month above your events. Choose a day to see its agenda.", comment: "Month view toggle subtitle")
+                    ) {
+                        switchToggle($calendarManager.showMonthCalendar, label: NSLocalizedString("Show month calendar", comment: "Month view toggle"))
+                    }
+                    RowDivider()
+                    SettingRow(
                         NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
                         subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
                     ) {

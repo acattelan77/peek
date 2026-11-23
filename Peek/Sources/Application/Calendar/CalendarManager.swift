@@ -27,6 +27,7 @@ class CalendarManager: ObservableObject {
     @Published var notificationTiming: NotificationTiming = .fifteenMinutes
     @Published var urgencyColorsEnabled: Bool = true
     @Published var openMeetingsInNativeApp: Bool = true
+    @Published var showMonthCalendar: Bool = true
 
     /// Whether the first-run onboarding flow has been completed. Persisted so it is
     /// only shown once.
@@ -58,6 +59,7 @@ class CalendarManager: ObservableObject {
     private let urgencyColorsEnabledKey = "urgencyColorsEnabled"
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
     private let openMeetingsInNativeAppKey = MeetingLinkOpener.preferNativeAppKey
+    private let showMonthCalendarKey = "showMonthCalendar"
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -126,6 +128,7 @@ class CalendarManager: ObservableObject {
 
         urgencyColorsEnabled = defaults.object(forKey: urgencyColorsEnabledKey) as? Bool ?? true
         openMeetingsInNativeApp = MeetingLinkOpener.prefersNativeApp(defaults)
+        showMonthCalendar = defaults.object(forKey: showMonthCalendarKey) as? Bool ?? true
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -151,6 +154,7 @@ class CalendarManager: ObservableObject {
         defaults.set(notificationTiming.rawValue, forKey: notificationTimingKey)
         defaults.set(urgencyColorsEnabled, forKey: urgencyColorsEnabledKey)
         defaults.set(openMeetingsInNativeApp, forKey: openMeetingsInNativeAppKey)
+        defaults.set(showMonthCalendar, forKey: showMonthCalendarKey)
     }
 
     func saveEnabledCalendars() {
@@ -337,6 +341,80 @@ class CalendarManager: ObservableObject {
     func getAllCalendars() -> [EKCalendar] {
         return fetchQueue.sync {
             eventStore.calendars(for: .event)
+        }
+    }
+
+    // MARK: - Month view
+
+    /// The calendars Peek reads: the user's selection, or every calendar before
+    /// the user has chosen any.
+    static func selectedCalendars(
+        from allCalendars: [EKCalendar],
+        enabledIDs: Set<String>,
+        hasCustomSelection: Bool
+    ) -> [EKCalendar] {
+        if enabledIDs.isEmpty {
+            return hasCustomSelection ? [] : allCalendars
+        }
+        return allCalendars.filter { enabledIDs.contains($0.calendarIdentifier) }
+    }
+
+    /// Start-of-day dates in `grid` that hold at least one visible event, for
+    /// the month view's day markers.
+    func fetchEventDays(in grid: MonthGrid, completion: @escaping (Set<Date>) -> Void) {
+        fetchVisibleEvents(in: grid.interval) { events in
+            var days = Set<Date>()
+            for event in events {
+                guard let start = event.startDate, let end = event.endDate else { continue }
+                days.formUnion(MonthGrid.daysCovered(start: start, end: end, within: grid.interval))
+            }
+            completion(days)
+        }
+    }
+
+    /// The visible events that intersect the day starting at `day`.
+    func fetchEvents(on day: Date, completion: @escaping ([EKEvent]) -> Void) {
+        let start = Calendar.current.startOfDay(for: day)
+        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start) else {
+            completion([])
+            return
+        }
+        fetchVisibleEvents(in: DateInterval(start: start, end: end), completion: completion)
+    }
+
+    private func fetchVisibleEvents(in interval: DateInterval, completion: @escaping ([EKEvent]) -> Void) {
+        guard hasCalendarAccess else {
+            completion([])
+            return
+        }
+        let enabledCalendarIDs = self.enabledCalendarIDs
+        let hasCustomCalendarSelection = self.hasCustomCalendarSelection
+        let settings = EventFilterSettings(
+            hideAllDayEvents: hideAllDayEvents,
+            hideDeclinedEvents: hideDeclinedEvents,
+            filterKeywords: filterKeywords
+        )
+
+        fetchQueue.async { [weak self] in
+            guard let self = self else { return }
+            let calendars = Self.selectedCalendars(
+                from: self.eventStore.calendars(for: .event),
+                enabledIDs: enabledCalendarIDs,
+                hasCustomSelection: hasCustomCalendarSelection
+            )
+            var visible: [EKEvent] = []
+            if !calendars.isEmpty {
+                let predicate = self.eventStore.predicateForEvents(
+                    withStart: interval.start,
+                    end: interval.end,
+                    calendars: calendars
+                )
+                let events = (try? self.eventStore.events(matching: predicate)) ?? []
+                visible = EventPipeline.visibleEvents(events, settings: settings)
+            }
+            DispatchQueue.main.async {
+                completion(visible)
+            }
         }
     }
 }

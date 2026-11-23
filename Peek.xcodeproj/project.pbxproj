@@ -10,6 +10,7 @@
 		1A0000010000000000000001 /* PeekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000020000000000000001 /* PeekApp.swift */; };
 		1A0000030000000000000001 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000040000000000000001 /* CalendarManager.swift */; };
 		1A0000050000000000000001 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000060000000000000001 /* MenuBarView.swift */; };
+		6A0000020000000000000002 /* MonthCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000020000000000000001 /* MonthCalendarView.swift */; };
 		1A0000070000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000080000000000000001 /* Assets.xcassets */; };
 		1A0000340000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000300000000000000001 /* Localizable.strings */; };
 		1A0000350000000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000320000000000000001 /* InfoPlist.strings */; };
@@ -32,9 +33,11 @@
 		1A00006B0000000000000001 /* MeetingURLDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000600000000000000001 /* MeetingURLDetector.swift */; };
 		1A00006C0000000000000001 /* EventTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000620000000000000001 /* EventTimeFormatter.swift */; };
 		1A0000700000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
+		6A0000010000000000000002 /* MonthGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000010000000000000001 /* MonthGrid.swift */; };
 		1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006E0000000000000001 /* EventCandidate+EventKit.swift */; };
 		1A0000720000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
 		1A0000730000000000000001 /* EventPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006F0000000000000001 /* EventPipelineTests.swift */; };
+		6A0000030000000000000002 /* MonthGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000030000000000000001 /* MonthGridTests.swift */; };
 		1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356A21502F22CFCE0059351D /* NotificationManager.swift */; };
@@ -84,6 +87,7 @@
 		1A0000020000000000000001 /* PeekApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeekApp.swift; sourceTree = "<group>"; };
 		1A0000040000000000000001 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		1A0000060000000000000001 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		6A0000020000000000000001 /* MonthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarView.swift; sourceTree = "<group>"; };
 		1A0000080000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A0000090000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A0000120000000000000002 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
@@ -103,8 +107,10 @@
 		1A0000620000000000000001 /* EventTimeFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTimeFormatter.swift; sourceTree = "<group>"; };
 		1A0000680000000000000001 /* MeetingUrgency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingUrgency.swift; sourceTree = "<group>"; };
 		1A00006D0000000000000001 /* EventPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipeline.swift; sourceTree = "<group>"; };
+		6A0000010000000000000001 /* MonthGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthGrid.swift; sourceTree = "<group>"; };
 		1A00006E0000000000000001 /* EventCandidate+EventKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventCandidate+EventKit.swift"; sourceTree = "<group>"; };
 		1A00006F0000000000000001 /* EventPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipelineTests.swift; sourceTree = "<group>"; };
+		6A0000030000000000000001 /* MonthGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthGridTests.swift; sourceTree = "<group>"; };
 		1A0000760000000000000001 /* AppBehaviorSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBehaviorSupport.swift; sourceTree = "<group>"; };
 		1A0000290000000000000001 /* Peek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peek.entitlements; sourceTree = "<group>"; };
 		1A0000310000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -212,6 +218,7 @@
 				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
 				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
+				6A0000030000000000000001 /* MonthGridTests.swift */,
 				2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */,
 				2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */,
 				2B0000460000000000000001 /* StatusBarSpaceMetricsTests.swift */,
@@ -328,6 +335,7 @@
 			isa = PBXGroup;
 			children = (
 				1A00006D0000000000000001 /* EventPipeline.swift */,
+				6A0000010000000000000001 /* MonthGrid.swift */,
 				4E0000010000000000000001 /* EventDetail.swift */,
 				1A0000680000000000000001 /* MeetingUrgency.swift */,
 			);
@@ -405,6 +413,7 @@
 			isa = PBXGroup;
 			children = (
 				1A0000060000000000000001 /* MenuBarView.swift */,
+				6A0000020000000000000001 /* MonthCalendarView.swift */,
 			);
 			path = MenuBar;
 			sourceTree = "<group>";
@@ -601,6 +610,8 @@
 				111000010000000000000001 /* CalendarExportCommand.swift in Sources */,
 				111000030000000000000001 /* CalendarExportPayload.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
+				6A0000020000000000000002 /* MonthCalendarView.swift in Sources */,
+				6A0000010000000000000002 /* MonthGrid.swift in Sources */,
 				1A0000110000000000000002 /* PreferencesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -626,6 +637,7 @@
 				2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */,
 				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
 				111000050000000000000001 /* CalendarExportTests.swift in Sources */,
+				6A0000030000000000000002 /* MonthGridTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
