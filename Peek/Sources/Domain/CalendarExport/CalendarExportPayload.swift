@@ -232,7 +232,8 @@ enum CalendarExportEventMapper {
         return value
     }
 
-    private static func stableIdentifier(for event: EKEvent) -> String {
+    /// The export v1 `id`. Also the key of the meeting-context file (ADR 0004).
+    static func stableIdentifier(for event: EKEvent) -> String {
         if let eventIdentifier = event.eventIdentifier, !eventIdentifier.isEmpty {
             return eventIdentifier
         }

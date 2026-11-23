@@ -19,6 +19,8 @@ struct StartingNowHUD: View {
     let calendarColor: Color?
     /// Provider label such as "Zoom"; when non-nil a Join button is shown.
     let joinProviderLabel: String?
+    /// "You're about to meet Marco, CEO at Northwind" when known.
+    var contextLine: String? = nil
     var appearanceMode: AppearanceMode = .auto
 
     let onJoin: () -> Void
@@ -52,6 +54,13 @@ struct StartingNowHUD: View {
                     .lineLimit(2)
                     .accessibilityAddTraits(.isHeader)
                 metaRow
+                if let contextLine {
+                    Text(contextLine)
+                        .font(PeekFont.bodyMetaMedium)
+                        .foregroundColor(PeekColor.bodyText)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 actionRow
             }
             .padding(PeekMetrics.hudInsets)

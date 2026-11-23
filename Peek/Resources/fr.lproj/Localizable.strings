@@ -4,6 +4,8 @@
 " (+%d)" = " (+%d)";
 "%@ - %@" = "%@ - %@";
 "%@ - %@%@" = "%@ - %@%@";
+"%@ at %@" = "%@ chez %@";
+"%@ couldn't be read. Check that it is valid JSON." = "Impossible de lire %@. Vérifiez qu'il s'agit d'un JSON valide.";
 "%@ • %@ - %@" = "%@ • %@ - %@";
 "%@, has events" = "%@, avec des événements";
 "%d upcoming events" = "%d événements à venir";
@@ -34,9 +36,14 @@
 "Calendar access not granted" = "Accès au calendrier non accordé";
 "Calendars" = "Calendriers";
 "Calendars to monitor" = "Calendriers à suivre";
+"Choose the folder where %@ is written. Peek only reads it." = "Choisissez le dossier où %@ est écrit. Peek se contente de le lire.";
 "Choose which calendars appear in the menu bar." = "Choisissez les calendriers affichés dans la barre des menus.";
+"Choose…" = "Choisir…";
 "Collapsed" = "Réduit";
 "Connect your calendar" = "Connectez votre calendrier";
+"Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts." = "L'accès aux contacts est désactivé. Autorisez Peek dans Réglages Système → Confidentialité et sécurité → Contacts.";
+"Context" = "Contexte";
+"Context folder" = "Dossier de contexte";
 "Control which events are displayed." = "Choisissez les événements affichés.";
 "Copy Event Title" = "Copier le titre de l'événement";
 "Copy Location" = "Copier le lieu";
@@ -52,6 +59,7 @@
 "Exchange" = "Exchange";
 "Expanded" = "Développé";
 "Filters" = "Filtres";
+"from %@" = "de %@";
 "Full screen" = "Plein écran";
 "Full screen interrupts whatever you are doing." = "Le plein écran interrompt tout ce que vous faites.";
 "General" = "Général";
@@ -79,10 +87,12 @@
 "Look ahead" = "Période";
 "macOS did not disable Launch at Login for Peek." = "macOS n'a pas désactivé l'ouverture de Peek à la connexion.";
 "macOS did not enable Launch at Login for Peek." = "macOS n'a pas activé l'ouverture de Peek à la connexion.";
+"Match attendees with your Contacts for role and company. Stays on your Mac." = "Associe les participants à vos Contacts pour le rôle et l'entreprise. Reste sur votre Mac.";
 "Max events to show" = "Nombre maximal d'événements";
 "Maybe later" = "Plus tard";
 "Meeting" = "Réunion";
 "meeting" = "réunion";
+"Meeting context" = "Contexte de la réunion";
 "Meeting notifications" = "Notifications de réunion";
 "NEXT" = "SUIVANT";
 "Next 14 days" = "14 prochains jours";
@@ -90,6 +100,7 @@
 "Next 30 days" = "30 prochains jours";
 "Next 7 days" = "7 prochains jours";
 "Next month" = "Mois suivant";
+"No %@ in this folder yet." = "Pas encore de %@ dans ce dossier.";
 "No additional details" = "Aucun autre détail";
 "No Calendar Access" = "Pas d'accès au calendrier";
 "No calendars found" = "Aucun calendrier trouvé";
@@ -97,6 +108,7 @@
 "No upcoming events" = "Aucun événement à venir";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "Aucun événement à venir. Peek s'allume dès qu'un événement arrive dans votre calendrier.";
 "Notes" = "Notes";
+"Notes another app prepares for your meetings, such as a personal knowledge system." = "Des notes qu'une autre app prépare pour vos réunions, comme un système de connaissances personnel.";
 "Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders." = "Les notifications ne sont pas disponibles. Autorisez les notifications de Peek dans Réglages Système pour recevoir des rappels.";
 "NOW" = "MAINTENANT";
 "NOW!" = "MAINTENANT !";
@@ -108,15 +120,19 @@
 "Open System Settings" = "Ouvrir Réglages Système";
 "Organizer" = "Organisateur";
 "Peek" = "Peek";
+"Peek couldn't keep access to that folder. Try choosing it again." = "Peek n'a pas pu conserver l'accès à ce dossier. Choisissez-le à nouveau.";
 "Peek needs permission to read your events. Grant access in System Settings to get started." = "Peek a besoin d'une autorisation pour lire vos événements. Accordez l'accès dans Réglages Système pour commencer.";
 "Peek reads your events to show what's next. That's all — nothing leaves your Mac." = "Peek lit vos événements pour afficher ce qui arrive. C'est tout : rien ne quitte votre Mac.";
 "Preferences" = "Préférences";
 "Previous month" = "Mois précédent";
 "Quit Peek" = "Quitter Peek";
 "Read-only · stays local" = "Lecture seule · reste en local";
+"Reading %@ in “%@”." = "Lecture de %@ dans « %@ ».";
+"Reading context for %d events." = "Contexte disponible pour %d événements.";
 "Refresh events" = "Actualiser les événements";
 "Refreshed" = "Actualisé";
 "Refreshing…" = "Actualisation…";
+"Remove" = "Retirer";
 "Remove %@" = "Supprimer %@";
 "Remove keyword" = "Supprimer le mot-clé";
 "Requesting…" = "Demande en cours…";
@@ -127,6 +143,7 @@
 "Shortcut & alerts" = "Raccourci et alertes";
 "Show event count badge" = "Afficher le nombre d'événements";
 "Show month calendar" = "Afficher le calendrier du mois";
+"Show who you're meeting" = "Afficher qui vous rencontrez";
 "Snooze (%d min)" = "Répéter (%d min)";
 "Snooze 5 min" = "Répéter dans 5 min";
 "Some reminders could not be scheduled. Peek will retry shortly." = "Certains rappels n'ont pas pu être programmés. Peek réessaiera bientôt.";
@@ -144,7 +161,9 @@
 "Status bar display" = "Affichage dans la barre des menus";
 "Step %d of 3" = "Étape %d sur 3";
 "Subscription" = "Abonnement";
+"The folder is no longer available. Choose it again." = "Le dossier n'est plus disponible. Choisissez-le à nouveau.";
 "Theme" = "Thème";
+"This file uses format version %d, which this Peek doesn't support." = "Ce fichier utilise la version de format %d, que cette version de Peek ne prend pas en charge.";
 "Time format" = "Format de l'heure";
 "Time Until" = "Temps restant";
 "Tint the title amber, then red, as time runs out." = "Teinte le titre en ambre, puis en rouge, à mesure que l'heure approche.";
@@ -153,6 +172,7 @@
 "Unknown attendee" = "Participant inconnu";
 "Untitled Event" = "Événement sans titre";
 "Upcoming Event" = "Événement à venir";
+"Use Folder" = "Utiliser le dossier";
 "Use the heads-up card for events without a join link or attendees." = "Utiliser la carte d'alerte pour les événements sans lien ni participants.";
 "Use urgency colors" = "Utiliser les couleurs d'urgence";
 "Use Zoom or Teams when installed, otherwise the browser." = "Utiliser Zoom ou Teams s'ils sont installés, sinon le navigateur.";
@@ -161,5 +181,9 @@
 "What should Peek watch?" = "Que doit suivre Peek ?";
 "When a meeting starts" = "Au début d'une réunion";
 "You can change this anytime in Settings." = "Vous pouvez modifier ce choix à tout moment dans les Réglages.";
+"You're about to meet %@" = "Vous allez rencontrer %@";
+"You're about to meet %@ and %@" = "Vous allez rencontrer %@ et %@";
+"You're about to meet %@ and %d others" = "Vous allez rencontrer %@ et %d autres personnes";
+"You're about to meet %@, %@" = "Vous allez rencontrer %@, %@";
 "You're all clear" = "Rien de prévu";
 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts." = "Votre prochaine réunion, toujours visible d'un coup d'œil dans la barre des menus, à rejoindre en un clic dès qu'elle commence.";

@@ -75,6 +75,7 @@ final class StartingNowHUDController {
             title: event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title"),
             startTime: DateFormatter.localizedString(from: event.startDate, dateStyle: .none, timeStyle: .short),
             detail: detailParts.joined(separator: " · "),
+            contextLine: MeetingContextProvider.context(for: event).headline,
             joinProviderLabel: providerLabel,
             appearanceMode: appearanceMode,
             onJoin: { [weak self] in
@@ -129,6 +130,7 @@ final class StartingNowHUDController {
             calendarName: event.calendar?.title,
             calendarColor: event.calendar.map { Color($0.color) },
             joinProviderLabel: providerLabel,
+            contextLine: MeetingContextProvider.context(for: event).headline,
             appearanceMode: appearanceMode,
             onJoin: { [weak self] in
                 if let url = meetingURL {

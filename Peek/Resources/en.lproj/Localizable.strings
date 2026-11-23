@@ -4,6 +4,8 @@
 " (+%d)" = " (+%d)";
 "%@ - %@" = "%@ - %@";
 "%@ - %@%@" = "%@ - %@%@";
+"%@ at %@" = "%@ at %@";
+"%@ couldn't be read. Check that it is valid JSON." = "%@ couldn't be read. Check that it is valid JSON.";
 "%@ • %@ - %@" = "%@ • %@ - %@";
 "%@, has events" = "%@, has events";
 "%d upcoming events" = "%d upcoming events";
@@ -34,9 +36,14 @@
 "Calendar access not granted" = "Calendar access not granted";
 "Calendars" = "Calendars";
 "Calendars to monitor" = "Calendars to monitor";
+"Choose the folder where %@ is written. Peek only reads it." = "Choose the folder where %@ is written. Peek only reads it.";
 "Choose which calendars appear in the menu bar." = "Choose which calendars appear in the menu bar.";
+"Choose…" = "Choose…";
 "Collapsed" = "Collapsed";
 "Connect your calendar" = "Connect your calendar";
+"Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts." = "Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts.";
+"Context" = "Context";
+"Context folder" = "Context folder";
 "Control which events are displayed." = "Control which events are displayed.";
 "Copy Event Title" = "Copy Event Title";
 "Copy Location" = "Copy Location";
@@ -52,6 +59,7 @@
 "Exchange" = "Exchange";
 "Expanded" = "Expanded";
 "Filters" = "Filters";
+"from %@" = "from %@";
 "Full screen" = "Full screen";
 "Full screen interrupts whatever you are doing." = "Full screen interrupts whatever you are doing.";
 "General" = "General";
@@ -79,10 +87,12 @@
 "Look ahead" = "Look ahead";
 "macOS did not disable Launch at Login for Peek." = "macOS did not disable Launch at Login for Peek.";
 "macOS did not enable Launch at Login for Peek." = "macOS did not enable Launch at Login for Peek.";
+"Match attendees with your Contacts for role and company. Stays on your Mac." = "Match attendees with your Contacts for role and company. Stays on your Mac.";
 "Max events to show" = "Max events to show";
 "Maybe later" = "Maybe later";
 "Meeting" = "Meeting";
 "meeting" = "meeting";
+"Meeting context" = "Meeting context";
 "Meeting notifications" = "Meeting notifications";
 "NEXT" = "NEXT";
 "Next 14 days" = "Next 14 days";
@@ -90,6 +100,7 @@
 "Next 30 days" = "Next 30 days";
 "Next 7 days" = "Next 7 days";
 "Next month" = "Next month";
+"No %@ in this folder yet." = "No %@ in this folder yet.";
 "No additional details" = "No additional details";
 "No Calendar Access" = "No Calendar Access";
 "No calendars found" = "No calendars found";
@@ -97,6 +108,7 @@
 "No upcoming events" = "No upcoming events";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "No upcoming events. Peek will light up the moment something lands on your calendar.";
 "Notes" = "Notes";
+"Notes another app prepares for your meetings, such as a personal knowledge system." = "Notes another app prepares for your meetings, such as a personal knowledge system.";
 "Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders." = "Notifications are unavailable. Allow Peek notifications in System Settings to receive reminders.";
 "NOW" = "NOW";
 "NOW!" = "NOW!";
@@ -108,15 +120,19 @@
 "Open System Settings" = "Open System Settings";
 "Organizer" = "Organizer";
 "Peek" = "Peek";
+"Peek couldn't keep access to that folder. Try choosing it again." = "Peek couldn't keep access to that folder. Try choosing it again.";
 "Peek needs permission to read your events. Grant access in System Settings to get started." = "Peek needs permission to read your events. Grant access in System Settings to get started.";
 "Peek reads your events to show what's next. That's all — nothing leaves your Mac." = "Peek reads your events to show what's next. That's all — nothing leaves your Mac.";
 "Preferences" = "Preferences";
 "Previous month" = "Previous month";
 "Quit Peek" = "Quit Peek";
 "Read-only · stays local" = "Read-only · stays local";
+"Reading %@ in “%@”." = "Reading %@ in “%@”.";
+"Reading context for %d events." = "Reading context for %d events.";
 "Refresh events" = "Refresh events";
 "Refreshed" = "Refreshed";
 "Refreshing…" = "Refreshing…";
+"Remove" = "Remove";
 "Remove %@" = "Remove %@";
 "Remove keyword" = "Remove keyword";
 "Requesting…" = "Requesting…";
@@ -127,6 +143,7 @@
 "Shortcut & alerts" = "Shortcut & alerts";
 "Show event count badge" = "Show event count badge";
 "Show month calendar" = "Show month calendar";
+"Show who you're meeting" = "Show who you're meeting";
 "Snooze (%d min)" = "Snooze (%d min)";
 "Snooze 5 min" = "Snooze 5 min";
 "Some reminders could not be scheduled. Peek will retry shortly." = "Some reminders could not be scheduled. Peek will retry shortly.";
@@ -144,7 +161,9 @@
 "Status bar display" = "Status bar display";
 "Step %d of 3" = "Step %d of 3";
 "Subscription" = "Subscription";
+"The folder is no longer available. Choose it again." = "The folder is no longer available. Choose it again.";
 "Theme" = "Theme";
+"This file uses format version %d, which this Peek doesn't support." = "This file uses format version %d, which this Peek doesn't support.";
 "Time format" = "Time format";
 "Time Until" = "Time Until";
 "Tint the title amber, then red, as time runs out." = "Tint the title amber, then red, as time runs out.";
@@ -153,6 +172,7 @@
 "Unknown attendee" = "Unknown attendee";
 "Untitled Event" = "Untitled Event";
 "Upcoming Event" = "Upcoming Event";
+"Use Folder" = "Use Folder";
 "Use the heads-up card for events without a join link or attendees." = "Use the heads-up card for events without a join link or attendees.";
 "Use urgency colors" = "Use urgency colors";
 "Use Zoom or Teams when installed, otherwise the browser." = "Use Zoom or Teams when installed, otherwise the browser.";
@@ -161,5 +181,9 @@
 "What should Peek watch?" = "What should Peek watch?";
 "When a meeting starts" = "When a meeting starts";
 "You can change this anytime in Settings." = "You can change this anytime in Settings.";
+"You're about to meet %@" = "You're about to meet %@";
+"You're about to meet %@ and %@" = "You're about to meet %@ and %@";
+"You're about to meet %@ and %d others" = "You're about to meet %@ and %d others";
+"You're about to meet %@, %@" = "You're about to meet %@, %@";
 "You're all clear" = "You're all clear";
 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts." = "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts.";

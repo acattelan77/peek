@@ -26,6 +26,8 @@
 	<string>Peek needs access to your calendar to display upcoming events in the menu bar.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Peek needs full calendar access to display upcoming events in the menu bar.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Peek matches meeting attendees with your contacts to show their role and company. Nothing leaves your Mac.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Peek would like to send you notifications to remind you about upcoming events.</string>
 </dict>

@@ -4,6 +4,25 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.8.0 - 2026-11-23
+
+### Added
+
+- PEEK-211: "You're about to meet Marco, CEO at Northwind" in the next-event row,
+  the heads-up card and the full-screen alert. Attendees are matched with Contacts
+  for role and company when the user turns it on in Preferences (the permission is
+  asked only then); otherwise the company email domain is shown.
+- PEEK-212: event notes drop Zoom, Meet and Teams join instructions, dial-in numbers
+  and HTML, so the expanded row shows the agenda.
+- PEEK-213: Peek can read meeting context that another app, such as Northwind Notes,
+  writes to `peek-context.json` in a folder the user chooses (ADR 0004). Read-only,
+  kept with a security-scoped bookmark.
+
+### Changed
+
+- New sandbox entitlements: Contacts, read-only access to a user-selected folder,
+  and app-scoped bookmarks.
+
 ## 1.7.0 - 2026-11-23
 
 ### Added

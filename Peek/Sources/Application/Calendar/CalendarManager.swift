@@ -30,6 +30,10 @@ class CalendarManager: ObservableObject {
     @Published var showMonthCalendar: Bool = true
     @Published var startAlertStyle: StartAlertStyle = .hud
     @Published var interruptOnlyForMeetings: Bool = true
+    @Published var meetingContextUsesContacts: Bool = false
+    @Published var contactsStatusMessage: String?
+    @Published var contextFolderName: String?
+    @Published var contextFolderStatusMessage: String?
 
     /// Whether the first-run onboarding flow has been completed. Persisted so it is
     /// only shown once.
@@ -135,6 +139,7 @@ class CalendarManager: ObservableObject {
         showMonthCalendar = defaults.object(forKey: showMonthCalendarKey) as? Bool ?? true
         startAlertStyle = defaults.string(forKey: startAlertStyleKey).flatMap(StartAlertStyle.init(rawValue:)) ?? .hud
         interruptOnlyForMeetings = defaults.object(forKey: interruptOnlyForMeetingsKey) as? Bool ?? true
+        meetingContextUsesContacts = defaults.bool(forKey: MeetingContextProvider.useContactsKey)
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -163,6 +168,7 @@ class CalendarManager: ObservableObject {
         defaults.set(showMonthCalendar, forKey: showMonthCalendarKey)
         defaults.set(startAlertStyle.rawValue, forKey: startAlertStyleKey)
         defaults.set(interruptOnlyForMeetings, forKey: interruptOnlyForMeetingsKey)
+        defaults.set(meetingContextUsesContacts, forKey: MeetingContextProvider.useContactsKey)
     }
 
     func saveEnabledCalendars() {
@@ -423,6 +429,91 @@ class CalendarManager: ObservableObject {
             DispatchQueue.main.async {
                 completion(visible)
             }
+        }
+    }
+}
+
+// MARK: - Meeting context (PEEK-211, PEEK-213)
+
+extension CalendarManager {
+    /// Turns attendee enrichment from Contacts on or off. Turning it on asks
+    /// for Contacts access the first time; a refusal leaves it off.
+    func setContactsContext(enabled: Bool, contacts: SystemContactsDirectory = .shared) {
+        contactsStatusMessage = nil
+        guard enabled else {
+            meetingContextUsesContacts = false
+            return
+        }
+        if contacts.isAuthorized {
+            meetingContextUsesContacts = true
+            contacts.clearCache()
+            return
+        }
+        if contacts.isDenied {
+            meetingContextUsesContacts = false
+            contactsStatusMessage = Self.contactsDeniedMessage
+            return
+        }
+        contacts.requestAccess { [weak self] granted in
+            self?.meetingContextUsesContacts = granted
+            self?.contactsStatusMessage = granted ? nil : Self.contactsDeniedMessage
+        }
+    }
+
+    static var contactsDeniedMessage: String {
+        NSLocalizedString(
+            "Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts.",
+            comment: "Contacts permission denied footnote"
+        )
+    }
+
+    func setContextFolder(_ url: URL, store: ContextFolderStore = .shared) {
+        if store.setFolder(url) {
+            refreshContextFolderState(store: store)
+        } else {
+            contextFolderStatusMessage = NSLocalizedString(
+                "Peek couldn't keep access to that folder. Try choosing it again.",
+                comment: "Context folder bookmark failed"
+            )
+        }
+    }
+
+    func removeContextFolder(store: ContextFolderStore = .shared) {
+        store.removeFolder()
+        refreshContextFolderState(store: store)
+    }
+
+    func refreshContextFolderState(store: ContextFolderStore = .shared) {
+        contextFolderName = store.folderName
+        contextFolderStatusMessage = Self.message(for: store.status())
+    }
+
+    static func message(for status: ContextFolderStore.Status) -> String? {
+        switch status {
+        case .noFolder:
+            return nil
+        case .folderUnavailable:
+            return NSLocalizedString("The folder is no longer available. Choose it again.", comment: "Context folder missing")
+        case .fileMissing:
+            return String(
+                format: NSLocalizedString("No %@ in this folder yet.", comment: "Context file missing; placeholder is the file name"),
+                MeetingContextFile.fileName
+            )
+        case .unreadable:
+            return String(
+                format: NSLocalizedString("%@ couldn't be read. Check that it is valid JSON.", comment: "Context file invalid; placeholder is the file name"),
+                MeetingContextFile.fileName
+            )
+        case .unsupportedVersion(let version):
+            return String(
+                format: NSLocalizedString("This file uses format version %d, which this Peek doesn't support.", comment: "Context file schema version unsupported"),
+                version
+            )
+        case .ready(let count):
+            return String(
+                format: NSLocalizedString("Reading context for %d events.", comment: "Context file loaded; placeholder is the number of events"),
+                count
+            )
         }
     }
 }
