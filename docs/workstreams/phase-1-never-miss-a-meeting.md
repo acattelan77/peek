@@ -43,7 +43,7 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
 
 - [x] PEEK-202 link detection, native-app join, export v1 classification frozen
 - [x] PEEK-201 compact month view (`MonthGrid`, `MonthCalendarView`, day agenda in `MenuBarView`)
-- [ ] PEEK-203 alert levels and full-screen alert
+- [x] PEEK-203 alert levels and full-screen alert
 - [ ] PEEK-204 localization
 
 ## Validation
@@ -59,7 +59,11 @@ verso l'App Store" doc and the "Peek 2.0 mockup" canvas (phase 0, approved 2026-
   remains.
 - Detection order changed to URL field, location, notes (calendar providers put the
   conference link in the URL field; notes often hold secondary links).
+- PEEK-203 defaults to the heads-up card, so existing users see no change until they
+  choose Full screen. The full-screen alert does not read Focus status yet: that needs
+  the Communication Notifications capability and `INFocusStatusCenter` authorization.
+  Open question for the owner: should full screen respect Focus before App Store?
 
 ## Exact next action
 
-Implement PEEK-203.
+Implement PEEK-204.

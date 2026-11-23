@@ -28,6 +28,8 @@ class CalendarManager: ObservableObject {
     @Published var urgencyColorsEnabled: Bool = true
     @Published var openMeetingsInNativeApp: Bool = true
     @Published var showMonthCalendar: Bool = true
+    @Published var startAlertStyle: StartAlertStyle = .hud
+    @Published var interruptOnlyForMeetings: Bool = true
 
     /// Whether the first-run onboarding flow has been completed. Persisted so it is
     /// only shown once.
@@ -60,6 +62,8 @@ class CalendarManager: ObservableObject {
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
     private let openMeetingsInNativeAppKey = MeetingLinkOpener.preferNativeAppKey
     private let showMonthCalendarKey = "showMonthCalendar"
+    private let startAlertStyleKey = "startAlertStyle"
+    private let interruptOnlyForMeetingsKey = "interruptOnlyForMeetings"
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -129,6 +133,8 @@ class CalendarManager: ObservableObject {
         urgencyColorsEnabled = defaults.object(forKey: urgencyColorsEnabledKey) as? Bool ?? true
         openMeetingsInNativeApp = MeetingLinkOpener.prefersNativeApp(defaults)
         showMonthCalendar = defaults.object(forKey: showMonthCalendarKey) as? Bool ?? true
+        startAlertStyle = defaults.string(forKey: startAlertStyleKey).flatMap(StartAlertStyle.init(rawValue:)) ?? .hud
+        interruptOnlyForMeetings = defaults.object(forKey: interruptOnlyForMeetingsKey) as? Bool ?? true
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -155,6 +161,8 @@ class CalendarManager: ObservableObject {
         defaults.set(urgencyColorsEnabled, forKey: urgencyColorsEnabledKey)
         defaults.set(openMeetingsInNativeApp, forKey: openMeetingsInNativeAppKey)
         defaults.set(showMonthCalendar, forKey: showMonthCalendarKey)
+        defaults.set(startAlertStyle.rawValue, forKey: startAlertStyleKey)
+        defaults.set(interruptOnlyForMeetings, forKey: interruptOnlyForMeetingsKey)
     }
 
     func saveEnabledCalendars() {

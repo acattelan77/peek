@@ -243,3 +243,39 @@ enum MeetingLinkOpener {
         }
     }
 }
+
+/// How the app presents a meeting at its start time (PEEK-203).
+enum StartAlertPresentation: Equatable {
+    case none
+    case hud
+    case fullScreen
+}
+
+enum StartAlertPolicy {
+    /// Full screen interrupts only when the user allows it for this kind of event:
+    /// with "only meetings" on, an event without a join link or attendees (a focus
+    /// block, a reminder) gets the heads-up card instead.
+    static func presentation(
+        style: StartAlertStyle,
+        interruptOnlyForMeetings: Bool,
+        hasJoinLink: Bool,
+        hasAttendees: Bool
+    ) -> StartAlertPresentation {
+        switch style {
+        case .off:
+            return .none
+        case .hud:
+            return .hud
+        case .fullScreen:
+            if interruptOnlyForMeetings && !hasJoinLink && !hasAttendees {
+                return .hud
+            }
+            return .fullScreen
+        }
+    }
+
+    /// Snooze delay per presentation: a full-screen alert comes back sooner.
+    static func snoozeDelay(for presentation: StartAlertPresentation) -> TimeInterval {
+        presentation == .fullScreen ? 60 : 300
+    }
+}

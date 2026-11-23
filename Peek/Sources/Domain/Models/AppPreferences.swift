@@ -100,6 +100,24 @@ enum NotificationTiming: Int, CaseIterable {
     }
 }
 
+/// What happens when a meeting starts (PEEK-203).
+enum StartAlertStyle: String, CaseIterable {
+    case off = "Off"
+    case hud = "Heads-up card"
+    case fullScreen = "Full screen"
+
+    var displayName: String {
+        switch self {
+        case .off:
+            return NSLocalizedString("Off", comment: "Start alert style: off")
+        case .hud:
+            return NSLocalizedString("Heads-up card", comment: "Start alert style: heads-up card")
+        case .fullScreen:
+            return NSLocalizedString("Full screen", comment: "Start alert style: full screen")
+        }
+    }
+}
+
 enum PreferenceConstraints {
     static let lookaheadDays = [1, 3, 7, 14, 30]
     static let eventLimits = [3, 5, 10, 15, 20]

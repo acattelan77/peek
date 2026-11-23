@@ -37,6 +37,7 @@
 		1A0000710000000000000001 /* EventCandidate+EventKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006E0000000000000001 /* EventCandidate+EventKit.swift */; };
 		1A0000720000000000000001 /* EventPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006D0000000000000001 /* EventPipeline.swift */; };
 		1A0000730000000000000001 /* EventPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00006F0000000000000001 /* EventPipelineTests.swift */; };
+		6A0000050000000000000002 /* StartAlertPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000050000000000000001 /* StartAlertPolicyTests.swift */; };
 		6A0000030000000000000002 /* MonthGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000030000000000000001 /* MonthGridTests.swift */; };
 		1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		1A0000750000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
@@ -67,6 +68,7 @@
 		2D0000020000000000000001 /* PeekComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000120000000000000001 /* PeekComponents.swift */; };
 		2D0000030000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000130000000000000001 /* OnboardingView.swift */; };
 		2D0000040000000000000001 /* StartingNowHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0000140000000000000001 /* StartingNowHUD.swift */; };
+		6A0000040000000000000002 /* MeetingStartAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000040000000000000001 /* MeetingStartAlert.swift */; };
 		111000010000000000000001 /* CalendarExportCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000020000000000000001 /* CalendarExportCommand.swift */; };
 		111000030000000000000001 /* CalendarExportPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000040000000000000001 /* CalendarExportPayload.swift */; };
 		111000050000000000000001 /* CalendarExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111000060000000000000001 /* CalendarExportTests.swift */; };
@@ -110,6 +112,7 @@
 		6A0000010000000000000001 /* MonthGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthGrid.swift; sourceTree = "<group>"; };
 		1A00006E0000000000000001 /* EventCandidate+EventKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventCandidate+EventKit.swift"; sourceTree = "<group>"; };
 		1A00006F0000000000000001 /* EventPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPipelineTests.swift; sourceTree = "<group>"; };
+		6A0000050000000000000001 /* StartAlertPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartAlertPolicyTests.swift; sourceTree = "<group>"; };
 		6A0000030000000000000001 /* MonthGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthGridTests.swift; sourceTree = "<group>"; };
 		1A0000760000000000000001 /* AppBehaviorSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBehaviorSupport.swift; sourceTree = "<group>"; };
 		1A0000290000000000000001 /* Peek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peek.entitlements; sourceTree = "<group>"; };
@@ -139,6 +142,7 @@
 		2D0000120000000000000001 /* PeekComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeekComponents.swift; sourceTree = "<group>"; };
 		2D0000130000000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		2D0000140000000000000001 /* StartingNowHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartingNowHUD.swift; sourceTree = "<group>"; };
+		6A0000040000000000000001 /* MeetingStartAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingStartAlert.swift; sourceTree = "<group>"; };
 		111000020000000000000001 /* CalendarExportCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportCommand.swift; sourceTree = "<group>"; };
 		111000040000000000000001 /* CalendarExportPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportPayload.swift; sourceTree = "<group>"; };
 		111000060000000000000001 /* CalendarExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarExportTests.swift; sourceTree = "<group>"; };
@@ -218,6 +222,7 @@
 				1A00004A0000000000000001 /* EventTimeFormatterTests.swift */,
 				1A00004B0000000000000001 /* MeetingUrgencyTests.swift */,
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
+				6A0000050000000000000001 /* StartAlertPolicyTests.swift */,
 				6A0000030000000000000001 /* MonthGridTests.swift */,
 				2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */,
 				2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */,
@@ -405,6 +410,7 @@
 			isa = PBXGroup;
 			children = (
 				2D0000140000000000000001 /* StartingNowHUD.swift */,
+				6A0000040000000000000001 /* MeetingStartAlert.swift */,
 			);
 			path = HUD;
 			sourceTree = "<group>";
@@ -610,6 +616,7 @@
 				111000010000000000000001 /* CalendarExportCommand.swift in Sources */,
 				111000030000000000000001 /* CalendarExportPayload.swift in Sources */,
 				1A0000050000000000000001 /* MenuBarView.swift in Sources */,
+				6A0000040000000000000002 /* MeetingStartAlert.swift in Sources */,
 				6A0000020000000000000002 /* MonthCalendarView.swift in Sources */,
 				6A0000010000000000000002 /* MonthGrid.swift in Sources */,
 				1A0000110000000000000002 /* PreferencesView.swift in Sources */,
@@ -637,6 +644,7 @@
 				2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */,
 				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
 				111000050000000000000001 /* CalendarExportTests.swift in Sources */,
+				6A0000050000000000000002 /* StartAlertPolicyTests.swift in Sources */,
 				6A0000030000000000000002 /* MonthGridTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

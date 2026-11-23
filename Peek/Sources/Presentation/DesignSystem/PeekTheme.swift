@@ -128,6 +128,9 @@ enum PeekNSColor {
     static let secondaryText = NSColor.peek("#555A63", dark: "#B0B4BC", hcLight: "#40454E", hcDark: "#C4C8CF")
     static let tertiaryText = NSColor.peek("#676C75", dark: "#999EA7", hcLight: "#555A63", hcDark: "#B0B4BC")
 
+    // Full-screen alert backdrop (PEEK-203)
+    static let scrim = NSColor.peek("#0F101499", dark: "#000000B3")
+
     // Shadow
     static let shadow = NSColor.dynamic(
         light: NSColor(hex: "#141628").withAlphaComponent(0.20),
@@ -176,6 +179,7 @@ enum PeekColor {
     static let tertiaryText = Color(nsColor: PeekNSColor.tertiaryText)
 
     static let shadow = Color(nsColor: PeekNSColor.shadow)
+    static let scrim = Color(nsColor: PeekNSColor.scrim)
 }
 
 // MARK: - Tone (urgency-aware color set)
@@ -395,6 +399,11 @@ enum PeekMetrics {
     static let hudIcon: CGFloat = 16
     static let hudMetaGap: CGFloat = 14
     static let hudDismissButton: CGFloat = 38
+
+    // Full-screen start alert (PEEK-203)
+    static let alertWidth: CGFloat = 520
+    static let alertInsets = EdgeInsets(top: 28, leading: 28, bottom: 22, trailing: 28)
+    static let alertSectionGap: CGFloat = 18
 
     // Focus ring
     static let focusRing: CGFloat = 3

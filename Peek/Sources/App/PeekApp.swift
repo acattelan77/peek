@@ -580,7 +580,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 self.updatePulsingState(urgency: content.urgency)
                 self.adjustTimerForUrgency(content.urgency)
-                self.hudController.maybeShow(for: event, urgency: content.urgency, appearanceMode: self.calendarManager.appearanceMode)
+                self.hudController.maybeShow(
+                    for: event,
+                    urgency: content.urgency,
+                    appearanceMode: self.calendarManager.appearanceMode,
+                    style: self.calendarManager.startAlertStyle,
+                    interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
+                )
             } else {
                 content = StatusBarContent(
                     title: NSLocalizedString("No upcoming events", comment: "Status bar title when no events"),

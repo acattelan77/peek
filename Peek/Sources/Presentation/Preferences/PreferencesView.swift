@@ -472,6 +472,27 @@ struct GeneralTab: View {
                     }
                     RowDivider()
                     SettingRow(
+                        NSLocalizedString("When a meeting starts", comment: "Start alert style setting"),
+                        subtitle: NSLocalizedString("Full screen interrupts whatever you are doing.", comment: "Start alert style subtitle")
+                    ) {
+                        Picker("", selection: $calendarManager.startAlertStyle) {
+                            ForEach(StartAlertStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        }
+                        .labelsHidden()
+                        .frame(width: PeekMetrics.pickerMedium)
+                        .accessibilityLabel(NSLocalizedString("When a meeting starts", comment: "Start alert style setting"))
+                    }
+                    if calendarManager.startAlertStyle == .fullScreen {
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"),
+                            subtitle: NSLocalizedString("Use the heads-up card for events without a join link or attendees.", comment: "Interrupt only for meetings subtitle")
+                        ) {
+                            switchToggle($calendarManager.interruptOnlyForMeetings, label: NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"))
+                        }
+                    }
+                    RowDivider()
+                    SettingRow(
                         NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"),
                         subtitle: NSLocalizedString("Use Zoom or Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
                     ) {
