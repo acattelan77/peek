@@ -139,7 +139,7 @@ class CalendarManager: ObservableObject {
         showMonthCalendar = defaults.object(forKey: showMonthCalendarKey) as? Bool ?? true
         startAlertStyle = defaults.string(forKey: startAlertStyleKey).flatMap(StartAlertStyle.init(rawValue:)) ?? .hud
         interruptOnlyForMeetings = defaults.object(forKey: interruptOnlyForMeetingsKey) as? Bool ?? true
-        meetingContextUsesContacts = MeetingContextProvider.usesContacts(defaults)
+        meetingContextUsesContacts = defaults.bool(forKey: MeetingContextProvider.useContactsKey)
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
