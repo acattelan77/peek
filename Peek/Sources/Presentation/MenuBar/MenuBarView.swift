@@ -3,6 +3,9 @@ import AppKit
 import EventKit
 import Foundation
 
+/// The popover (Peek 2.0 layout): month title header with ‹ Today › controls, the
+/// compact month grid, the next-meeting card, compact rows grouped by day, and the
+/// icon footer. Choosing a meeting opens its page in place ("You're about to meet").
 struct MenuBarView: View {
     // Key codes
     private static let kEscapeKeyCode: UInt16 = 53
@@ -13,7 +16,8 @@ struct MenuBarView: View {
     @ObservedObject var calendarManager: CalendarManager
     @State private var showingPreferences = false
     @State private var selectedEventIndex: Int = 0
-    @State private var expandedEventID: String?
+    /// The meeting whose page is open, if any.
+    @State private var detailEvent: EKEvent?
     @State private var eventMonitor: Any?
     @State private var isRefreshing = false
     @State private var showRefreshConfirmation = false
@@ -21,6 +25,8 @@ struct MenuBarView: View {
     @State private var selectedDay: Date?
     @State private var eventDays: Set<Date> = []
     @State private var dayEvents: [EKEvent] = []
+    /// Everything visible today, so finished meetings can be shown dimmed and counted.
+    @State private var todayEvents: [EKEvent] = []
     var closePopover: (() -> Void)?
     var refreshStatusBar: ((EKEvent?) -> Void)? = nil
     private let refreshFeedbackMinDuration: TimeInterval = 0.4
@@ -32,19 +38,23 @@ struct MenuBarView: View {
         return formatter
     }()
 
+    private static let headerDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("EEEE d")
+        return formatter
+    }()
+
     private var monthGrid: MonthGrid { MonthGrid.make(containing: displayedMonth) }
+
+    private var showsMonth: Bool {
+        calendarManager.showMonthCalendar && calendarManager.hasCalendarAccess
+    }
 
     /// A chosen day other than today replaces the upcoming list with that day's agenda.
     private var chosenOtherDay: Date? {
         guard let selectedDay, !Calendar.current.isDateInToday(selectedDay) else { return nil }
         return selectedDay
     }
-
-    private static let headerDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("EEEE, MMMM d")
-        return formatter
-    }()
 
     private var preferredColorScheme: ColorScheme? {
         switch calendarManager.appearanceMode {
@@ -67,38 +77,51 @@ struct MenuBarView: View {
         return NSLocalizedString("Refresh events", comment: "Help text: Refresh events")
     }
 
+    /// Meetings today that already ended and are not in the upcoming list.
+    private var finishedToday: [EKEvent] {
+        let upcomingIDs = Set(calendarManager.upcomingEvents.compactMap(\.eventIdentifier))
+        let now = Date()
+        return todayEvents
+            .filter { !$0.isAllDay && $0.endDate <= now && !upcomingIDs.contains($0.eventIdentifier ?? "") }
+            .sorted { $0.startDate < $1.startDate }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
-            Divider().overlay(PeekColor.innerDivider)
-
-            if !calendarManager.worldClockZones.isEmpty {
-                WorldClockStrip(zones: calendarManager.worldClockZones)
-                Divider().overlay(PeekColor.innerDivider)
-            }
-
-            if calendarManager.showMonthCalendar && calendarManager.hasCalendarAccess {
-                MonthCalendarView(
-                    grid: monthGrid,
-                    eventDays: eventDays,
-                    selectedDay: selectedDay,
-                    onSelectDay: selectDay,
-                    onPreviousMonth: { shiftMonth(by: -1) },
-                    onNextMonth: { shiftMonth(by: 1) },
-                    onToday: showToday
+            if let detailEvent {
+                MeetingPage(
+                    event: detailEvent,
+                    worldClockZones: calendarManager.worldClockZones,
+                    onBack: closeDetail
                 )
-                Divider().overlay(PeekColor.innerDivider)
-            }
-
-            if let day = chosenOtherDay {
-                dayAgenda(for: day)
-            } else if calendarManager.upcomingEvents.isEmpty {
-                emptyState
             } else {
-                eventList
+                header
+
+                if !calendarManager.worldClockZones.isEmpty {
+                    WorldClockStrip(zones: calendarManager.worldClockZones)
+                }
+
+                if showsMonth {
+                    MonthCalendarView(
+                        grid: monthGrid,
+                        eventDays: eventDays,
+                        selectedDay: selectedDay,
+                        onSelectDay: selectDay
+                    )
+                }
+
+                Divider().overlay(PeekColor.hairline)
+
+                if let day = chosenOtherDay {
+                    dayAgenda(for: day)
+                } else if calendarManager.upcomingEvents.isEmpty && finishedToday.isEmpty {
+                    emptyState
+                } else {
+                    eventList
+                }
             }
 
-            Divider().overlay(PeekColor.innerDivider)
+            Divider().overlay(PeekColor.hairline)
             footer
         }
         .frame(width: PeekMetrics.popoverWidth)
@@ -110,6 +133,7 @@ struct MenuBarView: View {
         }
         .onAppear {
             reloadEventDays()
+            reloadTodayEvents()
             if let existingMonitor = eventMonitor {
                 NSEvent.removeMonitor(existingMonitor)
             }
@@ -128,11 +152,9 @@ struct MenuBarView: View {
                 selectedEventIndex = max(0, newCount - 1)
             }
         }
-        .onChange(of: calendarManager.upcomingEvents.map(\.eventIdentifier)) { identifiers in
-            if let expandedEventID, !identifiers.contains(expandedEventID) {
-                self.expandedEventID = nil
-            }
+        .onChange(of: calendarManager.upcomingEvents.map(\.eventIdentifier)) { _ in
             reloadEventDays()
+            reloadTodayEvents()
             if let day = chosenOtherDay {
                 reloadDayEvents(for: day)
             }
@@ -141,54 +163,148 @@ struct MenuBarView: View {
 
     // MARK: - Header
 
-    private var header: some View {
-        HStack(spacing: PeekMetrics.headerGap) {
-            PeekAppIcon(size: PeekMetrics.headerIcon, cornerRadius: PeekRadius.join)
+    private var headerTitle: String {
+        if showsMonth {
+            return MonthCalendarView.monthTitle(for: displayedMonth)
+        }
+        return Self.dayAgendaFormatter.string(from: Date()).capitalized
+    }
 
-            VStack(alignment: .leading, spacing: PeekSpacing.hairline) {
-                Text("Peek")
+    private var meetingsTodayText: String {
+        let count = todayEvents.filter { !$0.isAllDay }.count
+        switch count {
+        case 0: return NSLocalizedString("No meetings today", comment: "Popover header subtitle: no meetings today")
+        case 1: return NSLocalizedString("1 meeting today", comment: "Popover header subtitle: one meeting today")
+        default:
+            return String(format: NSLocalizedString("%d meetings today", comment: "Popover header subtitle: meetings today"), count)
+        }
+    }
+
+    private var headerSubtitle: String {
+        guard calendarManager.hasCalendarAccess else {
+            return Self.headerDayFormatter.string(from: Date()).capitalized
+        }
+        if showsMonth {
+            return String(
+                format: NSLocalizedString("%@ · %@", comment: "Two parts joined with a middle dot"),
+                Self.headerDayFormatter.string(from: Date()).capitalized,
+                meetingsTodayText
+            )
+        }
+        return meetingsTodayText
+    }
+
+    private var header: some View {
+        HStack(alignment: .center, spacing: PeekMetrics.headerGap) {
+            VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
+                Text(headerTitle)
                     .font(PeekFont.title)
                     .foregroundColor(PeekColor.ink)
+                    .lineLimit(1)
                     .accessibilityAddTraits(.isHeader)
-                Text(Self.headerDateFormatter.string(from: Date()))
+                Text(headerSubtitle)
                     .font(PeekFont.caption)
-                    .foregroundColor(PeekColor.tertiaryText)
+                    .foregroundColor(PeekColor.secondaryText)
+                    .lineLimit(1)
             }
 
-            Spacer()
+            Spacer(minLength: PeekSpacing.sm)
 
-            if !calendarManager.upcomingEvents.isEmpty {
-                CountPill(count: calendarManager.upcomingEvents.count)
-                    .accessibilityLabel(Text(String(
-                        format: NSLocalizedString("%d upcoming events", comment: "Accessibility: event count"),
-                        calendarManager.upcomingEvents.count
-                    )))
+            if showsMonth {
+                HStack(spacing: PeekMetrics.headerNavGap) {
+                    navButton(systemName: "chevron.left", help: NSLocalizedString("Previous month", comment: "Month view: previous month")) {
+                        shiftMonth(by: -1)
+                    }
+                    Button(NSLocalizedString("Today", comment: "Month view: jump to today"), action: showToday)
+                        .buttonStyle(HeaderNavButtonStyle())
+                    navButton(systemName: "chevron.right", help: NSLocalizedString("Next month", comment: "Month view: next month")) {
+                        shiftMonth(by: 1)
+                    }
+                }
             }
         }
-        .padding(.horizontal, PeekSpacing.lg)
-        .padding(.vertical, PeekMetrics.headerVerticalPadding)
+        .padding(PeekMetrics.headerInsets)
+    }
+
+    private func navButton(systemName: String, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(PeekIcon.nav)
+        }
+        .buttonStyle(HeaderNavButtonStyle(square: true))
+        .help(help)
+        .accessibilityLabel(Text(help))
     }
 
     // MARK: - Event list
 
+    private struct DayRow: Identifiable {
+        let event: EKEvent
+        /// Keyboard index in `upcomingEvents`; nil for finished meetings.
+        let index: Int?
+        var id: String { event.eventIdentifier ?? "\(event.startDate.timeIntervalSince1970)-\(event.title ?? "")" }
+    }
+
+    private struct DaySection: Identifiable {
+        let day: Date
+        let rows: [DayRow]
+        var id: Date { day }
+    }
+
+    /// Finished meetings of today and the upcoming events after the next one,
+    /// grouped by day. `index` is the keyboard index in `upcomingEvents`.
+    private var daySections: [DaySection] {
+        var rows: [DayRow] = finishedToday.map { DayRow(event: $0, index: nil) }
+        for (index, event) in calendarManager.upcomingEvents.enumerated() where index > 0 {
+            rows.append(DayRow(event: event, index: index))
+        }
+        let calendar = Calendar.current
+        var order: [Date] = []
+        var grouped: [Date: [DayRow]] = [:]
+        for row in rows {
+            let day = calendar.startOfDay(for: max(row.event.startDate, calendar.startOfDay(for: Date())))
+            if grouped[day] == nil { order.append(day) }
+            grouped[day, default: []].append(row)
+        }
+        return order.sorted().map { DaySection(day: $0, rows: grouped[$0] ?? []) }
+    }
+
+    private func sectionTitle(for day: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(day) {
+            return NSLocalizedString("Today", comment: "Popover list section: today")
+        }
+        if calendar.isDateInTomorrow(day) {
+            return NSLocalizedString("Tomorrow", comment: "Popover list section: tomorrow")
+        }
+        return Self.dayAgendaFormatter.string(from: day)
+    }
+
     private var eventList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PeekMetrics.rowGap) {
-                ForEach(Array(calendarManager.upcomingEvents.enumerated()), id: \.element.eventIdentifier) { index, event in
-                    EventRow(
-                        event: event,
-                        worldClockZones: calendarManager.worldClockZones,
-                        isHero: index == 0,
-                        isSelected: index == selectedEventIndex,
-                        isExpanded: expandedEventID != nil && expandedEventID == event.eventIdentifier,
-                        onToggleExpand: { toggleExpansion(for: event) }
+                if let next = calendarManager.upcomingEvents.first {
+                    NextMeetingCard(
+                        event: next,
+                        isSelected: selectedEventIndex == 0,
+                        onOpen: { openDetail(next) }
                     )
-                    .contextMenu {
-                        EventContextMenu(event: event)
+                    .contextMenu { EventContextMenu(event: next) }
+                }
+
+                ForEach(daySections) { section in
+                    PeekSectionLabel(text: sectionTitle(for: section.day))
+                    ForEach(section.rows) { row in
+                        CompactEventRow(
+                            event: row.event,
+                            isSelected: row.index != nil && row.index == selectedEventIndex,
+                            onOpen: { openDetail(row.event) }
+                        )
+                        .contextMenu { EventContextMenu(event: row.event) }
                     }
                 }
             }
-            .padding(PeekSpacing.sm)
+            .padding(PeekMetrics.listInsets)
         }
         .frame(maxHeight: PeekMetrics.popoverListMaxHeight)
         .background(PeekColor.canvas)
@@ -199,18 +315,7 @@ struct MenuBarView: View {
     private func dayAgenda(for day: Date) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PeekMetrics.rowGap) {
-                HStack(spacing: PeekSpacing.xs) {
-                    Text(Self.dayAgendaFormatter.string(from: day).capitalized)
-                        .font(PeekFont.bodyEmphasis)
-                        .foregroundColor(PeekColor.ink)
-                        .accessibilityAddTraits(.isHeader)
-                    Spacer()
-                    Button(NSLocalizedString("Back to upcoming", comment: "Month view: return to upcoming events"), action: showToday)
-                        .buttonStyle(SecondaryFillButtonStyle())
-                        .controlSize(.small)
-                }
-                .padding(.horizontal, PeekSpacing.xs)
-                .padding(.bottom, PeekSpacing.xxs)
+                PeekSectionLabel(text: sectionTitle(for: day))
 
                 if dayEvents.isEmpty {
                     Text(NSLocalizedString("No events on this day.", comment: "Month view: empty day"))
@@ -219,19 +324,12 @@ struct MenuBarView: View {
                         .padding(PeekSpacing.sm)
                 } else {
                     ForEach(dayEvents, id: \.eventIdentifier) { event in
-                        EventRow(
-                            event: event,
-                            worldClockZones: calendarManager.worldClockZones,
-                            isExpanded: expandedEventID != nil && expandedEventID == event.eventIdentifier,
-                            onToggleExpand: { toggleExpansion(for: event) }
-                        )
-                        .contextMenu {
-                            EventContextMenu(event: event)
-                        }
+                        CompactEventRow(event: event, onOpen: { openDetail(event) })
+                            .contextMenu { EventContextMenu(event: event) }
                     }
                 }
             }
-            .padding(PeekSpacing.sm)
+            .padding(PeekMetrics.listInsets)
         }
         .frame(maxHeight: PeekMetrics.popoverListMaxHeight)
         .background(PeekColor.canvas)
@@ -282,6 +380,12 @@ struct MenuBarView: View {
         }
     }
 
+    private func reloadTodayEvents() {
+        calendarManager.fetchEvents(on: Date()) { events in
+            todayEvents = events
+        }
+    }
+
     // MARK: - Empty / no-access states
 
     private var emptyState: some View {
@@ -322,10 +426,13 @@ struct MenuBarView: View {
         }
         .padding(PeekSpacing.huge)
         .frame(maxWidth: .infinity)
+        .background(PeekColor.canvas)
     }
 
     // MARK: - Footer
 
+    /// Icon footer kept from Peek 1.x by owner decision (2026-11-24): the mockup's
+    /// text links are not used. See docs/DESIGN_SYSTEM.md, "Popover footer".
     private var footer: some View {
         HStack(spacing: PeekSpacing.lg) {
             PeekToolbarButton(systemName: "gearshape", help: NSLocalizedString("Preferences", comment: "Help text: Preferences")) {
@@ -369,11 +476,15 @@ struct MenuBarView: View {
         }
 
         if event.keyCode == Self.kEscapeKeyCode {
-            closePopover?()
+            if detailEvent != nil {
+                closeDetail()
+            } else {
+                closePopover?()
+            }
             return nil
         }
 
-        if !calendarManager.upcomingEvents.isEmpty {
+        if detailEvent == nil, !calendarManager.upcomingEvents.isEmpty {
             if event.keyCode == Self.kDownArrowKeyCode {
                 selectedEventIndex = min(selectedEventIndex + 1, calendarManager.upcomingEvents.count - 1)
                 return nil
@@ -382,7 +493,7 @@ struct MenuBarView: View {
                 return nil
             } else if event.keyCode == Self.kReturnKeyCode,
                       selectedEventIndex < calendarManager.upcomingEvents.count {
-                toggleExpansion(for: calendarManager.upcomingEvents[selectedEventIndex])
+                openDetail(calendarManager.upcomingEvents[selectedEventIndex])
                 return nil
             }
         }
@@ -392,9 +503,12 @@ struct MenuBarView: View {
 
     // MARK: - Actions
 
-    private func toggleExpansion(for event: EKEvent) {
-        guard let identifier = event.eventIdentifier else { return }
-        expandedEventID = (expandedEventID == identifier) ? nil : identifier
+    private func openDetail(_ event: EKEvent) {
+        detailEvent = event
+    }
+
+    private func closeDetail() {
+        detailEvent = nil
     }
 
     private func performRefresh() {
@@ -406,6 +520,7 @@ struct MenuBarView: View {
 
         calendarManager.fetchNextEvent { event in
             refreshStatusBar?(event)
+            reloadTodayEvents()
 
             let elapsed = Date().timeIntervalSince(startTime)
             let delay = max(0, refreshFeedbackMinDuration - elapsed)
@@ -432,298 +547,672 @@ struct MenuBarView: View {
     }
 }
 
-// MARK: - Event row
+// MARK: - Shared event presentation
 
-struct EventRow: View {
+/// Text and tone rules shared by the next-meeting card, compact rows and the meeting page.
+enum EventPresentation {
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter
+    }()
+
+    private static let durationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .short
+        return formatter
+    }()
+
+    static func title(_ event: EKEvent) -> String {
+        let title = event.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return title.isEmpty ? NSLocalizedString("Untitled Event", comment: "Fallback title for untitled events") : title
+    }
+
+    static func startTime(_ event: EKEvent) -> String {
+        timeFormatter.string(from: event.startDate)
+    }
+
+    /// "15:00–16:00", or "All day".
+    static func timeRange(_ event: EKEvent) -> String {
+        if event.isAllDay { return allDayText }
+        return String(
+            format: NSLocalizedString("%@–%@", comment: "Compact time range: start–end"),
+            timeFormatter.string(from: event.startDate),
+            timeFormatter.string(from: event.endDate)
+        )
+    }
+
+    static var allDayText: String {
+        NSLocalizedString("All day", comment: "Time column for an all-day event")
+    }
+
+    static func duration(_ event: EKEvent) -> String? {
+        guard !event.isAllDay else { return nil }
+        return durationFormatter.string(from: event.startDate, to: event.endDate)
+    }
+
+    static func isFinished(_ event: EKEvent, now: Date = Date()) -> Bool {
+        event.endDate <= now
+    }
+
+    static func urgency(_ event: EKEvent, now: Date = Date()) -> MeetingUrgency {
+        if event.isAllDay || event.endDate <= now { return .normal }
+        return MeetingUrgency.from(minutesUntil: Int(event.startDate.timeIntervalSince(now)) / 60)
+    }
+
+    /// Number of other people on the invitation (rooms and the user excluded).
+    static func otherPeopleCount(_ event: EKEvent) -> Int {
+        (event.attendees ?? []).filter {
+            !$0.isCurrentUser && ($0.participantType == .person || $0.participantType == .unknown)
+        }.count
+    }
+
+    /// "Google Meet · 30 min", "Teams · 6 participants", "Finished · Meet", the location,
+    /// or the calendar name, in that order of preference.
+    static func meta(_ event: EKEvent, now: Date = Date()) -> String {
+        var parts: [String] = []
+        if isFinished(event, now: now) {
+            parts.append(NSLocalizedString("Finished", comment: "Compact row: the meeting has ended"))
+        }
+        if let url = MeetingURLDetector.extract(from: event) {
+            parts.append(MeetingProvider.label(for: url))
+        } else if let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
+            parts.append(location)
+        }
+        if !isFinished(event, now: now) {
+            let people = otherPeopleCount(event)
+            if people > 1 {
+                parts.append(String(format: NSLocalizedString("%d participants", comment: "Compact row: attendee count"), people + 1))
+            } else if let duration = duration(event) {
+                parts.append(duration)
+            }
+        }
+        if parts.isEmpty, let calendar = event.calendar?.title {
+            parts.append(calendar)
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    /// "NEXT · IN 24 MIN", "SOON · IN 6 MIN", "NOW · 18 MIN LEFT", "ALL DAY".
+    static func eyebrow(_ event: EKEvent, now: Date = Date()) -> String {
+        if event.isAllDay { return PeekBadge.Kind.allDay.text }
+        let locale = Locale.current
+        if event.startDate <= now {
+            let left = max(1, Int(event.endDate.timeIntervalSince(now)) / 60)
+            return joined(
+                PeekBadge.Kind.now.text,
+                String(format: NSLocalizedString("%d min left", comment: "Eyebrow: minutes left in an ongoing meeting"), left)
+                    .uppercased(with: locale)
+            )
+        }
+        let kind: PeekBadge.Kind
+        switch urgency(event, now: now) {
+        case .critical: kind = .now
+        case .urgent: kind = .soon
+        case .normal: kind = .next
+        }
+        return joined(kind.text, EventTimeFormatter.countdownText(target: event.startDate, now: now).uppercased(with: locale))
+    }
+
+    static func joined(_ first: String, _ second: String) -> String {
+        String(format: NSLocalizedString("%@ · %@", comment: "Two parts joined with a middle dot"), first, second)
+    }
+
+    static func joinTitle(url: URL, urgency: MeetingUrgency) -> String {
+        if urgency == .normal {
+            return String(format: NSLocalizedString("Join %@", comment: "Join with provider"), MeetingProvider.label(for: url))
+        }
+        return NSLocalizedString("Join now", comment: "Join urgent")
+    }
+
+    /// The headline with the lead person's short name set in semibold ink.
+    static func headlineText(_ headline: String, emphasizing name: String?) -> Text {
+        guard let name, !name.isEmpty, let range = headline.range(of: name) else {
+            return Text(headline)
+        }
+        return Text(headline[..<range.lowerBound])
+            + Text(headline[range]).fontWeight(.semibold).foregroundColor(PeekColor.ink)
+            + Text(headline[range.upperBound...])
+    }
+
+    static func sourceLabel(for source: BriefSource) -> String {
+        switch source {
+        case .contextFolder:
+            return NSLocalizedString("From your context folder", comment: "Brief source label: context file")
+        case .onDevice:
+            return NSLocalizedString("Written on this Mac", comment: "Brief source label: on-device model")
+        case .cloud:
+            return NSLocalizedString("Written by Claude", comment: "Brief source label: cloud model")
+        }
+    }
+}
+
+// MARK: - Join button
+
+struct EventJoinButton: View {
     let event: EKEvent
-    /// Zones from Preferences; the expanded row converts the meeting time (PEEK-233).
-    var worldClockZones: [String] = []
-    var isHero: Bool = false
+    let url: URL
+    var fullWidth: Bool = false
+
+    private var urgency: MeetingUrgency { EventPresentation.urgency(event) }
+
+    var body: some View {
+        Button {
+            MeetingLinkOpener.open(url)
+        } label: {
+            HStack(spacing: PeekSpacing.tightGap) {
+                Image(systemName: "video.fill")
+                    .font(PeekIcon.detail)
+                    .accessibilityHidden(true)
+                Text(EventPresentation.joinTitle(url: url, urgency: urgency))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: fullWidth ? .infinity : nil)
+            .frame(height: fullWidth ? PeekMetrics.meetingJoinButtonHeight : PeekMetrics.joinButtonHeight)
+        }
+        .buttonStyle(JoinButtonStyle(tone: PeekTone(urgency), compact: true))
+        .fixedSize(horizontal: !fullWidth, vertical: true)
+        .accessibilityLabel(Text(String(
+            format: NSLocalizedString("Join %@ on %@", comment: "Accessibility: join event on provider"),
+            EventPresentation.title(event),
+            MeetingProvider.label(for: url)
+        )))
+    }
+}
+
+// MARK: - Next meeting card
+
+/// The compact next-meeting card: accent rail, "NEXT · IN 24 MIN" eyebrow with the time
+/// range at the top right, title with who you are meeting, Join on the right, and the
+/// "Brief ready" line. Tapping it opens the meeting page.
+struct NextMeetingCard: View {
+    let event: EKEvent
     var isSelected: Bool = false
-    var isExpanded: Bool = false
-    var onToggleExpand: (() -> Void)? = nil
+    let onOpen: () -> Void
     @ObservedObject var briefService: MeetingBriefService = .shared
 
     private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
-
-    private var minutesUntil: Int {
-        Int(event.startDate.timeIntervalSince(Date())) / 60
-    }
-
-    private var urgency: MeetingUrgency {
-        // A finished event (shown from a past day in the month view) is never urgent.
-        if event.endDate <= Date() { return .normal }
-        return MeetingUrgency.from(minutesUntil: minutesUntil)
-    }
-
-    private var isUpcoming: Bool { event.startDate > Date() }
-
+    private var urgency: MeetingUrgency { EventPresentation.urgency(event) }
     private var tone: PeekTone { PeekTone(urgency) }
-
-    private var badgeKind: PeekBadge.Kind {
-        if event.isAllDay { return .allDay }
-        if !isUpcoming { return .now }
-        switch urgency {
-        case .critical: return .now
-        case .urgent: return .soon
-        case .normal: return .next
-        }
+    private var context: MeetingContext {
+        event.isAllDay ? .empty : MeetingContextProvider.context(for: event)
     }
 
     var body: some View {
-        Group {
-            if isHero {
-                heroRow
-            } else {
-                normalRow
+        let context = self.context
+        VStack(alignment: .leading, spacing: PeekMetrics.nextCardGap) {
+            HStack(spacing: PeekSpacing.sm) {
+                Text(EventPresentation.eyebrow(event))
+                    .font(PeekFont.label)
+                    .tracking(PeekFont.labelTracking)
+                    .foregroundColor(tone.text)
+                    .lineLimit(1)
+                Spacer(minLength: PeekSpacing.sm)
+                Text(EventPresentation.timeRange(event))
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.secondaryText)
+                    .monospacedDigit()
+                    .lineLimit(1)
             }
-        }
-        .peekFocusRing(isSelected)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            onToggleExpand?()
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction {
-            onToggleExpand?()
-        }
-        .accessibilityValue(Text(isExpanded
-            ? NSLocalizedString("Expanded", comment: "Accessibility: event row is expanded")
-            : NSLocalizedString("Collapsed", comment: "Accessibility: event row is collapsed")))
-    }
 
-    // MARK: Hero (NEXT) row
-
-    private var heroRow: some View {
-        HStack(spacing: 0) {
-            RoundedRectangle(cornerRadius: PeekRadius.rail, style: .continuous)
-                .fill(tone.rail)
-                .frame(width: PeekMetrics.railWidth)
-                .padding(.vertical, PeekSpacing.xxs)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: PeekMetrics.heroContentGap) {
-                HStack(alignment: .top, spacing: PeekSpacing.iconGap) {
-                    Text(event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback title for untitled events"))
+            HStack(alignment: .center, spacing: PeekMetrics.headerGap) {
+                VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
+                    Text(EventPresentation.title(event))
                         .font(PeekFont.headline)
                         .foregroundColor(PeekColor.ink)
                         .lineLimit(2)
-                    PeekBadge(kind: badgeKind)
-                    Spacer(minLength: 0)
+                        .fixedSize(horizontal: false, vertical: true)
+                    subtitle(context)
+                        .font(PeekFont.bodyMeta)
+                        .foregroundColor(PeekColor.bodyText)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                metaRow(accented: true)
-                detailRow
-
-                if let headline = heroContext.headline {
-                    HStack(alignment: .top, spacing: PeekSpacing.sm) {
-                        Image(systemName: "person.2")
-                            .font(PeekIcon.detail)
-                            .foregroundColor(tone.text)
-                            .frame(width: PeekMetrics.metaIconWidth)
-                            .accessibilityHidden(true)
-                        Text(headline)
-                            .font(PeekFont.bodyMetaMedium)
-                            .foregroundColor(PeekColor.bodyText)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-
-                if !isExpanded, let brief = heroBrief {
-                    briefPoints(Array(brief.points.prefix(MeetingBrief.heroPointLimit)), tint: tone.text)
-                }
-
-                if let meetingURL {
-                    joinButton(url: meetingURL)
-                }
-
-                if isExpanded {
-                    expandedDetail
-                }
-            }
-            .padding(PeekMetrics.heroRowInsets)
-        }
-        .background(tone.wash)
-        .overlay(
-            RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous)
-                .strokeBorder(PeekColor.hairline, lineWidth: PeekSpacing.hairline)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous))
-        .peekCriticalPulse(urgency == .critical && !event.isAllDay)
-    }
-
-    // MARK: Normal row
-
-    private var normalRow: some View {
-        VStack(alignment: .leading, spacing: PeekMetrics.rowGap) {
-            HStack(alignment: .top, spacing: PeekSpacing.iconGap) {
-                Text(event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback title for untitled events"))
-                    .font(PeekFont.rowTitle)
-                    .foregroundColor(isSelected ? PeekColor.accentText : PeekColor.ink)
-                    .lineLimit(2)
-                if event.isAllDay { PeekBadge(kind: .allDay) }
                 Spacer(minLength: 0)
+                if let meetingURL {
+                    EventJoinButton(event: event, url: meetingURL)
+                }
             }
-            metaRow(accented: false)
-            detailRow
 
-            if isExpanded {
-                expandedDetail
-            }
+            briefLine
         }
-        .padding(PeekMetrics.rowInsets)
-        .background(isSelected ? PeekColor.rowHoverWash : PeekColor.surface)
+        .padding(PeekMetrics.nextCardInsets)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tone.wash)
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: PeekRadius.rail, style: .continuous)
+                .fill(tone.rail)
+                .frame(width: PeekMetrics.railWidth)
+                .padding(.vertical, PeekMetrics.nextCardRailInset)
+                .accessibilityHidden(true)
+        }
         .overlay(
-            RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous)
-                .strokeBorder(PeekColor.hairline, lineWidth: PeekSpacing.hairline)
+            RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous)
+                .strokeBorder(tone.border, lineWidth: PeekSpacing.hairline)
         )
-        .clipShape(RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous))
+        .peekCriticalPulse(urgency == .critical, cornerRadius: PeekRadius.card)
+        .peekFocusRing(isSelected, cornerRadius: PeekRadius.card)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onOpen)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: Text(NSLocalizedString("Show meeting", comment: "Accessibility: open the meeting page")), onOpen)
     }
 
-    // MARK: Shared pieces
+    @ViewBuilder
+    private func subtitle(_ context: MeetingContext) -> some View {
+        if let headline = context.headline {
+            EventPresentation.headlineText(headline, emphasizing: context.people.first?.shortName)
+        } else {
+            Text(EventPresentation.meta(event))
+        }
+    }
 
-    private func metaRow(accented: Bool) -> some View {
-        HStack(spacing: PeekSpacing.sm) {
-            Image(systemName: event.isAllDay ? "calendar" : "clock")
-                .font(PeekIcon.meta)
-                .foregroundColor(accented ? tone.text : PeekColor.tertiaryText)
-                .frame(width: PeekMetrics.metaIconWidth)
+    @ViewBuilder
+    private var briefLine: some View {
+        if !event.isAllDay {
+            if let brief = briefService.brief(for: event) {
+                Button(action: onOpen) {
+                    HStack(spacing: PeekSpacing.iconGap) {
+                        Image(systemName: "doc.text")
+                            .font(PeekIcon.detail)
+                            .accessibilityHidden(true)
+                        Text(brief.points.count == 1
+                             ? NSLocalizedString("Brief ready: 1 point to prepare", comment: "Next card: brief with one point")
+                             : String(format: NSLocalizedString("Brief ready: %d points to prepare", comment: "Next card: brief with several points"), brief.points.count))
+                            .font(PeekFont.bodyMetaMedium)
+                    }
+                    .foregroundColor(tone.text)
+                }
+                .buttonStyle(.plain)
+            } else if briefService.isPreparing(event) {
+                HStack(spacing: PeekSpacing.iconGap) {
+                    ProgressView()
+                        .controlSize(.mini)
+                    Text(NSLocalizedString("Preparing brief…", comment: "Brief is being generated"))
+                        .font(PeekFont.caption)
+                        .foregroundColor(PeekColor.secondaryText)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Compact event row
+
+/// Time on the left, calendar dot, title and one line of metadata. Finished meetings
+/// are dimmed.
+struct CompactEventRow: View {
+    let event: EKEvent
+    var isSelected: Bool = false
+    let onOpen: () -> Void
+
+    var body: some View {
+        let finished = EventPresentation.isFinished(event)
+        HStack(alignment: .center, spacing: PeekMetrics.compactRowGap) {
+            Text(event.isAllDay ? EventPresentation.allDayText : EventPresentation.startTime(event))
+                .font(event.isAllDay ? PeekFont.caption : PeekFont.rowTime)
+                .foregroundColor(PeekColor.secondaryText)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: PeekMetrics.rowTimeWidth, alignment: .leading)
+
+            Circle()
+                .fill(event.calendar.map { Color($0.color) } ?? PeekColor.accentRail)
+                .frame(width: PeekMetrics.calendarDot, height: PeekMetrics.calendarDot)
                 .accessibilityHidden(true)
 
-            if event.isAllDay {
-                Text(EventTimeFormatter.compactDateText(for: event.startDate))
-                    .font(PeekFont.bodyMeta)
-                    .foregroundColor(PeekColor.bodyText)
-            } else {
-                Text(EventTimeFormatter.timeRangeText(start: event.startDate, end: event.endDate))
-                    .font(PeekFont.bodyMeta)
-                    .foregroundColor(PeekColor.bodyText)
-            }
-
-            Spacer(minLength: PeekSpacing.iconGap)
-
-            if isUpcoming && !event.isAllDay {
-                Text(EventTimeFormatter.countdownText(target: event.startDate))
-                    .font(PeekFont.captionStrong)
-                    .foregroundColor(accented ? tone.text : PeekColor.tertiaryText)
-            }
-        }
-    }
-
-    private var detailRow: some View {
-        HStack(spacing: PeekMetrics.headerGap) {
-            if let meetingURL {
-                HStack(spacing: PeekSpacing.xs) {
-                    Image(systemName: "video")
-                        .font(PeekIcon.detail)
-                        .foregroundColor(PeekColor.secondaryText)
-                        .accessibilityHidden(true)
-                    Text(MeetingProvider.label(for: meetingURL))
-                        .font(PeekFont.caption)
-                        .foregroundColor(PeekColor.secondaryText)
-                        .lineLimit(1)
-                }
-            }
-
-            if let location = event.location, !location.isEmpty, meetingURL == nil {
-                HStack(spacing: PeekSpacing.xs) {
-                    Image(systemName: "location")
-                        .font(PeekIcon.detail)
-                        .foregroundColor(PeekColor.secondaryText)
-                        .accessibilityHidden(true)
-                    Text(location)
-                        .font(PeekFont.caption)
-                        .foregroundColor(PeekColor.secondaryText)
-                        .lineLimit(1)
-                }
-            }
-
-            if let calendar = event.calendar {
-                HStack(spacing: PeekSpacing.xs) {
-                    Circle()
-                        .fill(Color(calendar.color))
-                        .frame(width: PeekMetrics.calendarDot, height: PeekMetrics.calendarDot)
-                        .accessibilityHidden(true)
-                    Text(calendar.title)
-                        .font(PeekFont.caption)
-                        .foregroundColor(PeekColor.secondaryText)
-                        .lineLimit(1)
-                }
+            VStack(alignment: .leading, spacing: PeekSpacing.hairline) {
+                Text(EventPresentation.title(event))
+                    .font(PeekFont.rowTitle)
+                    .foregroundColor(PeekColor.ink)
+                    .lineLimit(1)
+                Text(EventPresentation.meta(event))
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.secondaryText)
+                    .lineLimit(1)
             }
 
             Spacer(minLength: 0)
+
+            switch EventPresentation.urgency(event) {
+            case .critical: PeekBadge(kind: .now)
+            case .urgent: PeekBadge(kind: .soon)
+            case .normal: EmptyView()
+            }
+        }
+        .padding(PeekMetrics.compactRowInsets)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PeekColor.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous)
+                .strokeBorder(PeekColor.hairline, lineWidth: PeekSpacing.hairline)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: PeekRadius.row, style: .continuous))
+        .opacity(finished ? PeekMetrics.finishedRowOpacity : 1)
+        .peekFocusRing(isSelected)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onOpen)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: Text(NSLocalizedString("Show meeting", comment: "Accessibility: open the meeting page")), onOpen)
+    }
+}
+
+// MARK: - Meeting page ("You're about to meet")
+
+/// The meeting page that replaces the agenda inside the popover. The title says who you
+/// are meeting; the brief and every section say where they come from.
+struct MeetingPage: View {
+    let event: EKEvent
+    var worldClockZones: [String] = []
+    let onBack: () -> Void
+    @ObservedObject var briefService: MeetingBriefService = .shared
+
+    private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
+    private var tone: PeekTone { PeekTone(EventPresentation.urgency(event)) }
+
+    var body: some View {
+        let context = MeetingContextProvider.context(for: event)
+        let detail = EventDetailBuilder.make(from: event)
+        VStack(alignment: .leading, spacing: 0) {
+            backBar
+            Divider().overlay(PeekColor.hairline)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: PeekSpacing.lg) {
+                    summary(context)
+                    peopleSection(context: context, detail: detail)
+                    briefCard
+                    externalContextSection(context)
+                    timeZonesSection
+                    notesSection(context.agenda ?? detail.notes)
+                    sourcesRow(context)
+                }
+                .padding(PeekMetrics.meetingPageInsets)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: PeekMetrics.meetingPageMaxHeight)
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var backBar: some View {
+        HStack(spacing: PeekSpacing.sm) {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .font(PeekIcon.nav)
+            }
+            .buttonStyle(HeaderNavButtonStyle(square: true))
+            .help(NSLocalizedString("Back to the agenda", comment: "Meeting page: back button"))
+            .accessibilityLabel(Text(NSLocalizedString("Back to the agenda", comment: "Meeting page: back button")))
+            Text(NSLocalizedString("Agenda", comment: "Meeting page: back bar label"))
+                .font(PeekFont.body)
+                .foregroundColor(PeekColor.secondaryText)
+            Spacer()
+        }
+        .padding(PeekMetrics.meetingBackBarInsets)
+    }
+
+    private func summary(_ context: MeetingContext) -> some View {
+        let title = EventPresentation.title(event)
+        var subtitleParts: [String] = []
+        if context.headline != nil { subtitleParts.append(title) }
+        if let meetingURL {
+            subtitleParts.append(MeetingProvider.label(for: meetingURL))
+        } else if let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
+            subtitleParts.append(location)
+        }
+        if context.headline != nil, context.people.count > 1 {
+            subtitleParts.append(context.people.count == 2
+                ? NSLocalizedString("1 other person", comment: "Meeting page: one more attendee")
+                : String(format: NSLocalizedString("%d other people", comment: "Meeting page: more attendees"), context.people.count - 1))
+        }
+        if subtitleParts.isEmpty, let calendar = event.calendar?.title {
+            subtitleParts.append(calendar)
+        }
+        let eyebrow = event.isAllDay
+            ? EventPresentation.eyebrow(event)
+            : (event.startDate > Date()
+                ? EventPresentation.joined(
+                    EventTimeFormatter.countdownText(target: event.startDate).uppercased(with: .current),
+                    EventPresentation.timeRange(event))
+                : EventPresentation.joined(EventPresentation.eyebrow(event), EventPresentation.timeRange(event)))
+
+        return VStack(alignment: .leading, spacing: PeekMetrics.headerGap) {
+            Text(eyebrow)
+                .font(PeekFont.label)
+                .tracking(PeekFont.labelTracking)
+                .foregroundColor(tone.text)
+            Text(context.headline ?? title)
+                .font(PeekFont.meetingTitle)
+                .foregroundColor(PeekColor.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            if !subtitleParts.isEmpty {
+                Text(subtitleParts.joined(separator: " · "))
+                    .font(PeekFont.bodyMeta)
+                    .foregroundColor(PeekColor.bodyText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let meetingURL {
+                EventJoinButton(event: event, url: meetingURL, fullWidth: true)
+            }
         }
     }
 
-    // MARK: Expanded detail
+    // MARK: People
 
-    /// Context for the hero row's headline; built only for the hero row.
-    private var heroContext: MeetingContext {
-        isHero && !event.isAllDay ? MeetingContextProvider.context(for: event) : .empty
-    }
-
-    /// The brief shown on the hero row; built only for the hero row.
-    private var heroBrief: MeetingBrief? {
-        isHero && !event.isAllDay ? briefService.brief(for: event) : nil
-    }
-
-    private var expandedDetail: some View {
-        let detail = EventDetailBuilder.make(from: event)
-        let context = MeetingContextProvider.context(for: event)
-        return VStack(alignment: .leading, spacing: PeekSpacing.sm) {
-            RowDivider()
-
-            briefSection
-            timeZonesSection
-
-            if detail.isEmpty && context.isEmpty {
-                Text(NSLocalizedString("No additional details", comment: "Expanded event row with no notes, attendees, or attachments"))
-                    .font(PeekFont.caption)
-                    .foregroundColor(PeekColor.tertiaryText)
-            } else {
-                // The hero row already shows provider identity and a Join button.
-                if !isHero, let meetingURL = detail.meetingURL {
-                    joinButton(url: meetingURL)
-                }
-
-                if context.hasExternalContext {
-                    detailSection(NSLocalizedString("Context", comment: "Expanded event section: context from the context folder")) {
-                        externalContextRows(context)
+    @ViewBuilder
+    private func peopleSection(context: MeetingContext, detail: EventDetail) -> some View {
+        if !context.people.isEmpty {
+            section(NSLocalizedString("Who you're meeting", comment: "Meeting page section: people")) {
+                VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                    ForEach(Array(context.people.prefix(EventDetail.maxVisibleAttendees).enumerated()), id: \.offset) { index, person in
+                        HStack(spacing: PeekMetrics.headerGap) {
+                            PeekAvatar(initials: PeekAvatar.initials(for: person.name), isLead: index == 0)
+                            VStack(alignment: .leading, spacing: PeekSpacing.hairline) {
+                                Text(person.name)
+                                    .font(PeekFont.bodyEmphasis)
+                                    .foregroundColor(PeekColor.ink)
+                                    .lineLimit(1)
+                                if let line = personLine(person) {
+                                    Text(line)
+                                        .font(PeekFont.caption)
+                                        .foregroundColor(PeekColor.secondaryText)
+                                        .lineLimit(2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: responseIcon(person.response))
+                                .font(PeekIcon.detail)
+                                .foregroundColor(responseColor(person.response))
+                                .accessibilityHidden(true)
+                        }
+                        .accessibilityElement(children: .combine)
                     }
-                }
-
-                if let notes = context.agenda ?? detail.notes {
-                    detailSection(NSLocalizedString("Notes", comment: "Expanded event section: notes")) {
-                        Text(notes)
-                            .font(PeekFont.bodyMeta)
-                            .foregroundColor(PeekColor.bodyText)
-                            .lineLimit(6)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-
-                if !context.people.isEmpty {
-                    detailSection(NSLocalizedString("Attendees", comment: "Expanded event section: attendees")) {
-                        personRows(context.people)
-                    }
-                } else if !detail.attendees.isEmpty {
-                    detailSection(NSLocalizedString("Attendees", comment: "Expanded event section: attendees")) {
-                        attendeeRows(detail: detail)
+                    if context.people.count > EventDetail.maxVisibleAttendees {
+                        Text(String(format: NSLocalizedString("+%d more", comment: "Count of attendees not shown in the expanded event row"), context.people.count - EventDetail.maxVisibleAttendees))
+                            .font(PeekFont.caption)
+                            .foregroundColor(PeekColor.tertiaryText)
                     }
                 }
             }
         }
-        .padding(.top, PeekSpacing.xxs)
     }
 
-    // MARK: Time zones
+    private func personLine(_ person: MeetingPerson) -> String? {
+        var parts: [String] = []
+        if let descriptor = person.descriptor { parts.append(descriptor) }
+        if person.isOrganizer {
+            parts.append(NSLocalizedString("Organizer", comment: "Marks the event organizer in the attendee list").lowercased(with: .current))
+        }
+        if let note = person.note { parts.append(note) }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private func responseIcon(_ response: AttendeeResponse) -> String {
+        switch response {
+        case .accepted: return "checkmark.circle.fill"
+        case .declined: return "xmark.circle"
+        case .tentative: return "questionmark.circle"
+        case .pending: return "clock"
+        case .unknown: return "circle"
+        }
+    }
+
+    private func responseColor(_ response: AttendeeResponse) -> Color {
+        switch response {
+        case .accepted: return PeekColor.calm
+        case .declined: return PeekColor.criticalText
+        case .tentative: return PeekColor.urgentText
+        case .pending, .unknown: return PeekColor.tertiaryText
+        }
+    }
+
+    // MARK: Brief
+
+    @ViewBuilder
+    private var briefCard: some View {
+        if !event.isAllDay {
+            let brief = briefService.brief(for: event)
+            let preparing = briefService.isPreparing(event)
+            let canPrepare = briefService.canPrepare(event)
+            let error = briefService.error(for: event)
+            if brief != nil || preparing || canPrepare || error != nil {
+                VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                    HStack(spacing: PeekSpacing.sm) {
+                        Text(NSLocalizedString("What to prepare", comment: "Meeting page: brief card title"))
+                            .font(PeekFont.bodyEmphasis)
+                            .foregroundColor(PeekColor.ink)
+                            .accessibilityAddTraits(.isHeader)
+                        Spacer(minLength: PeekSpacing.sm)
+                        if let brief {
+                            Text(EventPresentation.sourceLabel(for: brief.source))
+                                .font(PeekFont.smallCaptionStrong)
+                                .foregroundColor(PeekColor.accentText)
+                                .padding(PeekMetrics.sourcePillInsets)
+                                .background(Capsule().fill(PeekColor.blueTint))
+                        }
+                    }
+
+                    if let brief {
+                        ForEach(Array(brief.points.enumerated()), id: \.offset) { _, point in
+                            HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.sm) {
+                                Circle()
+                                    .fill(PeekColor.accentRail)
+                                    .frame(width: PeekMetrics.briefBullet, height: PeekMetrics.briefBullet)
+                                    .alignmentGuide(.firstTextBaseline) { $0[.bottom] + PeekSpacing.xxs }
+                                    .accessibilityHidden(true)
+                                Text(point)
+                                    .font(PeekFont.bodyMeta)
+                                    .foregroundColor(PeekColor.ink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    } else if preparing {
+                        HStack(spacing: PeekSpacing.xs) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text(NSLocalizedString("Preparing brief…", comment: "Brief is being generated"))
+                                .font(PeekFont.caption)
+                                .foregroundColor(PeekColor.secondaryText)
+                        }
+                    } else {
+                        if let error {
+                            Text(error)
+                                .font(PeekFont.caption)
+                                .foregroundColor(PeekColor.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        if canPrepare {
+                            Button {
+                                briefService.prepare(event)
+                            } label: {
+                                HStack(spacing: PeekSpacing.xs) {
+                                    Image(systemName: "sparkles")
+                                        .font(PeekIcon.detail)
+                                        .accessibilityHidden(true)
+                                    Text(error == nil
+                                        ? NSLocalizedString("Prepare brief", comment: "Button: generate a meeting brief now")
+                                        : NSLocalizedString("Try again", comment: "Button: retry generating a meeting brief"))
+                                        .font(PeekFont.caption)
+                                }
+                                .foregroundColor(PeekColor.accentText)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .padding(PeekMetrics.briefCardInsets)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PeekColor.nextWash)
+                .overlay(
+                    RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous)
+                        .strokeBorder(PeekColor.nextBorder, lineWidth: PeekSpacing.hairline)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous))
+                .accessibilityElement(children: .combine)
+            }
+        }
+    }
+
+    // MARK: Context, time zones, notes
+
+    @ViewBuilder
+    private func externalContextSection(_ context: MeetingContext) -> some View {
+        if context.hasExternalContext {
+            section(NSLocalizedString("Context", comment: "Expanded event section: context from the context folder")) {
+                VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+                    if let summary = context.summary {
+                        Text(summary)
+                            .font(PeekFont.bodyMeta)
+                            .foregroundColor(PeekColor.bodyText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    ForEach(Array(context.bullets.enumerated()), id: \.offset) { _, bullet in
+                        HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+                            Text(verbatim: "•")
+                                .font(PeekFont.bodyMeta)
+                                .foregroundColor(PeekColor.tertiaryText)
+                                .accessibilityHidden(true)
+                            Text(bullet)
+                                .font(PeekFont.bodyMeta)
+                                .foregroundColor(PeekColor.bodyText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    ForEach(Array(context.links.enumerated()), id: \.offset) { _, link in
+                        Button {
+                            NSWorkspace.shared.open(link.url)
+                        } label: {
+                            HStack(spacing: PeekSpacing.xs) {
+                                Image(systemName: "link")
+                                    .font(PeekIcon.detail)
+                                    .accessibilityHidden(true)
+                                Text(link.title)
+                                    .font(PeekFont.caption)
+                                    .lineLimit(1)
+                            }
+                            .foregroundColor(PeekColor.accentText)
+                        }
+                        .buttonStyle(.plain)
+                        .help(link.url.absoluteString)
+                    }
+                }
+            }
+        }
+    }
 
     @ViewBuilder
     private var timeZonesSection: some View {
         if !event.isAllDay, !worldClockZones.isEmpty {
-            detailSection(NSLocalizedString("Time zones", comment: "Expanded event section: meeting time in other zones")) {
+            section(NSLocalizedString("Time zones", comment: "Expanded event section: meeting time in other zones")) {
                 VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
                     ForEach(worldClockZones, id: \.self) { identifier in
                         if let range = WorldClock.rangeText(start: event.startDate, end: event.endDate, in: identifier) {
@@ -747,265 +1236,52 @@ struct EventRow: View {
         }
     }
 
-    // MARK: Brief
-
     @ViewBuilder
-    private var briefSection: some View {
-        if !event.isAllDay {
-            let brief = briefService.brief(for: event)
-            let preparing = briefService.isPreparing(event)
-            let canPrepare = briefService.canPrepare(event)
-            let error = briefService.error(for: event)
-            if brief != nil || preparing || canPrepare || error != nil {
-                detailSection(NSLocalizedString("Brief", comment: "Expanded event section: meeting brief")) {
-                    VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-                        if let brief {
-                            briefPoints(brief.points, tint: PeekColor.tertiaryText)
-                            Text(Self.sourceLabel(for: brief.source))
-                                .font(PeekFont.caption)
-                                .foregroundColor(PeekColor.tertiaryText)
-                        } else if preparing {
-                            HStack(spacing: PeekSpacing.xs) {
-                                ProgressView()
-                                    .controlSize(.small)
-                                Text(NSLocalizedString("Preparing brief…", comment: "Brief is being generated"))
-                                    .font(PeekFont.caption)
-                                    .foregroundColor(PeekColor.secondaryText)
-                            }
-                        } else {
-                            if let error {
-                                Text(error)
-                                    .font(PeekFont.caption)
-                                    .foregroundColor(PeekColor.secondaryText)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            if canPrepare {
-                                Button {
-                                    briefService.prepare(event)
-                                } label: {
-                                    HStack(spacing: PeekSpacing.xs) {
-                                        Image(systemName: "sparkles")
-                                            .font(PeekIcon.detail)
-                                            .accessibilityHidden(true)
-                                        Text(error == nil
-                                            ? NSLocalizedString("Prepare brief", comment: "Button: generate a meeting brief now")
-                                            : NSLocalizedString("Try again", comment: "Button: retry generating a meeting brief"))
-                                            .font(PeekFont.caption)
-                                    }
-                                    .foregroundColor(PeekColor.accentText)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                }
+    private func notesSection(_ notes: String?) -> some View {
+        if let notes {
+            section(NSLocalizedString("From the invitation notes", comment: "Meeting page section: cleaned-up invitation notes")) {
+                Text(notes)
+                    .font(PeekFont.bodyMeta)
+                    .foregroundColor(PeekColor.bodyText)
+                    .lineLimit(8)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
-    private func briefPoints(_ points: [String], tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
-            ForEach(Array(points.enumerated()), id: \.offset) { _, point in
-                HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
-                    Image(systemName: "checkmark.circle")
-                        .font(PeekIcon.detail)
-                        .foregroundColor(tint)
-                        .frame(width: PeekMetrics.metaIconWidth)
-                        .accessibilityHidden(true)
-                    Text(point)
-                        .font(PeekFont.bodyMeta)
-                        .foregroundColor(PeekColor.bodyText)
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+    private func sourcesRow(_ context: MeetingContext) -> some View {
+        var sources = [NSLocalizedString("Calendar", comment: "Meeting page source: the Calendar app")]
+        if MeetingContextProvider.usesContacts(), context.people.contains(where: { $0.role != nil || $0.company != nil }) {
+            sources.append(NSLocalizedString("Contacts", comment: "Meeting page source: the Contacts app"))
+        }
+        if context.hasExternalContext {
+            sources.append(NSLocalizedString("context folder", comment: "Meeting page source: the context folder"))
+        }
+        return HStack(spacing: PeekSpacing.sm) {
+            Text(String(format: NSLocalizedString("Sources: %@", comment: "Meeting page: where the details come from"), sources.joined(separator: ", ")))
+                .font(PeekFont.caption)
+                .foregroundColor(PeekColor.tertiaryText)
+                .lineLimit(1)
+            Spacer(minLength: PeekSpacing.sm)
+            Button(NSLocalizedString("Open in Calendar", comment: "Context menu: open in calendar")) {
+                let calendarURL = URL(fileURLWithPath: "/System/Applications/Calendar.app")
+                NSWorkspace.shared.openApplication(at: calendarURL, configuration: NSWorkspace.OpenConfiguration())
             }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(NSLocalizedString("Brief", comment: "Expanded event section: meeting brief") + ": " + points.joined(separator: ". ")))
-    }
-
-    static func sourceLabel(for source: BriefSource) -> String {
-        switch source {
-        case .contextFolder:
-            return NSLocalizedString("From your context folder", comment: "Brief source label: context file")
-        case .onDevice:
-            return NSLocalizedString("Written on this Mac", comment: "Brief source label: on-device model")
-        case .cloud:
-            return NSLocalizedString("Written by Claude", comment: "Brief source label: cloud model")
+            .buttonStyle(.plain)
+            .font(PeekFont.caption)
+            .foregroundColor(PeekColor.accentText)
         }
     }
 
-    private func detailSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-            Text(title.uppercased())
-                .font(PeekFont.label)
-                .tracking(PeekFont.labelTracking)
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+            Text(title.uppercased(with: .current))
+                .font(PeekFont.sectionLabel)
+                .tracking(PeekFont.groupLabelTracking)
                 .foregroundColor(PeekColor.tertiaryText)
                 .accessibilityAddTraits(.isHeader)
             content()
         }
-    }
-
-    private func externalContextRows(_ context: MeetingContext) -> some View {
-        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-            if let summary = context.summary {
-                Text(summary)
-                    .font(PeekFont.bodyMeta)
-                    .foregroundColor(PeekColor.bodyText)
-                    .lineLimit(5)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            ForEach(Array(context.bullets.enumerated()), id: \.offset) { _, bullet in
-                HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
-                    Text(verbatim: "•")
-                        .font(PeekFont.bodyMeta)
-                        .foregroundColor(PeekColor.tertiaryText)
-                        .accessibilityHidden(true)
-                    Text(bullet)
-                        .font(PeekFont.bodyMeta)
-                        .foregroundColor(PeekColor.bodyText)
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            ForEach(Array(context.links.enumerated()), id: \.offset) { _, link in
-                Button {
-                    NSWorkspace.shared.open(link.url)
-                } label: {
-                    HStack(spacing: PeekSpacing.xs) {
-                        Image(systemName: "link")
-                            .font(PeekIcon.detail)
-                            .accessibilityHidden(true)
-                        Text(link.title)
-                            .font(PeekFont.caption)
-                            .lineLimit(1)
-                    }
-                    .foregroundColor(PeekColor.accentText)
-                }
-                .buttonStyle(.plain)
-                .help(link.url.absoluteString)
-            }
-        }
-    }
-
-    private func personRows(_ people: [MeetingPerson]) -> some View {
-        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-            ForEach(Array(people.prefix(EventDetail.maxVisibleAttendees).enumerated()), id: \.offset) { _, person in
-                HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
-                    Image(systemName: attendeeResponseIcon(person.response))
-                        .font(PeekIcon.detail)
-                        .foregroundColor(attendeeResponseColor(person.response))
-                        .frame(width: PeekMetrics.metaIconWidth)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack(spacing: PeekSpacing.iconGap) {
-                            Text(person.name)
-                                .font(PeekFont.bodyMeta)
-                                .foregroundColor(PeekColor.bodyText)
-                                .lineLimit(1)
-                            if person.isOrganizer {
-                                Text(NSLocalizedString("Organizer", comment: "Marks the event organizer in the attendee list"))
-                                    .font(PeekFont.caption)
-                                    .foregroundColor(PeekColor.tertiaryText)
-                            }
-                        }
-                        if let descriptor = person.descriptor {
-                            Text(descriptor)
-                                .font(PeekFont.caption)
-                                .foregroundColor(PeekColor.secondaryText)
-                                .lineLimit(1)
-                        }
-                        if let note = person.note {
-                            Text(note)
-                                .font(PeekFont.caption)
-                                .foregroundColor(PeekColor.tertiaryText)
-                                .lineLimit(2)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-                .accessibilityElement(children: .combine)
-            }
-            if people.count > EventDetail.maxVisibleAttendees {
-                Text(String(format: NSLocalizedString("+%d more", comment: "Count of attendees not shown in the expanded event row"), people.count - EventDetail.maxVisibleAttendees))
-                    .font(PeekFont.caption)
-                    .foregroundColor(PeekColor.tertiaryText)
-            }
-        }
-    }
-
-    private func attendeeRows(detail: EventDetail) -> some View {
-        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-            ForEach(Array(detail.visibleAttendees.enumerated()), id: \.offset) { _, attendee in
-                HStack(spacing: PeekSpacing.iconGap) {
-                    Image(systemName: attendeeResponseIcon(attendee.response))
-                        .font(PeekIcon.detail)
-                        .foregroundColor(attendeeResponseColor(attendee.response))
-                        .frame(width: PeekMetrics.metaIconWidth)
-                        .accessibilityHidden(true)
-                    Text(attendee.displayName)
-                        .font(PeekFont.bodyMeta)
-                        .foregroundColor(PeekColor.bodyText)
-                        .lineLimit(1)
-                    if attendee.isOrganizer {
-                        Text(NSLocalizedString("Organizer", comment: "Marks the event organizer in the attendee list"))
-                            .font(PeekFont.caption)
-                            .foregroundColor(PeekColor.tertiaryText)
-                    }
-                }
-            }
-            if detail.hiddenAttendeeCount > 0 {
-                Text(String(format: NSLocalizedString("+%d more", comment: "Count of attendees not shown in the expanded event row"), detail.hiddenAttendeeCount))
-                    .font(PeekFont.caption)
-                    .foregroundColor(PeekColor.tertiaryText)
-            }
-        }
-    }
-
-    private func attendeeResponseIcon(_ response: AttendeeResponse) -> String {
-        switch response {
-        case .accepted: return "checkmark.circle.fill"
-        case .declined: return "xmark.circle"
-        case .tentative: return "questionmark.circle"
-        case .pending: return "clock"
-        case .unknown: return "person"
-        }
-    }
-
-    private func attendeeResponseColor(_ response: AttendeeResponse) -> Color {
-        switch response {
-        case .accepted: return PeekColor.calm
-        case .declined: return PeekColor.criticalText
-        case .tentative: return PeekColor.urgentText
-        case .pending, .unknown: return PeekColor.tertiaryText
-        }
-    }
-
-    private func joinButton(url: URL) -> some View {
-        Button {
-            MeetingLinkOpener.open(url)
-        } label: {
-            HStack(spacing: PeekSpacing.tightGap) {
-                Image(systemName: "video.fill")
-                    .font(PeekIcon.detail)
-                    .accessibilityHidden(true)
-                Text(joinTitle(url: url))
-            }
-        }
-        .buttonStyle(JoinButtonStyle(tone: tone))
-        .padding(.top, PeekSpacing.xxs)
-        .accessibilityLabel(Text(String(
-            format: NSLocalizedString("Join %@ on %@", comment: "Accessibility: join event on provider"),
-            event.title ?? NSLocalizedString("meeting", comment: "generic meeting"),
-            MeetingProvider.label(for: url)
-        )))
-    }
-
-    private func joinTitle(url: URL) -> String {
-        if urgency == .normal {
-            return String(format: NSLocalizedString("Join %@", comment: "Join with provider"), MeetingProvider.label(for: url))
-        }
-        return NSLocalizedString("Join now", comment: "Join urgent")
     }
 }
 

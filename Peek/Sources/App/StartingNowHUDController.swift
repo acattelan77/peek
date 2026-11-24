@@ -65,10 +65,11 @@ final class StartingNowHUDController {
 
         let meetingURL = MeetingURLDetector.extract(from: event)
         let providerLabel = meetingURL.map { MeetingProvider.label(for: $0) }
+        // "Zoom · 60 min" at the top right of the alert (Peek 2.0 mockup).
+        let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines)
         let detailParts = [
-            EventTimeFormatter.timeRangeText(start: event.startDate, end: event.endDate),
-            providerLabel,
-            event.calendar?.title
+            providerLabel ?? ((location?.isEmpty ?? true) ? nil : location),
+            EventPresentation.duration(event)
         ].compactMap { $0 }
 
         let alert = MeetingStartAlert(

@@ -200,11 +200,11 @@ struct GroupLabel: View {
 
     var body: some View {
         Text(text.uppercased())
-            .font(PeekFont.captionStrong)
+            .font(PeekFont.sectionLabel)
             .tracking(PeekFont.groupLabelTracking)
             .foregroundColor(PeekColor.tertiaryText)
             .padding(.horizontal, PeekSpacing.xs)
-            .padding(.bottom, PeekSpacing.sm)
+            .padding(.bottom, PeekSpacing.iconGap)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityAddTraits(.isHeader)
     }
@@ -445,6 +445,76 @@ struct PeekTabButton: View {
     }
 }
 
+// MARK: - Popover list section label (TODAY / TOMORROW)
+
+struct PeekSectionLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text.uppercased())
+            .font(PeekFont.sectionLabel)
+            .tracking(PeekFont.groupLabelTracking)
+            .foregroundColor(PeekColor.tertiaryText)
+            .padding(PeekMetrics.sectionLabelInsets)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+// MARK: - Header navigation buttons (‹ Today ›)
+
+/// Small neutral fill button used in the popover header: square for chevrons,
+/// padded for "Today".
+struct HeaderNavButtonStyle: ButtonStyle {
+    var square: Bool = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        HeaderNavButtonBody(configuration: configuration, square: square)
+    }
+
+    private struct HeaderNavButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        let square: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(PeekFont.navButton)
+                .foregroundColor(PeekColor.bodyText)
+                .padding(.horizontal, square ? 0 : PeekSpacing.md - PeekSpacing.xxs)
+                .frame(width: square ? PeekMetrics.headerNavButton : nil, height: PeekMetrics.headerNavButton)
+                .background(PeekColor.fill)
+                .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
+                .opacity(isEnabled ? (configuration.isPressed ? PeekMetrics.pressedOpacity : 1) : PeekMetrics.disabledOpacity)
+                .contentShape(Rectangle())
+        }
+    }
+}
+
+// MARK: - Avatar (meeting page)
+
+/// Round initials badge. The lead person uses the accent tint, others stay neutral.
+struct PeekAvatar: View {
+    let initials: String
+    var isLead: Bool = false
+
+    var body: some View {
+        Text(initials)
+            .font(PeekFont.captionStrong)
+            .foregroundColor(isLead ? PeekColor.accentText : PeekColor.bodyText)
+            .frame(width: PeekMetrics.avatar, height: PeekMetrics.avatar)
+            .background(Circle().fill(isLead ? PeekColor.blueTint : PeekColor.chip))
+            .accessibilityHidden(true)
+    }
+
+    /// "Ada Lovelace" → "MT", "Marco" → "M", "l.ferri@example.com" → "L".
+    static func initials(for name: String) -> String {
+        let words = name.split(whereSeparator: { $0 == " " || $0 == "." || $0 == "@" })
+        let source = name.contains("@") ? Array(words.prefix(1)) : Array(words.prefix(2))
+        return source.compactMap { $0.first.map { String($0).uppercased() } }.joined()
+    }
+}
+
 // MARK: - Toolbar icon button (popover footer)
 
 struct PeekToolbarButton: View {
@@ -561,15 +631,52 @@ private struct SmallButtonBody: View {
 /// Join button that adopts the row's urgency tone (accent, amber with dark text, red).
 struct JoinButtonStyle: ButtonStyle {
     let tone: PeekTone
+    /// Compact buttons set their own height, so only horizontal padding applies.
+    var compact: Bool = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(PeekFont.bodyMetaStrong)
             .foregroundColor(tone.onFill)
-            .padding(PeekMetrics.joinButtonInsets)
+            .padding(compact
+                ? EdgeInsets(top: 0, leading: PeekMetrics.joinButtonInsets.leading, bottom: 0, trailing: PeekMetrics.joinButtonInsets.trailing)
+                : PeekMetrics.joinButtonInsets)
             .background(tone.fill.opacity(configuration.isPressed ? 0.85 : 1))
             .clipShape(RoundedRectangle(cornerRadius: PeekRadius.join, style: .continuous))
             .contentShape(Rectangle())
+    }
+}
+
+/// Large buttons of the full-screen start alert: solid accent, neutral fill, or plain.
+struct AlertButtonStyle: ButtonStyle {
+    enum Kind { case primary, secondary, plain }
+    let kind: Kind
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(kind == .primary ? PeekFont.alertButton : PeekFont.alertSecondaryButton)
+            .foregroundColor(foreground)
+            .padding(PeekMetrics.alertButtonInsets)
+            .frame(height: PeekMetrics.alertButtonHeight)
+            .background(background(pressed: configuration.isPressed))
+            .clipShape(RoundedRectangle(cornerRadius: PeekRadius.alertButton, style: .continuous))
+            .contentShape(Rectangle())
+    }
+
+    private var foreground: Color {
+        switch kind {
+        case .primary: return PeekColor.onAccent
+        case .secondary: return PeekColor.ink
+        case .plain: return PeekColor.secondaryText
+        }
+    }
+
+    private func background(pressed: Bool) -> Color {
+        switch kind {
+        case .primary: return pressed ? PeekColor.accentPressed : PeekColor.accent
+        case .secondary: return pressed ? PeekColor.chip : PeekColor.fill
+        case .plain: return pressed ? PeekColor.fill : Color.clear
+        }
     }
 }
 

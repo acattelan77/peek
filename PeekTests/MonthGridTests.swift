@@ -55,6 +55,16 @@ final class MonthGridTests: XCTestCase {
         XCTAssertEqual(MonthGrid.weekdaySymbols(calendar: cal).first, "S")
     }
 
+    func testShortWeekdaySymbolsAreUppercaseAndFollowFirstWeekday() {
+        var cal = calendar(firstWeekday: 2)
+        cal.locale = Locale(identifier: "en_US")
+        XCTAssertEqual(MonthGrid.shortWeekdaySymbols(calendar: cal), ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"])
+        cal.locale = Locale(identifier: "it_IT")
+        XCTAssertEqual(MonthGrid.shortWeekdaySymbols(calendar: cal).first, "LUN")
+        cal.firstWeekday = 1
+        XCTAssertEqual(MonthGrid.shortWeekdaySymbols(calendar: cal).first, "DOM")
+    }
+
     func testDaysCoveredBySpanningAndMidnightEvents() {
         let cal = calendar(firstWeekday: 2)
         let interval = DateInterval(start: date(2026, 11, 1, in: cal), end: date(2026, 12, 1, in: cal))

@@ -60,6 +60,16 @@ struct MonthGrid: Equatable {
         return Array(symbols[first...] + symbols[..<first])
     }
 
+    /// Short uppercase weekday labels ("MON", "LUN") in grid order, as the
+    /// Peek 2.0 month header shows them.
+    static func shortWeekdaySymbols(calendar: Calendar = .current) -> [String] {
+        let symbols = calendar.shortStandaloneWeekdaySymbols.map {
+            $0.trimmingCharacters(in: CharacterSet(charactersIn: ".")).uppercased(with: calendar.locale)
+        }
+        let first = calendar.firstWeekday - 1
+        return Array(symbols[first...] + symbols[..<first])
+    }
+
     /// The start-of-day dates an event occupies inside `interval`. An event
     /// ending exactly at midnight does not mark the next day.
     static func daysCovered(start: Date, end: Date, within interval: DateInterval, calendar: Calendar = .current) -> [Date] {

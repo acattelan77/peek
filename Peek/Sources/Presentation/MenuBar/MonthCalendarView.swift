@@ -7,9 +7,11 @@ struct MonthCalendarView: View {
     let eventDays: Set<Date>
     let selectedDay: Date?
     let onSelectDay: (Date) -> Void
-    let onPreviousMonth: () -> Void
-    let onNextMonth: () -> Void
-    let onToday: () -> Void
+
+    /// "November 2026", capitalized for languages that lowercase month names.
+    static func monthTitle(for date: Date) -> String {
+        monthFormatter.string(from: date).capitalized
+    }
 
     private static let monthFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -27,60 +29,35 @@ struct MonthCalendarView: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-            HStack(spacing: PeekSpacing.xs) {
-                Text(Self.monthFormatter.string(from: grid.monthStart).capitalized)
-                    .font(PeekFont.bodyEmphasis)
-                    .foregroundColor(PeekColor.ink)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer()
-                navButton(systemName: "chevron.left", help: NSLocalizedString("Previous month", comment: "Month view: previous month"), action: onPreviousMonth)
-                Button(NSLocalizedString("Today", comment: "Month view: jump to today"), action: onToday)
-                    .buttonStyle(SecondaryFillButtonStyle())
-                    .controlSize(.small)
-                navButton(systemName: "chevron.right", help: NSLocalizedString("Next month", comment: "Month view: next month"), action: onNextMonth)
+        // The month title and ‹ Today › controls live in the popover header (Peek 2.0).
+        LazyVGrid(columns: columns, spacing: 0) {
+            ForEach(Array(MonthGrid.shortWeekdaySymbols().enumerated()), id: \.offset) { _, symbol in
+                Text(symbol)
+                    .font(PeekFont.sectionLabel)
+                    .tracking(PeekFont.weekdayTracking)
+                    .foregroundColor(PeekColor.tertiaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, PeekSpacing.xs)
+                    .accessibilityHidden(true)
             }
-
-            LazyVGrid(columns: columns, spacing: 0) {
-                ForEach(Array(MonthGrid.weekdaySymbols().enumerated()), id: \.offset) { _, symbol in
-                    Text(symbol)
-                        .font(PeekFont.captionStrong)
-                        .foregroundColor(PeekColor.tertiaryText)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityHidden(true)
-                }
-                ForEach(grid.days, id: \.date) { day in
-                    dayCell(day)
-                }
+            ForEach(grid.days, id: \.date) { day in
+                dayCell(day)
             }
         }
-        .padding(.horizontal, PeekSpacing.md)
-        .padding(.vertical, PeekSpacing.sm)
-    }
-
-    private func navButton(systemName: String, help: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(PeekIcon.meta)
-                .foregroundColor(PeekColor.secondaryText)
-                .frame(width: PeekMetrics.monthNavButton, height: PeekMetrics.monthNavButton)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .padding(PeekMetrics.monthGridInsets)
     }
 
     private func dayCell(_ day: MonthGrid.Day) -> some View {
         let isSelected = selectedDay == day.date
-        let hasEvents = eventDays.contains(day.date)
+        // Out-of-month days stay quiet: no event dot, as in the mockup.
+        let hasEvents = day.isInMonth && eventDays.contains(day.date)
 
         return Button {
             onSelectDay(day.date)
         } label: {
             VStack(spacing: PeekMetrics.monthDotGap) {
                 Text(verbatim: "\(day.dayNumber)")
-                    .font(day.isToday || isSelected ? PeekFont.captionStrong : PeekFont.caption)
+                    .font(day.isToday || isSelected ? PeekFont.dayNumberStrong : PeekFont.dayNumber)
                     .monospacedDigit()
                     .foregroundColor(numberColor(day, isSelected: isSelected))
                     .frame(width: PeekMetrics.monthDayNumber.width, height: PeekMetrics.monthDayNumber.height)
@@ -89,7 +66,7 @@ struct MonthCalendarView: View {
                             .fill(numberBackground(day, isSelected: isSelected))
                     )
                 Circle()
-                    .fill(hasEvents ? (day.isPast ? PeekColor.tertiaryText : PeekColor.accentRail) : Color.clear)
+                    .fill(hasEvents ? (day.isPast ? PeekColor.mutedText : PeekColor.accentRail) : Color.clear)
                     .frame(width: PeekMetrics.monthEventDot, height: PeekMetrics.monthEventDot)
             }
             .frame(maxWidth: .infinity)
@@ -104,8 +81,8 @@ struct MonthCalendarView: View {
     private func numberColor(_ day: MonthGrid.Day, isSelected: Bool) -> Color {
         if day.isToday { return PeekColor.onAccent }
         if isSelected { return PeekColor.accentText }
-        if !day.isInMonth { return PeekColor.tertiaryText }
-        return day.isPast ? PeekColor.secondaryText : PeekColor.ink
+        if !day.isInMonth { return PeekColor.mutedText }
+        return day.isPast ? PeekColor.tertiaryText : PeekColor.ink
     }
 
     private func numberBackground(_ day: MonthGrid.Day, isSelected: Bool) -> Color {

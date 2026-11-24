@@ -68,6 +68,12 @@ Workstream: `docs/workstreams/phase-4-glance-and-time-zones.md`. Ships in 1.10.0
 - **PEEK-232 — In review:** Menu-bar countdown can follow only meetings with a join link and name the person you are meeting ("8m - Marco"). Declined events keep following the existing filter.
 - **PEEK-233 — In review:** World clocks under the popover header (up to six cities) and the meeting's time in those cities in the expanded row.
 
+## Now — align the app with the Peek 2.0 mockups
+
+Workstream: `docs/workstreams/peek-2-mockup-alignment.md`. Ships in 1.11.0.
+
+- **PEEK-241 — In review:** Popover, meeting page, full-screen alert and Preferences follow the approved "Peek 2.0 mockup" canvas, light and dark. Footer keeps its icon buttons (owner decision 2026-11-24). Attendee names replace email addresses.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.

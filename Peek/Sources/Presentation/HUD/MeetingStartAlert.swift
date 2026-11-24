@@ -38,94 +38,95 @@ struct MeetingStartAlert: View {
         .preferredColorScheme(preferredColorScheme)
     }
 
+    /// The headline says who you are meeting when known; the event title moves below it.
+    private var headline: String { contextLine ?? title }
+    private var subtitle: String? { contextLine == nil ? nil : title }
+
     private var card: some View {
         VStack(alignment: .leading, spacing: PeekMetrics.alertSectionGap) {
-            HStack {
-                PeekStatusPill(text: String(
-                    format: NSLocalizedString("STARTING NOW · %@", comment: "Full-screen alert pill with start time"),
-                    startTime
-                ))
-                Spacer()
+            HStack(spacing: PeekSpacing.sm) {
                 HStack(spacing: PeekSpacing.iconGap) {
-                    Text("Peek")
-                        .font(PeekFont.captionStrong)
-                        .foregroundColor(PeekColor.secondaryText)
-                    PeekAppIcon(size: PeekMetrics.hudIcon, cornerRadius: PeekRadius.badge)
+                    PulsingDot(color: PeekColor.onCritical, size: PeekMetrics.pulsingDot)
+                    Text(String(
+                        format: NSLocalizedString("STARTING NOW · %@", comment: "Full-screen alert pill with start time"),
+                        startTime
+                    ))
+                    .font(PeekFont.captionStrong)
+                    .tracking(PeekFont.labelTracking)
+                    .foregroundColor(PeekColor.onCritical)
                 }
-                .accessibilityHidden(true)
+                .padding(PeekMetrics.alertPillInsets)
+                .background(Capsule().fill(PeekColor.critical))
+
+                Spacer(minLength: PeekSpacing.sm)
+
+                if !detail.isEmpty {
+                    Text(detail)
+                        .font(PeekFont.footerMeta)
+                        .foregroundColor(PeekColor.secondaryText)
+                        .lineLimit(1)
+                }
             }
 
             VStack(alignment: .leading, spacing: PeekSpacing.iconGap) {
-                Text(title)
-                    .font(PeekFont.display)
+                Text(headline)
+                    .font(PeekFont.alertTitle)
                     .foregroundColor(PeekColor.ink)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
-                Text(detail)
-                    .font(PeekFont.body)
-                    .foregroundColor(PeekColor.bodyText)
-                    .lineLimit(2)
-
-                if let contextLine {
-                    Text(contextLine)
-                        .font(PeekFont.bodyEmphasis)
-                        .foregroundColor(PeekColor.ink)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(PeekFont.alertSubtitle)
+                        .foregroundColor(PeekColor.bodyText)
                         .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                if !briefPoints.isEmpty {
-                    VStack(alignment: .leading, spacing: PeekSpacing.xs) {
-                        ForEach(Array(briefPoints.enumerated()), id: \.offset) { _, point in
-                            HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
-                                Image(systemName: "checkmark.circle")
-                                    .font(PeekIcon.detail)
-                                    .foregroundColor(PeekColor.tertiaryText)
-                                    .accessibilityHidden(true)
-                                Text(point)
-                                    .font(PeekFont.body)
-                                    .foregroundColor(PeekColor.bodyText)
-                                    .lineLimit(2)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                    .padding(.top, PeekSpacing.xs)
-                    .accessibilityElement(children: .combine)
                 }
             }
 
-            HStack(spacing: PeekSpacing.sm) {
+            if let first = briefPoints.first {
+                VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+                    Text(NSLocalizedString("FIRST THING TO PREPARE", comment: "Full-screen alert: label above the first brief point"))
+                        .font(PeekFont.captionStrong)
+                        .tracking(PeekFont.weekdayTracking)
+                        .foregroundColor(PeekColor.accentText)
+                    Text(first)
+                        .font(PeekFont.alertBrief)
+                        .foregroundColor(PeekColor.ink)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(PeekMetrics.alertBriefInsets)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PeekColor.nextWash)
+                .clipShape(RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous))
+                .accessibilityElement(children: .combine)
+            }
+
+            HStack(spacing: PeekMetrics.headerGap) {
                 if let joinProviderLabel {
                     Button(action: onJoin) {
-                        HStack(spacing: PeekSpacing.iconGap) {
-                            Image(systemName: "video.fill")
-                                .font(PeekIcon.meta)
-                                .accessibilityHidden(true)
-                            Text(String(
-                                format: NSLocalizedString("Join %@", comment: "Full-screen alert join button with provider"),
-                                joinProviderLabel
-                            ))
-                        }
+                        Text(String(
+                            format: NSLocalizedString("Join %@", comment: "Full-screen alert join button with provider"),
+                            joinProviderLabel
+                        ))
                         .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PrimaryButtonStyle())
+                    .buttonStyle(AlertButtonStyle(kind: .primary))
                     .keyboardShortcut(.defaultAction)
                 }
 
                 Button(NSLocalizedString("In 1 minute", comment: "Full-screen alert snooze button"), action: onSnooze)
-                    .buttonStyle(SecondaryFillButtonStyle())
+                    .buttonStyle(AlertButtonStyle(kind: .secondary))
 
                 Button(NSLocalizedString("Dismiss", comment: "Full-screen alert dismiss button"), action: onDismiss)
-                    .buttonStyle(SecondaryFillButtonStyle())
+                    .buttonStyle(AlertButtonStyle(kind: .plain))
                     .keyboardShortcut(.cancelAction)
             }
 
             Text(joinProviderLabel == nil
                  ? NSLocalizedString("Esc to dismiss", comment: "Full-screen alert keyboard hint without join")
                  : NSLocalizedString("Return to join · Esc to dismiss", comment: "Full-screen alert keyboard hint"))
-                .font(PeekFont.caption)
+                .font(PeekFont.footerMeta)
                 .foregroundColor(PeekColor.tertiaryText)
                 .frame(maxWidth: .infinity)
         }
