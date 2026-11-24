@@ -100,7 +100,7 @@ Plan: owner-approved 2026-11-24 (four PRs, in order). Diagnostics first so the o
 - **PEEK-275 — In review:** Local diagnostics: `os.Logger` per category with no meeting content, a 14-day journal, MetricKit payloads kept 30 days, and "Export diagnostics" in Preferences > General. No network (ADR 0006). Workstream: `docs/workstreams/local-diagnostics.md`. Ships in 1.13.1.
 - **PEEK-271 — In review:** Wake, time zone, clock and day changes refresh events, reschedule every notification and re-evaluate the card and start alert; notifications are pinned to an absolute instant; snoozes run on the wall clock; a meeting that started up to 5 minutes before a wake gets a "started N min ago" alert.
 - **PEEK-272 — In review:** At most 60 lead-time notifications, nearest first, with 4 left for snoozes; one notification per recurring occurrence; the same meeting on two calendars shows and notifies once; meetings with a link or attendees are time-sensitive (entitlement pending, see `docs/APP_STORE.md`).
-- **PEEK-273 — Ready:** Per-event control: mute alerts, hide, dismiss; occurrence or series.
+- **PEEK-273 — In review:** Per-event control: mute alerts or hide one event or a whole recurring series from the popover and the meeting page, "Ignore" on the 2-minute card, a restore list in Preferences > Alerts. Export and context file untouched. Workstream: `docs/workstreams/per-event-control.md`. Ships in 1.15.0.
 - **PEEK-274 — Ready:** Screen-share discretion mode, after a detection spike.
 
 ## Next — calendar usefulness

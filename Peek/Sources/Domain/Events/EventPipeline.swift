@@ -7,17 +7,31 @@ protocol EventCandidate {
     var candidateTitle: String? { get }
     var candidateNotes: String? { get }
     var currentUserDeclined: Bool { get }
+    /// Series and occurrence identity for per-event mute and hide (PEEK-273).
+    var candidateIdentity: EventIdentity? { get }
+}
+
+extension EventCandidate {
+    var candidateIdentity: EventIdentity? { nil }
 }
 
 struct EventFilterSettings {
     let hideAllDayEvents: Bool
     let hideDeclinedEvents: Bool
     let keywords: [String]
+    /// Per-event choices: hidden events are left out (PEEK-273).
+    let overrides: EventOverrides
 
-    init(hideAllDayEvents: Bool, hideDeclinedEvents: Bool, filterKeywords: String) {
+    init(
+        hideAllDayEvents: Bool,
+        hideDeclinedEvents: Bool,
+        filterKeywords: String,
+        overrides: EventOverrides = .none
+    ) {
         self.hideAllDayEvents = hideAllDayEvents
         self.hideDeclinedEvents = hideDeclinedEvents
         self.keywords = EventFilterSettings.parseKeywords(filterKeywords)
+        self.overrides = overrides
     }
 
     static func parseKeywords(_ filterKeywords: String) -> [String] {
@@ -60,6 +74,10 @@ struct EventPipeline {
             }
 
             if settings.hideDeclinedEvents && event.currentUserDeclined {
+                return nil
+            }
+
+            if settings.overrides.isHidden(event.candidateIdentity) {
                 return nil
             }
 
@@ -110,6 +128,7 @@ struct EventPipeline {
             guard event.candidateStartDate != nil, event.candidateEndDate != nil else { return false }
             if settings.hideAllDayEvents && event.isAllDay { return false }
             if settings.hideDeclinedEvents && event.currentUserDeclined { return false }
+            if settings.overrides.isHidden(event.candidateIdentity) { return false }
             if !settings.keywords.isEmpty {
                 let titleLower = (event.candidateTitle ?? "").lowercased()
                 let notesLower = (event.candidateNotes ?? "").lowercased()

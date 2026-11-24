@@ -17,6 +17,13 @@ extension EKEvent: EventCandidate {
         notes
     }
 
+    var candidateIdentity: EventIdentity? {
+        let seriesID: String = calendarItemIdentifier
+        let occurrence: Date? = (occurrenceDate as Date?) ?? (startDate as Date?)
+        guard !seriesID.isEmpty, let occurrence else { return nil }
+        return EventIdentity(seriesID: seriesID, occurrenceDate: occurrence, isRecurring: hasRecurrenceRules)
+    }
+
     var currentUserDeclined: Bool {
         guard let attendees = attendees else {
             return false

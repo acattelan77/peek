@@ -121,6 +121,12 @@ struct StartingNowHUDPresentationHistory {
     mutating func prune(now: Date) {
         shownEventExpiryDates = shownEventExpiryDates.filter { $0.value > now }
     }
+
+    /// Records the event as already presented without showing it, so an
+    /// ignored meeting gets no further alert of this kind (PEEK-273).
+    mutating func suppress(eventID: String, eventEndDate: Date, now: Date) {
+        _ = shouldPresent(eventID: eventID, eventEndDate: eventEndDate, now: now)
+    }
 }
 
 protocol LaunchAtLoginControlling {

@@ -38,7 +38,9 @@
 "Agenda" = "Agenda";
 "Alert timing" = "Antelación del aviso";
 "Alerts" = "Avisos";
+"Alerts muted" = "Avisos silenciados";
 "Alerts on" = "Avisos activados";
+"All Events in the Series" = "Todos los eventos de la serie";
 "All day" = "Todo el día";
 "Always show icon" = "Mostrar siempre el icono";
 "Always show text" = "Mostrar siempre el texto";
@@ -110,11 +112,14 @@
 "Grant calendar access" = "Permitir acceso al calendario";
 "Grant permission in System Settings → Privacy & Security → Calendars" = "Concede el permiso en Ajustes del Sistema → Privacidad y seguridad → Calendarios";
 "Heads-up card" = "Tarjeta de aviso";
+"Hidden" = "Oculto";
+"Hide Event" = "Ocultar evento";
 "Hide all-day events" = "Ocultar eventos de todo el día";
 "Hide declined events" = "Ocultar eventos rechazados";
 "Hide events whose title or notes contain these words (comma-separated)." = "Ocultar eventos cuyo título o notas contengan estas palabras (separadas por comas).";
 "IN %d MIN" = "EN %d MIN";
 "Icon only" = "Solo icono";
+"Ignore" = "Ignorar";
 "In 1 minute" = "En 1 minuto";
 "Interrupt only for meetings with a link or attendees" = "Interrumpir solo en reuniones con enlace o asistentes";
 "Interrupts until you choose" = "Interrumpe hasta que elijas";
@@ -139,6 +144,9 @@
 "Meetings whose title or notes contain these words." = "Reuniones cuyo título o notas contienen estas palabras.";
 "Menu bar" = "Barra de menús";
 "Menu bar and shortcut" = "Barra de menús y atajo";
+"Mute Alerts" = "Silenciar avisos";
+"Mute or hide this event" = "Silenciar u ocultar este evento";
+"Muted and hidden events" = "Eventos silenciados y ocultos";
 "NEXT" = "SIGUIENTE";
 "NOW" = "AHORA";
 "Name in the menu bar" = "Nombre en la barra de menús";
@@ -153,6 +161,7 @@
 "No calendars found" = "No se encontraron calendarios";
 "No events on this day." = "No hay eventos este día.";
 "No meetings today" = "Sin reuniones hoy";
+"No more alerts for this meeting" = "No más avisos para esta reunión";
 "No upcoming events" = "No hay próximos eventos";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "No hay próximos eventos. Peek se activará en cuanto algo llegue a tu calendario.";
 "No upcoming meetings" = "No hay reuniones próximas";
@@ -190,7 +199,10 @@
 "Remove city" = "Quitar ciudad";
 "Remove keyword" = "Quitar palabra clave";
 "Requesting…" = "Solicitando…";
+"Restore" = "Restaurar";
+"Restore %@" = "Restaurar %@";
 "Return to join · Esc to dismiss" = "Intro para unirte · Esc para cerrar";
+"Right-click an event in Peek to mute its alerts or hide it." = "Haz clic derecho en un evento en Peek para silenciar sus avisos u ocultarlo.";
 "SOON" = "PRONTO";
 "STARTING NOW" = "EMPIEZA AHORA";
 "STARTING NOW · %@" = "EMPIEZA AHORA · %@";
@@ -204,6 +216,7 @@
 "Send meeting details to Claude?" = "¿Enviar los detalles de las reuniones a Claude?";
 "Shortcut to join the next one" = "Atajo para unirse a la siguiente";
 "Show" = "Mostrar";
+"Show Event" = "Mostrar evento";
 "Show day priorities" = "Mostrar las prioridades del día";
 "Show in the menu bar" = "Mostrar en la barra de menús";
 "Show meeting" = "Mostrar la reunión";
@@ -232,6 +245,7 @@
 "The model declined to write a brief for this meeting." = "El modelo no quiso escribir un resumen para esta reunión.";
 "The model returned no usable points." = "El modelo no devolvió puntos utilizables.";
 "Theme" = "Tema";
+"This Event Only" = "Solo este evento";
 "This Mac doesn't support Apple Intelligence." = "Este Mac no es compatible con Apple Intelligence.";
 "This file uses format version %d, which this Peek doesn't support." = "Este archivo usa la versión de formato %d, que esta versión de Peek no admite.";
 "Time zones" = "Zonas horarias";
@@ -244,6 +258,7 @@
 "Try again" = "Reintentar";
 "Turn on Apple Intelligence in System Settings to use on-device briefs." = "Activa Apple Intelligence en Ajustes del Sistema para usar los resúmenes en el Mac.";
 "Unknown attendee" = "Asistente desconocido";
+"Unmute Alerts" = "Reactivar avisos";
 "Untitled Event" = "Evento sin título";
 "Upcoming Event" = "Próximo evento";
 "Use Claude" = "Usar Claude";
@@ -270,6 +285,7 @@
 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts." = "Tu próxima reunión, siempre a la vista en la barra de menús, para unirte con un clic en cuanto empiece.";
 "Zoom and Teams when installed, otherwise the browser." = "Zoom y Teams si están instalados; si no, el navegador.";
 "context folder" = "carpeta de contexto";
+"every event in the series" = "todos los eventos de la serie";
 "from %@" = "de %@";
 "iCloud" = "iCloud";
 "in %d hr" = "en %d h";

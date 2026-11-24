@@ -4,6 +4,28 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.15.0 - 2026-11-24
+
+### Added
+
+- PEEK-273: per-event control. Right-click an event in the popover (or use the
+  menu on the meeting page) to "Mute Alerts", which keeps it visible but stops
+  its notification, 2-minute card and start alert, or "Hide Event", which
+  removes it from the popover, the month view and the menu bar. A recurring
+  event asks each time: "This Event Only" (listed first) or "All Events in the
+  Series". Muted events show a bell-slash. "Unmute Alerts" and "Show Event"
+  restore it, and Preferences > Alerts lists every muted or hidden event with
+  "Restore". One-off and single-occurrence choices are pruned once the event
+  ends. The join shortcut skips hidden events but not muted ones.
+- PEEK-273: the 2-minute heads-up card has an "Ignore" button that closes it and
+  skips that meeting's start alert. Dismissing the full-screen alert also
+  ignores the meeting, so a pending snooze cannot bring it back.
+
+### Notes
+
+- The calendar export (PEEK-111) and the context file are unchanged: hidden
+  events are still exported.
+
 ## 1.14.0 - 2026-11-24
 
 ### Fixed

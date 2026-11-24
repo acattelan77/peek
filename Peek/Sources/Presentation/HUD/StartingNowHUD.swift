@@ -30,6 +30,10 @@ struct StartingNowHUD: View {
     let onJoin: () -> Void
     /// Nil hides the snooze button (the 2-minute card: the start alert follows).
     var onSnooze: (() -> Void)? = nil
+    /// Non-nil shows "Ignore": closes the card and skips the rest of this
+    /// meeting's alerts (PEEK-273). The 2-minute card offers it, since closing
+    /// that card alone still lets the start alert come.
+    var onIgnore: (() -> Void)? = nil
     let onClose: () -> Void
 
     private var preferredColorScheme: ColorScheme? {
@@ -160,6 +164,14 @@ struct StartingNowHUD: View {
                     Text(NSLocalizedString("Snooze 5 min", comment: "HUD snooze button"))
                 }
                 .buttonStyle(SecondaryFillButtonStyle())
+            }
+
+            if let onIgnore {
+                Button(action: onIgnore) {
+                    Text(NSLocalizedString("Ignore", comment: "Alert button: skip this meeting's remaining alerts"))
+                }
+                .buttonStyle(SecondaryFillButtonStyle())
+                .help(NSLocalizedString("No more alerts for this meeting", comment: "Help for the Ignore alert button"))
             }
 
             Spacer()

@@ -38,7 +38,9 @@
 "Agenda" = "Agenda";
 "Alert timing" = "Délai de l'alerte";
 "Alerts" = "Alertes";
+"Alerts muted" = "Alertes en sourdine";
 "Alerts on" = "Alertes activées";
+"All Events in the Series" = "Tous les événements de la série";
 "All day" = "Toute la journée";
 "Always show icon" = "Toujours afficher l'icône";
 "Always show text" = "Toujours afficher le texte";
@@ -110,11 +112,14 @@
 "Grant calendar access" = "Autoriser l'accès au calendrier";
 "Grant permission in System Settings → Privacy & Security → Calendars" = "Accordez l'autorisation dans Réglages Système → Confidentialité et sécurité → Calendriers";
 "Heads-up card" = "Carte d'alerte";
+"Hidden" = "Masqué";
+"Hide Event" = "Masquer l’événement";
 "Hide all-day events" = "Masquer les événements sur la journée";
 "Hide declined events" = "Masquer les événements refusés";
 "Hide events whose title or notes contain these words (comma-separated)." = "Masquer les événements dont le titre ou les notes contiennent ces mots (séparés par des virgules).";
 "IN %d MIN" = "DANS %d MIN";
 "Icon only" = "Icône seule";
+"Ignore" = "Ignorer";
 "In 1 minute" = "Dans 1 minute";
 "Interrupt only for meetings with a link or attendees" = "N’interrompre que pour les réunions avec lien ou participants";
 "Interrupts until you choose" = "Interrompt jusqu’à ce que vous choisissiez";
@@ -139,6 +144,9 @@
 "Meetings whose title or notes contain these words." = "Réunions dont le titre ou les notes contiennent ces mots.";
 "Menu bar" = "Barre des menus";
 "Menu bar and shortcut" = "Barre des menus et raccourci";
+"Mute Alerts" = "Mettre les alertes en sourdine";
+"Mute or hide this event" = "Mettre en sourdine ou masquer cet événement";
+"Muted and hidden events" = "Événements en sourdine et masqués";
 "NEXT" = "SUIVANT";
 "NOW" = "MAINTENANT";
 "Name in the menu bar" = "Nom dans la barre des menus";
@@ -153,6 +161,7 @@
 "No calendars found" = "Aucun calendrier trouvé";
 "No events on this day." = "Aucun événement ce jour-là.";
 "No meetings today" = "Aucune réunion aujourd'hui";
+"No more alerts for this meeting" = "Plus d’alertes pour cette réunion";
 "No upcoming events" = "Aucun événement à venir";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "Aucun événement à venir. Peek s'allume dès qu'un événement arrive dans votre calendrier.";
 "No upcoming meetings" = "Aucune réunion à venir";
@@ -190,7 +199,10 @@
 "Remove city" = "Retirer la ville";
 "Remove keyword" = "Supprimer le mot-clé";
 "Requesting…" = "Demande en cours…";
+"Restore" = "Rétablir";
+"Restore %@" = "Rétablir %@";
 "Return to join · Esc to dismiss" = "Entrée pour rejoindre · Échap pour fermer";
+"Right-click an event in Peek to mute its alerts or hide it." = "Faites un clic droit sur un événement dans Peek pour mettre ses alertes en sourdine ou le masquer.";
 "SOON" = "BIENTÔT";
 "STARTING NOW" = "COMMENCE";
 "STARTING NOW · %@" = "COMMENCE · %@";
@@ -204,6 +216,7 @@
 "Send meeting details to Claude?" = "Envoyer les détails des réunions à Claude ?";
 "Shortcut to join the next one" = "Raccourci pour rejoindre la suivante";
 "Show" = "Afficher";
+"Show Event" = "Afficher l’événement";
 "Show day priorities" = "Afficher les priorités du jour";
 "Show in the menu bar" = "Afficher dans la barre des menus";
 "Show meeting" = "Afficher la réunion";
@@ -232,6 +245,7 @@
 "The model declined to write a brief for this meeting." = "Le modèle a refusé de rédiger un briefing pour cette réunion.";
 "The model returned no usable points." = "Le modèle n'a renvoyé aucun point exploitable.";
 "Theme" = "Thème";
+"This Event Only" = "Cet événement uniquement";
 "This Mac doesn't support Apple Intelligence." = "Ce Mac ne prend pas en charge Apple Intelligence.";
 "This file uses format version %d, which this Peek doesn't support." = "Ce fichier utilise la version de format %d, que cette version de Peek ne prend pas en charge.";
 "Time zones" = "Fuseaux horaires";
@@ -244,6 +258,7 @@
 "Try again" = "Réessayer";
 "Turn on Apple Intelligence in System Settings to use on-device briefs." = "Activez Apple Intelligence dans Réglages Système pour utiliser les briefings sur le Mac.";
 "Unknown attendee" = "Participant inconnu";
+"Unmute Alerts" = "Réactiver les alertes";
 "Untitled Event" = "Événement sans titre";
 "Upcoming Event" = "Événement à venir";
 "Use Claude" = "Utiliser Claude";
@@ -270,6 +285,7 @@
 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts." = "Votre prochaine réunion, toujours visible d'un coup d'œil dans la barre des menus, à rejoindre en un clic dès qu'elle commence.";
 "Zoom and Teams when installed, otherwise the browser." = "Zoom et Teams s’ils sont installés, sinon le navigateur.";
 "context folder" = "dossier de contexte";
+"every event in the series" = "tous les événements de la série";
 "from %@" = "de %@";
 "iCloud" = "iCloud";
 "in %d hr" = "dans %d h";
