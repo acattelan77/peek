@@ -299,3 +299,14 @@
 /* PEEK-271: start alert shown late, after a wake */
 "STARTED %d MIN AGO" = "EMPEZÓ HACE %d MIN";
 "STARTED %d MIN AGO · %@" = "EMPEZÓ HACE %d MIN · %@";
+/* PEEK-274: discreet mode */
+"Screen sharing" = "Compartir pantalla";
+"Discreet mode" = "Modo discreto";
+"Shows only times and titles: no brief, priorities, people or notes. Also in the popover footer." = "Muestra solo horas y títulos: sin brief, prioridades, personas ni notas. También en el pie del popover.";
+"Turn on when mirroring a display" = "Activar al duplicar una pantalla";
+"A projector, TV or AirPlay set to mirror. macOS doesn't tell apps when Zoom, Meet or Teams share your screen: use the shortcut." = "Un proyector, una TV o AirPlay en modo duplicado. macOS no avisa a las apps cuando Zoom, Meet o Teams comparten la pantalla: usa el atajo.";
+"Shortcut for discreet mode" = "Atajo del modo discreto";
+"Discreet mode is on: show details" = "Modo discreto activado: mostrar detalles";
+"Discreet mode: hide briefs and details" = "Modo discreto: ocultar briefs y detalles";
+"Discreet mode is on" = "Modo discreto activado";
+"Discreet mode is on. Brief, people and notes are hidden." = "Modo discreto activado. Brief, personas y notas están ocultos.";

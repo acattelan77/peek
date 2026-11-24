@@ -147,7 +147,9 @@ final class StartingNowHUDController {
         if case .startedMinutesAgo(let minutes) = timing {
             minutesLate = minutes
         }
-        switch presentation {
+        // Discreet mode (PEEK-274), checked at presentation time so a snoozed
+        // full-screen alert also comes back as the card.
+        switch DiscreetModePolicy.startAlert(presentation, discreet: DiscreetModeController.shared.isActive) {
         case .none:
             return
         case .hud:
@@ -234,6 +236,7 @@ final class StartingNowHUDController {
     ) {
         close()
 
+        let discreet = DiscreetModeController.shared.isActive
         let meetingURL = MeetingURLDetector.extract(from: event)
         let providerLabel = meetingURL.map { MeetingProvider.label(for: $0) }
         var ignoreAction: (() -> Void)?
@@ -255,8 +258,8 @@ final class StartingNowHUDController {
             calendarName: event.calendar?.title,
             calendarColor: event.calendar.map { Color($0.color) },
             joinProviderLabel: providerLabel,
-            contextLine: MeetingContextProvider.context(for: event).headline,
-            prepLine: prepLine,
+            contextLine: discreet ? nil : MeetingContextProvider.context(for: event).headline,
+            prepLine: discreet ? nil : prepLine,
             appearanceMode: appearanceMode,
             statusText: statusText,
             onJoin: { [weak self] in

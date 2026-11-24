@@ -59,6 +59,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var hotkeyRegistrar: CarbonHotkeyRegistrar!
     private var joinHotkeyRegistrar: CarbonHotkeyRegistrar!
+    private var discreetHotkeyRegistrar: CarbonHotkeyRegistrar!
+    private let discreetMode = DiscreetModeController.shared
+    /// The calendar glyph; `statusGlyph` swaps to the eye while discreet (PEEK-274).
+    private var calendarGlyph: NSImage?
+    private var lastDiscreetState = false
     private var updateTimer: Timer?
     private var notificationManager: (any NotificationScheduling)!
     private var pulseTimer: Timer?
@@ -103,6 +108,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         joinHotkeyRegistrar = CarbonHotkeyRegistrar(id: 2) { [weak self] in
             self?.joinNextMeeting()
         }
+        discreetHotkeyRegistrar = CarbonHotkeyRegistrar(id: 3) { [weak self] in
+            self?.discreetMode.toggle()
+        }
 
         // Create status item in menu bar
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -111,6 +119,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Set the menu bar icon
             if let icon = NSImage(named: "StatusBarIcon") {
                 icon.isTemplate = true // Enable template rendering for dark mode support
+                calendarGlyph = icon
                 statusGlyph = icon
                 button.image = icon
                 button.imagePosition = .imageLeading // Icon on the left, text on the right
@@ -293,6 +302,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        // Discreet mode (PEEK-274): its shortcut, and the menu bar follows it.
+        discreetMode.$hotkey
+            .sink { [weak self] hotkey in
+                guard let self else { return }
+                let result = GlobalHotkeyCoordinator.apply(hotkey, using: self.discreetHotkeyRegistrar)
+                self.discreetMode.hotkeyStatusMessage = result.errorMessage
+            }
+            .store(in: &cancellables)
+
+        discreetMode.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.discreetMode.isActive != self.lastDiscreetState else { return }
+                self.lastDiscreetState = self.discreetMode.isActive
+                self.applyDiscreetGlyph()
+                if self.calendarManager.hasCalendarAccess {
+                    self.updateMenuBar()
+                }
+            }
+            .store(in: &cancellables)
+        lastDiscreetState = discreetMode.isActive
+        applyDiscreetGlyph()
+
         calendarManager.$statusBarOnlyMeetings
             .dropFirst()
             .sink { [weak self] _ in
@@ -414,6 +446,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         hotkeyRegistrar?.unregister()
         joinHotkeyRegistrar?.unregister()
+        discreetHotkeyRegistrar?.unregister()
         updateTimer?.invalidate()
         updateTimer = nil
         pulseTimer?.invalidate()
@@ -462,7 +495,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // A display change may have freed or rearranged menu-bar space, so let
         // Automatic re-evaluate whether it can show text again.
         collapsedWhileHidden = false
+        discreetMode.refreshSignals()
         scheduleRefresh(debounce: 0.1)
+    }
+
+    /// The menu-bar indicator of discreet mode: the eye replaces the calendar
+    /// glyph, in the plain title and in the pills alike.
+    private func applyDiscreetGlyph() {
+        let glyph: NSImage?
+        if discreetMode.isActive,
+           let eye = NSImage(
+               systemSymbolName: "eye.slash",
+               accessibilityDescription: NSLocalizedString("Discreet mode is on", comment: "Menu bar: discreet mode indicator")
+           )?.withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 13, weight: .regular)) {
+            eye.isTemplate = true
+            glyph = eye
+        } else {
+            glyph = calendarGlyph
+        }
+        guard glyph !== statusGlyph else { return }
+        statusGlyph = glyph
+        statusItem?.button?.image = glyph
     }
 
     private func handleCalendarAccessChange(granted: Bool, shouldRefresh: Bool) {
@@ -641,6 +694,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateMenuBar() {
+        discreetMode.refreshSignals()
         calendarManager.fetchNextEvent { [weak self] event in
             self?.applyMenuBar(event: event)
         }
@@ -722,7 +776,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.adjustTimerForUrgency(nextUrgency)
             } else if let shown = displayEvent, eventCount > 0 {
                 let label: String?
-                switch self.calendarManager.statusBarLabelStyle {
+                switch DiscreetModePolicy.labelStyle(self.calendarManager.statusBarLabelStyle, discreet: self.discreetMode.isActive) {
                 case .eventTitle:
                     label = shown.title
                 case .person:

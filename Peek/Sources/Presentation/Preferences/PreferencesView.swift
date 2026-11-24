@@ -352,6 +352,7 @@ struct GeneralTab: View {
     let launchAtLoginController: any LaunchAtLoginControlling
     @State private var launchAtLoginErrorMessage: String?
     @ObservedObject private var briefService = MeetingBriefService.shared
+    @ObservedObject private var discreetMode = DiscreetModeController.shared
     @State private var apiKeyDraft = ""
     @State private var apiKeyMessage: String?
     @State private var diagnosticsMessage: String?
@@ -621,6 +622,38 @@ struct GeneralTab: View {
                                 KeywordChipEditor(text: briefKeywordsBinding)
                                     .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
                             }
+                        }
+                    }
+
+                    // PEEK-274: discreet mode while sharing the screen.
+                    settingsGroup(NSLocalizedString("Screen sharing", comment: "Group label: discreet mode while sharing the screen")) {
+                        SettingRow(
+                            NSLocalizedString("Discreet mode", comment: "Discreet mode toggle"),
+                            subtitle: NSLocalizedString("Shows only times and titles: no brief, priorities, people or notes. Also in the popover footer.", comment: "Discreet mode toggle subtitle")
+                        ) {
+                            switchToggle($discreetMode.isManuallyOn, label: NSLocalizedString("Discreet mode", comment: "Discreet mode toggle"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Turn on when mirroring a display", comment: "Discreet mode: automatic on display mirroring"),
+                            subtitle: NSLocalizedString("A projector, TV or AirPlay set to mirror. macOS doesn't tell apps when Zoom, Meet or Teams share your screen: use the shortcut.", comment: "Discreet mode: automatic detection subtitle")
+                        ) {
+                            switchToggle($discreetMode.detectsMirroring, label: NSLocalizedString("Turn on when mirroring a display", comment: "Discreet mode: automatic on display mirroring"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Shortcut for discreet mode", comment: "Discreet mode hotkey setting"),
+                            subtitle: NSLocalizedString("Works even with the popover closed.", comment: "Join hotkey subtitle")
+                        ) {
+                            Picker("", selection: $discreetMode.hotkey) {
+                                ForEach(DiscreetHotkeyOption.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerHotkey)
+                            .accessibilityLabel(NSLocalizedString("Shortcut for discreet mode", comment: "Discreet mode hotkey setting"))
+                        }
+                        if let message = discreetMode.hotkeyStatusMessage {
+                            rowFootnote(message, isError: true)
                         }
                     }
                 }
