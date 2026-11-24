@@ -5,10 +5,41 @@ import EventKit
 /// Owns the start-of-meeting alert: the "Starting now" heads-up card (top-right,
 /// snoozed for five minutes) or the full-screen alert (snoozed for one minute).
 /// Either fires once per event in the first minute after the start time.
+/// The alert ladder (Peek 2.0) adds a heads-up card 2 minutes before.
 final class StartingNowHUDController {
     private var hudWindow: NSPanel?
     private var fullScreenWindow: NSPanel?
     private var presentationHistory = StartingNowHUDPresentationHistory()
+    private var soonHistory = StartingNowHUDPresentationHistory()
+
+    /// The 2-minute step of the alert ladder: a heads-up card, once per event,
+    /// when the meeting is 2 minutes or less away and has not started.
+    func maybeShowSoon(
+        for event: EKEvent,
+        enabled: Bool,
+        appearanceMode: AppearanceMode,
+        interruptOnlyForMeetings: Bool
+    ) {
+        let now = Date()
+        soonHistory.prune(now: now)
+        guard enabled, !event.isAllDay, let eventID = event.eventIdentifier,
+              fullScreenWindow == nil else { return }
+        guard AlertLadder.isSoonCardDue(secondsUntilStart: event.startDate.timeIntervalSince(now)) else { return }
+        guard AlertLadder.interrupts(
+            interruptOnlyForMeetings: interruptOnlyForMeetings,
+            hasJoinLink: MeetingURLDetector.extract(from: event) != nil,
+            hasAttendees: !(event.attendees ?? []).isEmpty
+        ) else { return }
+        guard soonHistory.shouldPresent(eventID: eventID, eventEndDate: event.endDate, now: now) else { return }
+
+        let minutes = max(1, Int((event.startDate.timeIntervalSince(now) / 60).rounded(.up)))
+        show(
+            for: event,
+            appearanceMode: appearanceMode,
+            statusText: String(format: NSLocalizedString("IN %d MIN", comment: "Heads-up card pill 2 minutes before a meeting"), minutes),
+            allowsSnooze: false
+        )
+    }
     private var snoozeWorkItem: DispatchWorkItem?
 
     /// Presents the start alert once when an event reaches its start time, as a
@@ -120,11 +151,22 @@ final class StartingNowHUDController {
         panel.makeKeyAndOrderFront(nil)
     }
 
-    private func show(for event: EKEvent, appearanceMode: AppearanceMode) {
+    private func show(
+        for event: EKEvent,
+        appearanceMode: AppearanceMode,
+        statusText: String? = nil,
+        allowsSnooze: Bool = true
+    ) {
         close()
 
         let meetingURL = MeetingURLDetector.extract(from: event)
         let providerLabel = meetingURL.map { MeetingProvider.label(for: $0) }
+        var snoozeAction: (() -> Void)?
+        if allowsSnooze {
+            snoozeAction = { [weak self] in
+                self?.snooze(.hud, for: event, appearanceMode: appearanceMode)
+            }
+        }
 
         let hud = StartingNowHUD(
             title: event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title"),
@@ -134,15 +176,14 @@ final class StartingNowHUDController {
             joinProviderLabel: providerLabel,
             contextLine: MeetingContextProvider.context(for: event).headline,
             appearanceMode: appearanceMode,
+            statusText: statusText,
             onJoin: { [weak self] in
                 if let url = meetingURL {
                     MeetingLinkOpener.open(url)
                 }
                 self?.close()
             },
-            onSnooze: { [weak self] in
-                self?.snooze(.hud, for: event, appearanceMode: appearanceMode)
-            },
+            onSnooze: snoozeAction,
             onClose: { [weak self] in
                 self?.close()
             }

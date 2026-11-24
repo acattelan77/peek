@@ -4,6 +4,28 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.12.0 - 2026-11-24
+
+### Changed
+
+- PEEK-242: the menu bar follows the Peek 2.0 mockup's five states. More than 10 minutes
+  away it reads "Quarterly review · 15:00"; from 10 minutes it is an amber pill
+  "Quarterly review · 6 min"; under 2 minutes a red, pulsing pill "Join now · Zoom"
+  (or "Title · now" without a link); during a meeting, with nothing close, "18 min left".
+  When space is short, or Show is Icon only, the icon stays inside the pill. The "(+N)"
+  event count and its setting are gone.
+- Preferences > Alerts follows the mockup: an alert ladder with one level per moment
+  (the notification lead time, 2 minutes before, at the start), Which meetings, Joining a
+  meeting, and Menu bar > Show (Countdown, Start time, Icon only). The global hotkey and
+  the other menu-bar settings moved to General.
+
+### Added
+
+- A heads-up card 2 minutes before a meeting ("IN 2 MIN"), on by default and set in the
+  alert ladder. "Interrupt only for meetings with a link or attendees" also applies to it.
+- Badge-only calendars: click a calendar in Which meetings and its events stay in the menu
+  bar but never notify or interrupt.
+
 ## 1.11.1 - 2026-11-24
 
 ### Fixed

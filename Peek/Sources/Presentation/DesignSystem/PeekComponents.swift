@@ -419,6 +419,49 @@ struct PeekKeywordChip: View {
     }
 }
 
+/// A calendar in Preferences > Alerts > Which meetings. Clicking it toggles
+/// "badge only": its events stay in the menu bar but never notify or interrupt.
+struct PeekCalendarAlertChip: View {
+    let title: String
+    let color: Color
+    let badgeOnly: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: PeekSpacing.iconGap) {
+                Circle()
+                    .fill(color)
+                    .frame(width: PeekMetrics.calendarDot, height: PeekMetrics.calendarDot)
+                    .accessibilityHidden(true)
+                Text(badgeOnly
+                    ? String(format: NSLocalizedString("%@ · badge only", comment: "Calendar chip: events only show in the menu bar"), title)
+                    : title)
+                    .font(PeekFont.footerMeta)
+                    .foregroundColor(badgeOnly ? PeekColor.tertiaryText : PeekColor.ink)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            .padding(PeekMetrics.chipInsets)
+            .background(badgeOnly ? PeekColor.surface : PeekColor.chip)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule().strokeBorder(
+                    badgeOnly ? PeekColor.controlStroke : Color.clear,
+                    style: StrokeStyle(lineWidth: PeekSpacing.hairline, dash: PeekMetrics.chipDash)
+                )
+            )
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help(title)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Text(badgeOnly
+            ? NSLocalizedString("Badge only", comment: "Accessibility value: calendar only shows in the menu bar")
+            : NSLocalizedString("Alerts on", comment: "Accessibility value: calendar notifies and interrupts")))
+    }
+}
+
 // MARK: - Tabs
 
 /// Underlined text tab used by Preferences.
@@ -804,3 +847,110 @@ struct PeekComponents_Previews: PreviewProvider {
     }
 }
 #endif
+
+// MARK: - Menu bar item (Peek 2.0 states)
+
+
+/// Draws the menu bar item for the Peek 2.0 states.
+///
+/// Calm and in progress keep the standard template glyph and a plain title,
+/// so macOS tints them for a light or dark menu bar. Soon and now are filled
+/// pills (amber, then red) drawn as one image, because a status button cannot
+/// paint a background behind its title.
+enum StatusItemRenderer {
+    /// Pill geometry from the mockup: 3 pt by 8 pt padding, 5 pt corners,
+    /// a 14 pt glyph and 6 pt between glyph and text.
+    static let pillHorizontalPadding: CGFloat = 8
+    static let pillVerticalInset: CGFloat = 3
+    static let pillCornerRadius: CGFloat = 5
+    static let pillGlyphSize: CGFloat = 14
+    static let pillGap: CGFloat = 6
+    /// Extra width the space policy reserves around a plain title.
+    static let plainTitleSlack: CGFloat = 12
+
+    /// Calm and soon titles are medium, now is semibold (mockup weights 500 / 600).
+    static func titleFont(for phase: MenuBarPhase, filled: Bool) -> NSFont {
+        let size = NSFont.menuBarFont(ofSize: 0).pointSize
+        let weight: NSFont.Weight = filled ? .semibold : .medium
+        return NSFont.monospacedDigitSystemFont(ofSize: size, weight: weight)
+    }
+
+    /// Plain title color: label color while calm, secondary during a meeting.
+    static func plainTitleColor(for phase: MenuBarPhase) -> NSColor {
+        phase == .inProgress ? .secondaryLabelColor : .labelColor
+    }
+
+    static func pillColors(for phase: MenuBarPhase) -> (fill: NSColor, text: NSColor)? {
+        switch phase {
+        case .soon: return (PeekNSColor.urgent, PeekNSColor.onUrgent)
+        case .now: return (PeekNSColor.critical, PeekNSColor.onCritical)
+        case .calm, .inProgress: return nil
+        }
+    }
+
+    static func plainTitle(_ title: String, phase: MenuBarPhase) -> NSAttributedString {
+        NSAttributedString(string: title, attributes: [
+            .font: titleFont(for: phase, filled: false),
+            .foregroundColor: plainTitleColor(for: phase)
+        ])
+    }
+
+    /// A filled pill with the glyph and, unless `title` is nil, the text.
+    static func pillImage(glyph: NSImage?, title: String?, phase: MenuBarPhase, barThickness: CGFloat) -> NSImage? {
+        guard let colors = pillColors(for: phase) else { return nil }
+        let font = titleFont(for: phase, filled: true)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: colors.text]
+        let text = title.map { NSAttributedString(string: $0, attributes: attributes) }
+        let textSize = text?.size() ?? .zero
+
+        let height = max(barThickness - 2 * pillVerticalInset, pillGlyphSize + 2 * pillVerticalInset)
+        var width = 2 * pillHorizontalPadding + pillGlyphSize
+        if text != nil { width += pillGap + ceil(textSize.width) }
+        let size = NSSize(width: width, height: height)
+
+        let image = NSImage(size: size, flipped: false) { rect in
+            colors.fill.setFill()
+            NSBezierPath(roundedRect: rect, xRadius: StatusItemRenderer.pillCornerRadius, yRadius: StatusItemRenderer.pillCornerRadius).fill()
+
+            let glyphRect = NSRect(
+                x: StatusItemRenderer.pillHorizontalPadding,
+                y: (rect.height - StatusItemRenderer.pillGlyphSize) / 2,
+                width: StatusItemRenderer.pillGlyphSize,
+                height: StatusItemRenderer.pillGlyphSize
+            )
+            if let tinted = glyph.map({ StatusItemRenderer.tint($0, with: colors.text, size: glyphRect.size) }) {
+                tinted.draw(in: glyphRect)
+            }
+            if let text {
+                let origin = NSPoint(
+                    x: glyphRect.maxX + StatusItemRenderer.pillGap,
+                    y: (rect.height - textSize.height) / 2
+                )
+                text.draw(at: origin)
+            }
+            return true
+        }
+        image.isTemplate = false
+        image.accessibilityDescription = title
+        return image
+    }
+
+    /// Width the item needs for `title`, used by the space policy.
+    static func requiredWidth(title: String, phase: MenuBarPhase, filled: Bool, glyphWidth: CGFloat) -> CGFloat {
+        let font = titleFont(for: phase, filled: filled)
+        let textWidth = (title as NSString).size(withAttributes: [.font: font]).width
+        if filled {
+            return 2 * pillHorizontalPadding + pillGlyphSize + pillGap + ceil(textWidth)
+        }
+        return glyphWidth + textWidth + plainTitleSlack
+    }
+
+    fileprivate static func tint(_ glyph: NSImage, with color: NSColor, size: NSSize) -> NSImage {
+        NSImage(size: size, flipped: false) { rect in
+            glyph.draw(in: rect)
+            color.set()
+            rect.fill(using: .sourceAtop)
+            return true
+        }
+    }
+}

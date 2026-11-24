@@ -375,145 +375,108 @@ struct GeneralTab: View {
         ScrollView {
             VStack(alignment: .leading, spacing: PeekSpacing.lg) {
                 if section == .meetings {
-                    // Shortcut & alerts
-                    settingsGroup(NSLocalizedString("Alerts and joining", comment: "Group label: alerts and joining meetings")) {
-                        SettingRow(NSLocalizedString("Global hotkey", comment: "Global hotkey setting")) {
-                            Picker("", selection: $calendarManager.globalHotkey) {
-                                ForEach(HotkeyOption.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    // Peek 2.0 Preferences mockup: the alert ladder, which
+                    // meetings interrupt, joining, and what the menu bar shows.
+                    settingsGroup(NSLocalizedString("Alerts", comment: "Group label: the alert ladder")) {
+                        ladderRow(hint: NSLocalizedString("A quiet notification", comment: "Alert ladder: hint for the notification ahead of time")) {
+                            Menu {
+                                ForEach(NotificationTiming.allCases.filter { $0 != .none }, id: \.self) { timing in
+                                    Button(timing.displayName) { calendarManager.notificationTiming = timing }
+                                }
+                            } label: {
+                                Text(leadTime.displayName)
+                                    .font(PeekFont.rowTitle)
+                                    .foregroundColor(PeekColor.ink)
                             }
-                            .labelsHidden()
-                            .frame(width: PeekMetrics.pickerHotkey)
-                            .accessibilityLabel(NSLocalizedString("Global hotkey", comment: "Accessibility label for global hotkey"))
+                            .menuStyle(.borderlessButton)
+                            .fixedSize()
+                            .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
+                        } level: {
+                            levelPicker(beforeLevelBinding, options: AlertLevel.beforeOptions, label: leadTime.displayName)
                         }
-                        if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
-                            rowFootnote(hotkeyStatusMessage, isError: true)
+                        if let notificationStatusMessage = calendarManager.notificationStatusMessage {
+                            rowFootnote(notificationStatusMessage, isError: true)
+                        }
+                        RowDivider()
+                        ladderRow(hint: NSLocalizedString("Red menu bar and a card at the top", comment: "Alert ladder: hint 2 minutes before")) {
+                            ladderTitle(NSLocalizedString("2 minutes before", comment: "Alert ladder: the step 2 minutes before a meeting"))
+                        } level: {
+                            levelPicker(soonLevelBinding, options: AlertLevel.soonOptions, label: NSLocalizedString("2 minutes before", comment: "Alert ladder: the step 2 minutes before a meeting"))
+                        }
+                        RowDivider()
+                        ladderRow(hint: NSLocalizedString("Interrupts until you choose", comment: "Alert ladder: hint at the start")) {
+                            ladderTitle(NSLocalizedString("At the start", comment: "Alert ladder: the step when a meeting starts"))
+                        } level: {
+                            levelPicker(startLevelBinding, options: AlertLevel.startOptions, label: NSLocalizedString("At the start", comment: "Alert ladder: the step when a meeting starts"))
+                        }
+                    }
+
+                    settingsGroup(NSLocalizedString("Which meetings", comment: "Group label: which meetings interrupt")) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            PeekCheckboxRow(
+                                label: NSLocalizedString("Interrupt only for meetings with a link or attendees", comment: "Which meetings: interrupt only for real meetings"),
+                                isOn: calendarManager.interruptOnlyForMeetings,
+                                onToggle: { calendarManager.interruptOnlyForMeetings.toggle() }
+                            )
+                            if !alertCalendars.isEmpty {
+                                LazyVGrid(
+                                    columns: [GridItem(.adaptive(minimum: PeekMetrics.chipMinWidth), spacing: PeekSpacing.iconGap, alignment: .leading)],
+                                    alignment: .leading,
+                                    spacing: PeekSpacing.iconGap
+                                ) {
+                                    ForEach(alertCalendars, id: \.calendarIdentifier) { calendar in
+                                        PeekCalendarAlertChip(
+                                            title: calendar.title,
+                                            color: Color(calendar.color),
+                                            badgeOnly: calendarManager.badgeOnlyCalendarIDs.contains(calendar.calendarIdentifier),
+                                            onToggle: { calendarManager.toggleBadgeOnly(calendar.calendarIdentifier) }
+                                        )
+                                    }
+                                }
+                                .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
+                                rowFootnote(
+                                    NSLocalizedString("Click a calendar to show its events only in the menu bar.", comment: "Which meetings: badge-only calendars footnote"),
+                                    isError: false
+                                )
+                            }
+                        }
+                    }
+
+                    settingsGroup(NSLocalizedString("Joining a meeting", comment: "Group label: joining meetings")) {
+                        SettingRow(
+                            NSLocalizedString("Open in the native app", comment: "Native meeting app toggle"),
+                            subtitle: NSLocalizedString("Zoom and Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
+                        ) {
+                            switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open in the native app", comment: "Native meeting app toggle"))
                         }
                         RowDivider()
                         SettingRow(
-                            NSLocalizedString("Join next meeting", comment: "Join hotkey setting"),
-                            subtitle: NSLocalizedString("Opens the meeting starting soon, or the one you're late for.", comment: "Join hotkey subtitle")
+                            NSLocalizedString("Shortcut to join the next one", comment: "Join hotkey setting"),
+                            subtitle: NSLocalizedString("Works even with the popover closed.", comment: "Join hotkey subtitle")
                         ) {
                             Picker("", selection: $calendarManager.joinHotkey) {
                                 ForEach(JoinHotkeyOption.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                             .labelsHidden()
                             .frame(width: PeekMetrics.pickerHotkey)
-                            .accessibilityLabel(NSLocalizedString("Join next meeting", comment: "Join hotkey setting"))
+                            .accessibilityLabel(NSLocalizedString("Shortcut to join the next one", comment: "Join hotkey setting"))
                         }
                         if let joinHotkeyStatusMessage = calendarManager.joinHotkeyStatusMessage {
                             rowFootnote(joinHotkeyStatusMessage, isError: true)
                         }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("Meeting notifications", comment: "Notifications toggle"),
-                            subtitle: NSLocalizedString("Alert with a join link before an event starts.", comment: "Notifications subtitle")
-                        ) {
-                            switchToggle($calendarManager.notificationsEnabled, label: NSLocalizedString("Meeting notifications", comment: "Notifications toggle"))
-                        }
-                        if let notificationStatusMessage = calendarManager.notificationStatusMessage {
-                            rowFootnote(notificationStatusMessage, isError: true)
-                        }
-                        if calendarManager.notificationsEnabled {
-                            RowDivider()
-                            SettingRow(NSLocalizedString("Alert timing", comment: "Alert timing setting")) {
-                                Picker("", selection: $calendarManager.notificationTiming) {
-                                    ForEach(NotificationTiming.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                                }
-                                .labelsHidden()
-                                .frame(width: PeekMetrics.pickerMedium)
-                                .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
-                            }
-                        }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("When a meeting starts", comment: "Start alert style setting"),
-                            subtitle: NSLocalizedString("Full screen interrupts whatever you are doing.", comment: "Start alert style subtitle")
-                        ) {
-                            Picker("", selection: $calendarManager.startAlertStyle) {
-                                ForEach(StartAlertStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                            }
-                            .labelsHidden()
-                            .frame(width: PeekMetrics.pickerMedium)
-                            .accessibilityLabel(NSLocalizedString("When a meeting starts", comment: "Start alert style setting"))
-                        }
-                        if calendarManager.startAlertStyle == .fullScreen {
-                            RowDivider()
-                            SettingRow(
-                                NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"),
-                                subtitle: NSLocalizedString("Use the heads-up card for events without a join link or attendees.", comment: "Interrupt only for meetings subtitle")
-                            ) {
-                                switchToggle($calendarManager.interruptOnlyForMeetings, label: NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"))
-                            }
-                        }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"),
-                            subtitle: NSLocalizedString("Use Zoom or Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
-                        ) {
-                            switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"))
-                        }
                     }
 
-
-                    // Status bar display
                     settingsGroup(NSLocalizedString("Menu bar", comment: "Group label: menu bar")) {
-                        SettingRow(NSLocalizedString("Time format", comment: "Time format setting")) {
-                            Picker("", selection: $calendarManager.statusBarMode) {
-                                ForEach(StatusBarDisplayMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        SettingRow(NSLocalizedString("Show", comment: "Menu bar show setting")) {
+                            Picker("", selection: showOptionBinding) {
+                                ForEach(MenuBarShowOption.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                             .pickerStyle(.segmented)
                             .labelsHidden()
-                            .frame(width: PeekMetrics.pickerSegmented)
-                            .accessibilityLabel(NSLocalizedString("Time format", comment: "Accessibility label for time format"))
-                        }
-                        RowDivider()
-                        SettingRow(NSLocalizedString("Space policy", comment: "Space policy setting")) {
-                            Picker("", selection: $calendarManager.menuBarSpacePolicy) {
-                                ForEach(MenuBarSpacePolicy.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                            }
-                            .labelsHidden()
-                            .frame(width: PeekMetrics.pickerWide)
-                            .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
-                        }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"),
-                            subtitle: NSLocalizedString("Skip events without a join link. Declined events follow the Filters tab.", comment: "Status bar: only meetings subtitle")
-                        ) {
-                            switchToggle($calendarManager.statusBarOnlyMeetings, label: NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"))
-                        }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"),
-                            subtitle: NSLocalizedString("A person's name needs attendees, Contacts or a context folder.", comment: "Status bar label subtitle")
-                        ) {
-                            Picker("", selection: $calendarManager.statusBarLabelStyle) {
-                                ForEach(StatusBarLabelStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                            }
-                            .labelsHidden()
-                            .frame(width: PeekMetrics.pickerWide)
-                            .accessibilityLabel(NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"))
-                        }
-                        RowDivider()
-                        SettingRow(NSLocalizedString("Show event count badge", comment: "Show count toggle")) {
-                            switchToggle($calendarManager.showEventCount, label: NSLocalizedString("Show event count badge", comment: "Show count toggle"))
-                        }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("Show month calendar", comment: "Month view toggle"),
-                            subtitle: NSLocalizedString("A compact month above your events. Choose a day to see its agenda.", comment: "Month view toggle subtitle")
-                        ) {
-                            switchToggle($calendarManager.showMonthCalendar, label: NSLocalizedString("Show month calendar", comment: "Month view toggle"))
-                        }
-                        RowDivider()
-                        SettingRow(
-                            NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
-                            subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
-                        ) {
-                            switchToggle($calendarManager.urgencyColorsEnabled, label: NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"))
+                            .frame(width: PeekMetrics.pickerShowSegmented)
+                            .accessibilityLabel(NSLocalizedString("Show in the menu bar", comment: "Accessibility label for the menu bar show setting"))
                         }
                     }
-
                 }
                 if section == .prepared {
                     // Meeting context
@@ -638,6 +601,62 @@ struct GeneralTab: View {
                             .padding(.horizontal, PeekSpacing.xs)
                     }
 
+
+                    settingsGroup(NSLocalizedString("Menu bar and shortcut", comment: "Group label: menu bar details and the global shortcut")) {
+                        SettingRow(NSLocalizedString("Global hotkey", comment: "Global hotkey setting")) {
+                            Picker("", selection: $calendarManager.globalHotkey) {
+                                ForEach(HotkeyOption.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerHotkey)
+                            .accessibilityLabel(NSLocalizedString("Global hotkey", comment: "Accessibility label for global hotkey"))
+                        }
+                        if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
+                            rowFootnote(hotkeyStatusMessage, isError: true)
+                        }
+                        RowDivider()
+                        SettingRow(NSLocalizedString("Space policy", comment: "Space policy setting")) {
+                            Picker("", selection: $calendarManager.menuBarSpacePolicy) {
+                                ForEach(MenuBarSpacePolicy.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerWide)
+                            .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"),
+                            subtitle: NSLocalizedString("Skip events without a join link. Declined events follow the Filters tab.", comment: "Status bar: only meetings subtitle")
+                        ) {
+                            switchToggle($calendarManager.statusBarOnlyMeetings, label: NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"),
+                            subtitle: NSLocalizedString("A person's name needs attendees, Contacts or a context folder.", comment: "Status bar label subtitle")
+                        ) {
+                            Picker("", selection: $calendarManager.statusBarLabelStyle) {
+                                ForEach(StatusBarLabelStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerWide)
+                            .accessibilityLabel(NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
+                            subtitle: NSLocalizedString("Amber, then red, as the meeting gets close.", comment: "Urgency colors subtitle")
+                        ) {
+                            switchToggle($calendarManager.urgencyColorsEnabled, label: NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Show month calendar", comment: "Month view toggle"),
+                            subtitle: NSLocalizedString("A compact month above your events. Choose a day to see its agenda.", comment: "Month view toggle subtitle")
+                        ) {
+                            switchToggle($calendarManager.showMonthCalendar, label: NSLocalizedString("Show month calendar", comment: "Month view toggle"))
+                        }
+                    }
 
                     // Schedule
                     settingsGroup(NSLocalizedString("Schedule", comment: "Group label: schedule")) {
@@ -798,6 +817,98 @@ struct GeneralTab: View {
         if panel.runModal() == .OK, let url = panel.url {
             calendarManager.setContextFolder(url)
         }
+    }
+
+    // MARK: Alert ladder
+
+    /// The lead time of the first step; the old "Disabled" timing reads as 10 minutes.
+    private var leadTime: NotificationTiming {
+        calendarManager.notificationTiming == .none ? .tenMinutes : calendarManager.notificationTiming
+    }
+
+    /// Calendars Peek reads, for the badge-only chips.
+    private var alertCalendars: [EKCalendar] {
+        CalendarManager.selectedCalendars(
+            from: calendarManager.getAllCalendars(),
+            enabledIDs: calendarManager.enabledCalendarIDs,
+            hasCustomSelection: calendarManager.hasCustomCalendarSelection
+        )
+        .sorted { $0.title < $1.title }
+    }
+
+    private var beforeLevelBinding: Binding<AlertLevel> {
+        Binding(
+            get: { calendarManager.notificationsEnabled && calendarManager.notificationTiming != .none ? .notification : .off },
+            set: { level in
+                if level == .notification && calendarManager.notificationTiming == .none {
+                    calendarManager.notificationTiming = .tenMinutes
+                }
+                calendarManager.notificationsEnabled = level == .notification
+            }
+        )
+    }
+
+    private var soonLevelBinding: Binding<AlertLevel> {
+        Binding(
+            get: { calendarManager.soonCardEnabled ? .headsUp : .off },
+            set: { calendarManager.soonCardEnabled = $0 == .headsUp }
+        )
+    }
+
+    private var startLevelBinding: Binding<AlertLevel> {
+        Binding(
+            get: { AlertLevel(calendarManager.startAlertStyle) },
+            set: { calendarManager.startAlertStyle = $0.startAlertStyle }
+        )
+    }
+
+    private var showOptionBinding: Binding<MenuBarShowOption> {
+        Binding(
+            get: { MenuBarShowOption(mode: calendarManager.statusBarMode, spacePolicy: calendarManager.menuBarSpacePolicy) },
+            set: { option in
+                let applied = option.apply(currentPolicy: calendarManager.menuBarSpacePolicy)
+                if let mode = applied.mode {
+                    calendarManager.statusBarMode = mode
+                }
+                if calendarManager.menuBarSpacePolicy != applied.policy {
+                    calendarManager.menuBarSpacePolicy = applied.policy
+                }
+            }
+        )
+    }
+
+    private func ladderTitle(_ text: String) -> some View {
+        Text(text)
+            .font(PeekFont.rowTitle)
+            .foregroundColor(PeekColor.ink)
+    }
+
+    private func ladderRow<Title: View, Level: View>(
+        hint: String,
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder level: () -> Level
+    ) -> some View {
+        HStack(alignment: .center, spacing: PeekSpacing.md) {
+            VStack(alignment: .leading, spacing: PeekSpacing.xxs) {
+                title()
+                Text(hint)
+                    .font(PeekFont.caption)
+                    .foregroundColor(PeekColor.tertiaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: PeekSpacing.md)
+            level()
+        }
+        .padding(PeekMetrics.settingRowInsets)
+    }
+
+    private func levelPicker(_ selection: Binding<AlertLevel>, options: [AlertLevel], label: String) -> some View {
+        Picker("", selection: selection) {
+            ForEach(options, id: \.self) { Text($0.displayName).tag($0) }
+        }
+        .labelsHidden()
+        .frame(width: PeekMetrics.pickerLevel)
+        .accessibilityLabel(label)
     }
 
     @ViewBuilder

@@ -272,6 +272,30 @@ enum StartAlertPresentation: Equatable {
     case fullScreen
 }
 
+/// The alert ladder (Peek 2.0): a notification ahead of time, a heads-up card
+/// 2 minutes before, then the start alert. Each step has its own level.
+enum AlertLadder {
+    /// The heads-up card shows when the meeting is this close.
+    static let soonCardLeadTime: TimeInterval = 120
+
+    static func isSoonCardDue(secondsUntilStart: TimeInterval) -> Bool {
+        secondsUntilStart > 0 && secondsUntilStart <= soonCardLeadTime
+    }
+
+    /// With "interrupt only for meetings" on, events without a join link or
+    /// attendees (a focus block, a reminder) never get the 2-minute card.
+    static func interrupts(interruptOnlyForMeetings: Bool, hasJoinLink: Bool, hasAttendees: Bool) -> Bool {
+        !interruptOnlyForMeetings || hasJoinLink || hasAttendees
+    }
+
+    /// Events on a badge-only calendar show in the menu bar but never notify
+    /// or interrupt.
+    static func alerts(calendarID: String?, badgeOnlyCalendarIDs: Set<String>) -> Bool {
+        guard let calendarID else { return true }
+        return !badgeOnlyCalendarIDs.contains(calendarID)
+    }
+}
+
 enum StartAlertPolicy {
     /// Full screen interrupts only when the user allows it for this kind of event:
     /// with "only meetings" on, an event without a join link or attendees (a focus
