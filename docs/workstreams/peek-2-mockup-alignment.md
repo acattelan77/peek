@@ -52,14 +52,17 @@ event rows, meeting page, full-screen alert and Preferences.
 - [x] Popover, meeting page, alert, Preferences
 - [x] Names from email addresses, headline with role and count
 - [x] Localization (256 keys, 5 tables), tests, docs, 1.11.0 (40)
-- [ ] CI green on the draft PR
+- [x] CI green on the draft PR (#15)
 - [ ] Owner visual check on a Mac
 
 ## Validation
 
 - Cloud session (Linux, no Xcode). Build and tests run in CI, not locally.
-- `bash scripts/check-version.sh`, `bash scripts/check-design-tokens.sh`,
-  `python3 scripts/check-localization.py`, `git diff --check`: see the PR for results.
+- Linux: `bash scripts/check-version.sh` (1.11.0 (40) valid), `bash scripts/check-design-tokens.sh`
+  (OK), `python3 scripts/check-localization.py` (256 keys, 5 tables), `git diff --check` (clean).
+- CI `build-and-test` on macos-latest passed on 0e037d4: build succeeded, 187 tests, 0 failures.
+  https://github.com/acattelan77/peek/actions/runs/45353675645
+- Test installer (ad-hoc DMG) from this branch: https://github.com/acattelan77/peek/actions/runs/45353688029
 
 ## Decisions and open questions
 
