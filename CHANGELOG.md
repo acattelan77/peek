@@ -4,6 +4,13 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.11.1 - 2026-11-24
+
+### Fixed
+
+- Preferences tab labels fit on one line in every language: "Alerts" and "Briefs"
+  replace "Never miss a meeting" and "Arrive prepared", and tab titles no longer wrap.
+
 ## 1.11.0 - 2026-11-24
 
 ### Changed

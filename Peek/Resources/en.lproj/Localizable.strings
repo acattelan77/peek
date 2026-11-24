@@ -37,6 +37,7 @@
 "Agenda" = "Agenda";
 "Alert timing" = "Alert timing";
 "Alert with a join link before an event starts." = "Alert with a join link before an event starts.";
+"Alerts" = "Alerts";
 "Alerts and joining" = "Alerts and joining";
 "All day" = "All day";
 "Always show icon" = "Always show icon";
@@ -46,7 +47,6 @@
 "Appearance" = "Appearance";
 "Apple Intelligence is still getting ready. Try again later." = "Apple Intelligence is still getting ready. Try again later.";
 "Apple Intelligence isn't available right now." = "Apple Intelligence isn't available right now.";
-"Arrive prepared" = "Arrive prepared";
 "Auto" = "Auto";
 "Automatic" = "Automatic";
 "Back to the agenda" = "Back to the agenda";
@@ -54,6 +54,7 @@
 "Brief before meetings" = "Brief before meetings";
 "Brief ready: %d points to prepare" = "Brief ready: %d points to prepare";
 "Brief ready: 1 point to prepare" = "Brief ready: 1 point to prepare";
+"Briefs" = "Briefs";
 "Calendar" = "Calendar";
 "Calendar access needed" = "Calendar access needed";
 "Calendar access not granted" = "Calendar access not granted";
@@ -128,7 +129,6 @@
 "NOW!" = "NOW!";
 "Name in the menu bar" = "Name in the menu bar";
 "Never brief" = "Never brief";
-"Never miss a meeting" = "Never miss a meeting";
 "Next 14 days" = "Next 14 days";
 "Next 3 days" = "Next 3 days";
 "Next 30 days" = "Next 30 days";

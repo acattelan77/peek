@@ -433,6 +433,8 @@ struct PeekTabButton: View {
                 Text(title)
                     .font(isSelected ? PeekFont.bodyEmphasis : PeekFont.body)
                     .foregroundColor(isSelected ? PeekColor.ink : PeekColor.secondaryText)
+                    .lineLimit(1)
+                    .fixedSize()
                 Rectangle()
                     .fill(isSelected ? PeekColor.accentRail : Color.clear)
                     .frame(height: PeekMetrics.tabIndicator)
