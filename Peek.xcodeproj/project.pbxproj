@@ -14,6 +14,7 @@
 		1A0000070000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000080000000000000001 /* Assets.xcassets */; };
 		1A0000340000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000300000000000000001 /* Localizable.strings */; };
 		1A0000350000000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000320000000000000001 /* InfoPlist.strings */; };
+		9A0000020000000000000051 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9A0000010000000000000051 /* PrivacyInfo.xcprivacy */; };
 		1A0000110000000000000002 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000120000000000000002 /* PreferencesView.swift */; };
 		1A00004C0000000000000001 /* MeetingURLDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000490000000000000001 /* MeetingURLDetectorTests.swift */; };
 		4E0000040000000000000001 /* EventDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0000010000000000000001 /* EventDetail.swift */; };
@@ -110,6 +111,7 @@
 		6A0000020000000000000001 /* MonthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarView.swift; sourceTree = "<group>"; };
 		1A0000080000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A0000090000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9A0000010000000000000051 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1A0000120000000000000002 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		1A0000470000000000000001 /* PeekTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PeekTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000490000000000000001 /* MeetingURLDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingURLDetectorTests.swift; sourceTree = "<group>"; };
@@ -344,6 +346,7 @@
 				1A0000320000000000000001 /* InfoPlist.strings */,
 				1A0000090000000000000001 /* Info.plist */,
 				1A0000290000000000000001 /* Peek.entitlements */,
+				9A0000010000000000000051 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -683,6 +686,7 @@
 				1A0000070000000000000001 /* Assets.xcassets in Resources */,
 				1A0000340000000000000001 /* Localizable.strings in Resources */,
 				1A0000350000000000000001 /* InfoPlist.strings in Resources */,
+				9A0000020000000000000051 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

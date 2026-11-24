@@ -4,6 +4,25 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.12.5 - 2026-11-24
+
+### Added
+
+- PEEK-251: a privacy manifest (`PrivacyInfo.xcprivacy`) declaring no tracking,
+  the UserDefaults and file-timestamp reasons, and the data the optional Claude
+  brief sends; `ITSAppUsesNonExemptEncryption` is set to `NO`.
+- PEEK-253: `scripts/app-store.sh` and a manual "App Store" workflow that
+  archive, export, verify and optionally upload a Mac App Store build for
+  TestFlight with cloud-managed signing.
+- PEEK-252: `scripts/check-app-bundle.sh`, run in CI and by both release scripts.
+- PEEK-254: `docs/APP_STORE.md` with the Apple-side steps, secrets, metadata
+  drafts, privacy answers and TestFlight plan.
+
+### Fixed
+
+- `scripts/release.sh` signs manually with the Developer ID identity, which the
+  automatically signed target otherwise rejects.
+
 ## 1.12.4 - 2026-11-24
 
 ### Changed

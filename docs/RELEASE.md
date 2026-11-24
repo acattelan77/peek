@@ -24,6 +24,11 @@
 
 ## Distribution
 
+Mac App Store builds use `scripts/app-store.sh` and the manual
+`.github/workflows/app-store.yml`; secrets, Apple-side steps, metadata and the
+TestFlight plan are in `docs/APP_STORE.md`. The rest of this section covers the
+Developer ID DMG.
+
 The `release.yml` GitHub Actions workflow produces a Developer ID-signed, notarized, stapled DMG whenever a `v*` tag is pushed.
 
 Required repository secrets:

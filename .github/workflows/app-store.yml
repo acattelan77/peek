@@ -1,0 +1,73 @@
+name: App Store
+
+# Archives Peek, exports a signed Mac App Store package with cloud-managed
+# signing, verifies it, and optionally uploads it to App Store Connect for
+# TestFlight. Manual only: it never runs on tags or pushes, and it never
+# submits for App Review (that stays a manual step in App Store Connect).
+#
+# Required repository secrets (see docs/APP_STORE.md):
+#   APPLE_TEAM_ID
+#   APP_STORE_CONNECT_KEY_ID
+#   APP_STORE_CONNECT_ISSUER_ID
+#   APP_STORE_CONNECT_API_KEY_P8   (base64 of AuthKey_<KEY_ID>.p8)
+# Optional repository variable:
+#   PEEK_BUNDLE_ID                 (only if com.peek.app is not available)
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload the verified build to App Store Connect (TestFlight)
+        type: boolean
+        default: false
+
+jobs:
+  app-store:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version metadata
+        run: ./scripts/check-version.sh
+
+      - name: Install App Store Connect API key
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+        run: |
+          missing=0
+          for var in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            if [ -z "${!var:-}" ]; then
+              echo "::error::Secret for ${var} is not configured. See docs/APP_STORE.md."
+              missing=1
+            fi
+          done
+          [ "$missing" = 0 ] || exit 1
+          KEY_PATH="${RUNNER_TEMP}/AuthKey_${ASC_KEY_ID}.p8"
+          echo "${ASC_KEY_P8}" | base64 --decode > "${KEY_PATH}"
+          chmod 600 "${KEY_PATH}"
+          echo "ASC_KEY_PATH=${KEY_PATH}" >> "$GITHUB_ENV"
+
+      - name: Archive, export, and verify
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          PEEK_BUNDLE_ID: ${{ vars.PEEK_BUNDLE_ID }}
+          UPLOAD: ${{ inputs.upload && '1' || '0' }}
+        run: ./scripts/app-store.sh
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Peek-app-store
+          path: artifacts/app-store/*.pkg
+          retention-days: 30
+
+      - name: Remove API key
+        if: always()
+        run: rm -f "${RUNNER_TEMP}"/AuthKey_*.p8
