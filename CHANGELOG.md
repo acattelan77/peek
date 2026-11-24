@@ -4,6 +4,13 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.12.2 - 2026-11-24
+
+### Changed
+
+- Scroll bars are hidden in the popover, the meeting page, Preferences and onboarding.
+  Scrolling with the trackpad or mouse wheel still works.
+
 ## 1.12.0 - 2026-11-24
 
 ### Changed

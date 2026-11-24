@@ -141,7 +141,7 @@ struct OnboardingView: View {
                 if !calendarManager.hasCalendarAccess {
                     InsetCardMessage(text: NSLocalizedString("Calendar access not granted", comment: "Onboarding no access"))
                 } else {
-                    ScrollView {
+                    ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
                             let calendars = calendarManager.getAllCalendars().sorted { $0.title < $1.title }
                             ForEach(Array(calendars.enumerated()), id: \.element.calendarIdentifier) { index, calendar in
