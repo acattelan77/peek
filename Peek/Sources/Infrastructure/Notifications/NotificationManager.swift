@@ -8,8 +8,10 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private let notificationCenter = UNUserNotificationCenter.current()
     private var hasNotificationPermission = false
-    private let eventNotificationIdentifierPrefix = "event:"
+    private let eventNotificationIdentifierPrefix = NotificationPlanner.identifierPrefix
     private let eventIDKey = "eventID"
+    /// The occurrence's start, so stale delivered reminders can be removed.
+    private let eventStartKey = "eventStart"
     private let snoozeFlagKey = "isSnooze"
     private let eventCategoryIdentifier = "EVENT_NOTIFICATION"
 
@@ -51,13 +53,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         notificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
                 self.hasNotificationPermission = granted
-                if let error = error {
-                    // Only log if it's not a simple "not allowed" error
-                    // This is expected during development or if user hasn't granted permission
-                    print("Notification permission: \(granted ? "granted" : "denied") - \(error.localizedDescription)")
-                } else if !granted {
-                    print("Notification permission denied by user")
-                }
+                Diagnostics.record(.notificationPermission(granted: granted, errorCode: (error as NSError?)?.code))
                 completion(granted)
             }
         }
@@ -95,14 +91,20 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             return
         }
 
+        removeStaleDeliveredNotifications(now: Date())
         removePendingEventNotifications(excludingSnoozed: true) { [weak self] in
             guard let self = self else { return }
 
             let now = Date()
             let minutesBefore = TimeInterval(timing.rawValue * 60)
-            let requests = events.compactMap {
-                self.makeNotificationRequest(for: $0, minutesBefore: minutesBefore, now: now)
-            }
+            // Nearest first, within the system's 64-request limit (PEEK-272).
+            let requests = self.makeNotificationRequests(
+                for: events,
+                minutesBefore: minutesBefore,
+                now: now,
+                timeZone: TimeZone.current
+            )
+            Diagnostics.record(.notificationsRequested(requestCount: requests.count))
 
             guard !requests.isEmpty else {
                 self.complete(.scheduled, completion: completion)
@@ -150,6 +152,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private func formatEventDetails(_ event: EKEvent, minutesBefore: Int) -> String {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.timeStyle = .short
         let timeString = formatter.string(from: event.startDate)
 
@@ -171,17 +174,39 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         return details + "\n" + prepText
     }
 
+    private func makeNotificationRequests(
+        for events: [EKEvent],
+        minutesBefore: TimeInterval,
+        now: Date,
+        timeZone: TimeZone
+    ) -> [UNNotificationRequest] {
+        var eventsByIdentifier: [String: EKEvent] = [:]
+        let candidates: [NotificationPlanCandidate] = events.compactMap { event in
+            guard let eventID = event.eventIdentifier, let startDate = event.startDate else { return nil }
+            let identifier = NotificationPlanner.identifier(eventID: eventID, startDate: startDate)
+            if eventsByIdentifier[identifier] == nil {
+                eventsByIdentifier[identifier] = event
+            }
+            return NotificationPlanCandidate(
+                eventID: eventID,
+                startDate: startDate,
+                isMeeting: MeetingURLDetector.extract(from: event) != nil || !(event.attendees ?? []).isEmpty
+            )
+        }
+        let plan = NotificationPlanner.plan(candidates, leadTime: minutesBefore, now: now)
+        return plan.compactMap { entry in
+            eventsByIdentifier[entry.identifier].map {
+                makeNotificationRequest(for: $0, entry: entry, minutesBefore: minutesBefore, timeZone: timeZone)
+            }
+        }
+    }
+
     private func makeNotificationRequest(
         for event: EKEvent,
+        entry: NotificationPlanEntry,
         minutesBefore: TimeInterval,
-        now: Date
-    ) -> UNNotificationRequest? {
-        guard let eventID = event.eventIdentifier else { return nil }
-        guard event.startDate > now else { return nil }
-
-        let notificationTime = event.startDate.addingTimeInterval(-minutesBefore)
-        guard notificationTime > now else { return nil }
-
+        timeZone: TimeZone
+    ) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         content.title = event.title ?? NSLocalizedString("Upcoming Event", comment: "Notification title fallback")
         content.body = Self.body(
@@ -189,7 +214,13 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             prepText: PrepSummary.text(for: event)
         )
         content.sound = .default
-        content.userInfo = [eventIDKey: eventID]
+        content.userInfo = [
+            eventIDKey: entry.eventID,
+            eventStartKey: entry.startDate.timeIntervalSince1970
+        ]
+        // Meetings with a link or attendees may break through Focus when the
+        // user allows time-sensitive notifications for Peek (PEEK-272).
+        content.interruptionLevel = entry.isTimeSensitive ? .timeSensitive : .active
 
         // The category is static. Only the safe, per-event meeting URL is carried
         // in userInfo for the Join action.
@@ -198,16 +229,30 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             content.categoryIdentifier = eventCategoryIdentifier
         }
 
-        let triggerDate = Calendar.current.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second],
-            from: notificationTime
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: NotificationPlanner.triggerComponents(for: entry.fireDate, timeZone: timeZone),
+            repeats: false
         )
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        return UNNotificationRequest(
-            identifier: "\(eventNotificationIdentifierPrefix)\(eventID)",
-            content: content,
-            trigger: trigger
-        )
+        return UNNotificationRequest(identifier: entry.identifier, content: content, trigger: trigger)
+    }
+
+    /// Removes delivered reminders whose meeting started more than five
+    /// minutes ago, such as the ones macOS delivers late after a wake.
+    private func removeStaleDeliveredNotifications(now: Date) {
+        notificationCenter.getDeliveredNotifications { [weak self] notifications in
+            guard let self else { return }
+            let stale = notifications.compactMap { notification -> String? in
+                let userInfo = notification.request.content.userInfo
+                guard userInfo[self.eventIDKey] != nil,
+                      let start = userInfo[self.eventStartKey] as? TimeInterval,
+                      NotificationPlanner.isStale(eventStart: Date(timeIntervalSince1970: start), now: now)
+                else { return nil }
+                return notification.request.identifier
+            }
+            if !stale.isEmpty {
+                self.notificationCenter.removeDeliveredNotifications(withIdentifiers: stale)
+            }
+        }
     }
 
     private func complete(
@@ -270,13 +315,22 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             var userInfo = content.userInfo
             userInfo[self.snoozeFlagKey] = true
             content.userInfo = userInfo
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 300, repeats: false)
+            // An absolute instant, so a snooze that runs out during sleep or
+            // across a time zone change still fires once at the right time.
+            let trigger = UNCalendarNotificationTrigger(
+                dateMatching: NotificationPlanner.triggerComponents(
+                    for: Date().addingTimeInterval(300),
+                    timeZone: TimeZone.current
+                ),
+                repeats: false
+            )
             let request = UNNotificationRequest(
                 identifier: UUID().uuidString,
                 content: content,
                 trigger: trigger
             )
             notificationCenter.add(request)
+            Diagnostics.record(.notificationSnoozed(minutes: 5))
 
         default:
             break

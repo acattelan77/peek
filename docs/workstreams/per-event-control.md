@@ -38,6 +38,7 @@ robustness plan, https://claude.ai/artifact/SY8a1EeMdayjQe1FPkghVc).
   Both suppress the rest of that occurrence's ladder in memory
   (`StartingNowHUDPresentationHistory.suppress`).
 - Localization in en, it, de, fr, es.
+- Rebased on PEEK-275 and PEEK-271/272 (1.14.0 build 50); ships as 1.15.0 (51).
 
 ## Out of scope
 
@@ -91,6 +92,9 @@ robustness plan, https://claude.ai/artifact/SY8a1EeMdayjQe1FPkghVc).
 
 ## Decisions and open questions
 
+- Known limit: cross-calendar dedupe (PEEK-272) keeps one copy of a duplicated
+  meeting; a choice made on the copy that was dropped does not match the kept
+  one, since identities are per calendar item.
 - Plan defaults applied: recurring events ask each time, "This Event Only"
   first; export untouched.
 - `calendarItemIdentifier` can change after a full calendar re-sync on some
@@ -98,5 +102,5 @@ robustness plan, https://claude.ai/artifact/SY8a1EeMdayjQe1FPkghVc).
 
 ## Exact next action
 
-After PEEK-275 and PEEK-271/272 merge: rebase on `main`, re-bump, green CI,
-merge.
+Merge PR 23 once CI is green (owner authorized), then the owner's Mac checks
+above.

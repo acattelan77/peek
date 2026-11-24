@@ -83,11 +83,13 @@
 "Copy Meeting Link" = "Meeting-Link kopieren";
 "Couldn't reach the brief service. Check your connection." = "Der Briefing-Dienst ist nicht erreichbar. Prüfe deine Verbindung.";
 "Couldn't register %@. Another app may be using this shortcut. Try a different one." = "%@ konnte nicht registriert werden. Eine andere App verwendet diesen Kurzbefehl möglicherweise. Versuche einen anderen.";
+"Couldn't save the diagnostics file." = "Die Diagnosedatei konnte nicht gesichert werden.";
 "Couldn't save the key to your keychain." = "Der Schlüssel konnte nicht im Schlüsselbund gesichert werden.";
 "Count down to meetings only" = "Countdown nur für Meetings";
 "Countdown" = "Countdown";
 "Dark" = "Dunkel";
 "Deselect all" = "Alle abwählen";
+"Diagnostics" = "Diagnose";
 "Disabled" = "Aus";
 "Dismiss" = "Schließen";
 "Done" = "Fertig";
@@ -96,6 +98,8 @@
 "Event filters" = "Terminfilter";
 "Event title" = "Termintitel";
 "Exchange" = "Exchange";
+"Export diagnostics" = "Diagnose exportieren";
+"Export…" = "Exportieren …";
 "FIRST THING TO PREPARE" = "ZUERST VORBEREITEN";
 "Finished" = "Beendet";
 "For each meeting that gets a brief, Peek sends Anthropic, using your API key: the title, how soon it starts, the names and roles of the people, your notes about them, the cleaned-up invitation text, and the summary and points from your context folder.\n\nPeek never sends email addresses, locations, meeting links, calendar names or replies. Anthropic's terms for your API account apply. You can switch back to “On this Mac” at any time." = "Für jedes Meeting mit Briefing sendet Peek mit deinem API-Schlüssel an Anthropic: den Titel, wann es beginnt, Namen und Rollen der Personen, deine Notizen zu ihnen, den bereinigten Einladungstext sowie Zusammenfassung und Punkte aus deinem Kontextordner.\n\nPeek sendet nie E-Mail-Adressen, Orte, Meeting-Links, Kalendernamen oder Antworten. Es gelten die Bedingungen von Anthropic für dein API-Konto. Du kannst jederzeit zu „Auf diesem Mac“ zurückwechseln.";
@@ -203,7 +207,9 @@
 "STARTING NOW" = "BEGINNT JETZT";
 "STARTING NOW · %@" = "BEGINNT JETZT · %@";
 "Save" = "Sichern";
+"Saved %@ and showed it in the Finder." = "%@ gesichert und im Finder angezeigt.";
 "Saved in your keychain." = "Im Schlüsselbund gesichert.";
+"Saves a file on this Mac with Peek's recent activity and crash reports, without meeting details. Nothing is sent; you decide whether to share it." = "Speichert auf diesem Mac eine Datei mit Peeks letzten Aktivitäten und Absturzberichten, ohne Besprechungsdetails. Nichts wird gesendet; du entscheidest, ob du sie teilst.";
 "Schedule" = "Zeitraum";
 "Select all" = "Alle auswählen";
 "Selected" = "Ausgewählt";
@@ -289,3 +295,7 @@
 "now" = "jetzt";
 "sk-ant-…" = "sk-ant-…";
 "starting now" = "beginnt jetzt";
+
+/* PEEK-271: start alert shown late, after a wake */
+"STARTED %d MIN AGO" = "SEIT %d MIN. GESTARTET";
+"STARTED %d MIN AGO · %@" = "SEIT %d MIN. GESTARTET · %@";

@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9D0275000000000000000002 /* DiagnosticEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0275000000000000000001 /* DiagnosticEvent.swift */; };
+		9D0275000000000000000004 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0275000000000000000003 /* DiagnosticsLog.swift */; };
+		9D0275000000000000000006 /* MetricKitCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0275000000000000000005 /* MetricKitCollector.swift */; };
+		9D0275000000000000000008 /* DiagnosticsExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0275000000000000000007 /* DiagnosticsExporter.swift */; };
+		9D027500000000000000000A /* DiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0275000000000000000009 /* DiagnosticsReport.swift */; };
+		9D027500000000000000000C /* DiagnosticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D027500000000000000000B /* DiagnosticsTests.swift */; };
 		1A0000010000000000000001 /* PeekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000020000000000000001 /* PeekApp.swift */; };
 		1A0000030000000000000001 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000040000000000000001 /* CalendarManager.swift */; };
 		1A0000050000000000000001 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000060000000000000001 /* MenuBarView.swift */; };
@@ -93,6 +99,9 @@
 		6A0000350000000000000002 /* BriefCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000350000000000000001 /* BriefCacheStore.swift */; };
 		6A0000340000000000000002 /* ClaudeBriefEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000340000000000000001 /* ClaudeBriefEngine.swift */; };
 		6A0000330000000000000002 /* OnDeviceBriefEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000330000000000000001 /* OnDeviceBriefEngine.swift */; };
+		7B0000010000000000000002 /* AlertTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000010000000000000001 /* AlertTiming.swift */; };
+		7B0000020000000000000002 /* SystemTimeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000020000000000000001 /* SystemTimeObserver.swift */; };
+		7B0000030000000000000002 /* AlertTimingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000030000000000000001 /* AlertTimingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +115,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9D0275000000000000000001 /* DiagnosticEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticEvent.swift; sourceTree = "<group>"; };
+		9D0275000000000000000003 /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
+		9D0275000000000000000005 /* MetricKitCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricKitCollector.swift; sourceTree = "<group>"; };
+		9D0275000000000000000007 /* DiagnosticsExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsExporter.swift; sourceTree = "<group>"; };
+		9D0275000000000000000009 /* DiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsReport.swift; sourceTree = "<group>"; };
+		9D027500000000000000000B /* DiagnosticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsTests.swift; sourceTree = "<group>"; };
 		1A0000000000000000000001 /* Peek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Peek.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000020000000000000001 /* PeekApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeekApp.swift; sourceTree = "<group>"; };
 		1A0000040000000000000001 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
@@ -197,6 +212,9 @@
 		6A0000350000000000000001 /* BriefCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefCacheStore.swift; sourceTree = "<group>"; };
 		6A0000340000000000000001 /* ClaudeBriefEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeBriefEngine.swift; sourceTree = "<group>"; };
 		6A0000330000000000000001 /* OnDeviceBriefEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceBriefEngine.swift; sourceTree = "<group>"; };
+		7B0000010000000000000001 /* AlertTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertTiming.swift; sourceTree = "<group>"; };
+		7B0000020000000000000001 /* SystemTimeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemTimeObserver.swift; sourceTree = "<group>"; };
+		7B0000030000000000000001 /* AlertTimingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertTimingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -217,6 +235,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9D0275000000000000000020 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				9D0275000000000000000001 /* DiagnosticEvent.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
+		9D0275000000000000000021 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				9D0275000000000000000003 /* DiagnosticsLog.swift */,
+				9D0275000000000000000005 /* MetricKitCollector.swift */,
+				9D0275000000000000000007 /* DiagnosticsExporter.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
+		9D0275000000000000000022 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				9D0275000000000000000009 /* DiagnosticsReport.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
 		6A00000E0000000000000003 /* TimeZones */ = {
 			isa = PBXGroup;
 			children = (
@@ -328,8 +372,10 @@
 				1A00006F0000000000000001 /* EventPipelineTests.swift */,
 				6A00003B0000000000000001 /* EventOverridesTests.swift */,
 				6A0000220000000000000001 /* MeetingContextTests.swift */,
+				9D027500000000000000000B /* DiagnosticsTests.swift */,
 				6A0000360000000000000001 /* MeetingBriefTests.swift */,
 				6A0000390000000000000001 /* GlanceAndTimeZonesTests.swift */,
+				7B0000030000000000000001 /* AlertTimingTests.swift */,
 				6A0000080000000000000001 /* LocalizationTests.swift */,
 				6A0000050000000000000001 /* StartAlertPolicyTests.swift */,
 				6A0000030000000000000001 /* MonthGridTests.swift */,
@@ -371,12 +417,14 @@
 				111000070000000000000001 /* CalendarExport */,
 				2B0000140000000000000001 /* AppEnvironment.swift */,
 				1A0000760000000000000001 /* AppBehaviorSupport.swift */,
+				7B0000010000000000000001 /* AlertTiming.swift */,
 				6A0000200000000000000001 /* MeetingContextProvider.swift */,
 				2C0000110000000000000001 /* AppVersion.swift */,
 				2B0000170000000000000001 /* StatusBarSpacePolicy.swift */,
 				2B0000440000000000000001 /* StatusBarSpaceMetrics.swift */,
 				2B0000240000000000000001 /* Calendar */,
 				6A00000C0000000000000003 /* Brief */,
+				9D0275000000000000000022 /* Diagnostics */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -391,6 +439,7 @@
 				6A0000090000000000000003 /* Context */,
 				6A00000B0000000000000003 /* Brief */,
 				6A00000E0000000000000003 /* TimeZones */,
+				9D0275000000000000000020 /* Diagnostics */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -403,6 +452,8 @@
 				2B0000300000000000000001 /* Preferences */,
 				6A00000A0000000000000003 /* Context */,
 				6A00000D0000000000000003 /* Brief */,
+				9D0275000000000000000021 /* Diagnostics */,
+				7B0000040000000000000001 /* Time */,
 			);
 			path = Infrastructure;
 			sourceTree = "<group>";
@@ -577,6 +628,14 @@
 			path = Configuration;
 			sourceTree = "<group>";
 		};
+		7B0000040000000000000001 /* Time */ = {
+			isa = PBXGroup;
+			children = (
+				7B0000020000000000000001 /* SystemTimeObserver.swift */,
+			);
+			path = Time;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXVariantGroup section */
@@ -719,6 +778,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A0000010000000000000001 /* PeekApp.swift in Sources */,
+				9D0275000000000000000002 /* DiagnosticEvent.swift in Sources */,
+				9D0275000000000000000004 /* DiagnosticsLog.swift in Sources */,
+				9D0275000000000000000006 /* MetricKitCollector.swift in Sources */,
+				9D0275000000000000000008 /* DiagnosticsExporter.swift in Sources */,
+				9D027500000000000000000A /* DiagnosticsReport.swift in Sources */,
 				4E00000B0000000000000001 /* CarbonHotkeyRegistrar.swift in Sources */,
 				4E00000C0000000000000001 /* PopoverAnchorGeometry.swift in Sources */,
 				4E00000D0000000000000001 /* PopoverAnchorController.swift in Sources */,
@@ -729,6 +793,8 @@
 				2C0000010000000000000001 /* AppVersion.swift in Sources */,
 				1A0000030000000000000001 /* CalendarManager.swift in Sources */,
 				356A21512F22CFCE0059351D /* NotificationManager.swift in Sources */,
+				7B0000010000000000000002 /* AlertTiming.swift in Sources */,
+				7B0000020000000000000002 /* SystemTimeObserver.swift in Sources */,
 				2B0000030000000000000001 /* CalendarEventStore.swift in Sources */,
 				2B0000040000000000000001 /* PreferencesStore.swift in Sources */,
 				2B0000010000000000000001 /* AppPreferences.swift in Sources */,
@@ -793,8 +859,10 @@
 				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
 				111000050000000000000001 /* CalendarExportTests.swift in Sources */,
 				6A0000390000000000000002 /* GlanceAndTimeZonesTests.swift in Sources */,
+				7B0000030000000000000002 /* AlertTimingTests.swift in Sources */,
 				6A0000360000000000000002 /* MeetingBriefTests.swift in Sources */,
 				6A0000220000000000000002 /* MeetingContextTests.swift in Sources */,
+				9D027500000000000000000C /* DiagnosticsTests.swift in Sources */,
 				6A0000080000000000000002 /* LocalizationTests.swift in Sources */,
 				6A0000050000000000000002 /* StartAlertPolicyTests.swift in Sources */,
 				6A0000030000000000000002 /* MonthGridTests.swift in Sources */,

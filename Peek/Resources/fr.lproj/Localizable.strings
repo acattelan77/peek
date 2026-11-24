@@ -83,11 +83,13 @@
 "Copy Meeting Link" = "Copier le lien de la réunion";
 "Couldn't reach the brief service. Check your connection." = "Impossible de joindre le service de briefing. Vérifiez votre connexion.";
 "Couldn't register %@. Another app may be using this shortcut. Try a different one." = "Impossible d'enregistrer %@. Une autre app utilise peut-être ce raccourci. Essayez-en un autre.";
+"Couldn't save the diagnostics file." = "Impossible d'enregistrer le fichier de diagnostic.";
 "Couldn't save the key to your keychain." = "Impossible d'enregistrer la clé dans le trousseau.";
 "Count down to meetings only" = "Compte à rebours pour les réunions seulement";
 "Countdown" = "Compte à rebours";
 "Dark" = "Sombre";
 "Deselect all" = "Tout désélectionner";
+"Diagnostics" = "Diagnostic";
 "Disabled" = "Désactivé";
 "Dismiss" = "Fermer";
 "Done" = "Terminé";
@@ -96,6 +98,8 @@
 "Event filters" = "Filtres d'événements";
 "Event title" = "Titre de l'événement";
 "Exchange" = "Exchange";
+"Export diagnostics" = "Exporter le diagnostic";
+"Export…" = "Exporter…";
 "FIRST THING TO PREPARE" = "À PRÉPARER EN PREMIER";
 "Finished" = "Terminé";
 "For each meeting that gets a brief, Peek sends Anthropic, using your API key: the title, how soon it starts, the names and roles of the people, your notes about them, the cleaned-up invitation text, and the summary and points from your context folder.\n\nPeek never sends email addresses, locations, meeting links, calendar names or replies. Anthropic's terms for your API account apply. You can switch back to “On this Mac” at any time." = "Pour chaque réunion qui reçoit un briefing, Peek envoie à Anthropic, avec votre clé API : le titre, dans combien de temps elle commence, les noms et rôles des participants, vos notes à leur sujet, le texte de l'invitation nettoyé, ainsi que le résumé et les points de votre dossier de contexte.\n\nPeek n'envoie jamais d'adresses e-mail, de lieux, de liens de réunion, de noms de calendrier ni de réponses. Les conditions d'Anthropic pour votre compte API s'appliquent. Vous pouvez revenir à « Sur ce Mac » à tout moment.";
@@ -203,7 +207,9 @@
 "STARTING NOW" = "COMMENCE";
 "STARTING NOW · %@" = "COMMENCE · %@";
 "Save" = "Enregistrer";
+"Saved %@ and showed it in the Finder." = "%@ enregistré et affiché dans le Finder.";
 "Saved in your keychain." = "Enregistrée dans votre trousseau.";
+"Saves a file on this Mac with Peek's recent activity and crash reports, without meeting details. Nothing is sent; you decide whether to share it." = "Enregistre sur ce Mac un fichier avec l'activité récente de Peek et les rapports de plantage, sans détails de réunion. Rien n'est envoyé ; vous décidez de le partager ou non.";
 "Schedule" = "Planning";
 "Select all" = "Tout sélectionner";
 "Selected" = "Sélectionné";
@@ -289,3 +295,7 @@
 "now" = "maintenant";
 "sk-ant-…" = "sk-ant-…";
 "starting now" = "commence maintenant";
+
+/* PEEK-271: start alert shown late, after a wake */
+"STARTED %d MIN AGO" = "COMMENCÉE IL Y A %d MIN";
+"STARTED %d MIN AGO · %@" = "COMMENCÉE IL Y A %d MIN · %@";

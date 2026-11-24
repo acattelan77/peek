@@ -4,7 +4,7 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
-## 1.14.0 - 2026-11-24
+## 1.15.0 - 2026-11-24
 
 ### Added
 
@@ -25,6 +25,56 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 - The calendar export (PEEK-111) and the context file are unchanged: hidden
   events are still exported.
+
+## 1.14.0 - 2026-11-24
+
+### Fixed
+
+- PEEK-271: after a wake, a time zone change, a clock change or midnight, Peek
+  refreshes its events, reschedules every notification and re-checks the card
+  and start alert. Notifications are pinned to an absolute instant, so changing
+  time zone no longer moves them to the same clock time in the new zone.
+- PEEK-271: a snoozed card or full-screen alert runs on the wall clock, so a
+  snooze that runs out while the Mac sleeps shows at the wake.
+- PEEK-271: a meeting that started less than 5 minutes before a wake or a launch
+  still gets its start alert, worded "Started 3 min ago". Delivered reminders for
+  meetings that started more than 5 minutes ago are removed.
+- PEEK-272: Peek schedules at most the 60 nearest lead-time notifications,
+  leaving room for snoozes within the 64 macOS keeps; the rest are added as
+  earlier ones pass. Each occurrence of a recurring event gets its own reminder;
+  before, occurrences replaced one another.
+- PEEK-272: the same meeting on two calendars (same title, start, end and link)
+  shows, notifies and alerts once, keeping the copy on a calendar that alerts.
+  The `--export` JSON is unchanged.
+
+### Added
+
+- PEEK-272: reminders for meetings with a link or attendees are marked
+  time-sensitive. They break through Focus only once the time-sensitive
+  entitlement is added with App Store signing (see `docs/APP_STORE.md`).
+
+## 1.13.1 - 2026-11-24
+
+### Added
+
+- PEEK-275: local diagnostics. Peek writes to the unified log under the
+  `com.peek.app` subsystem, one category each for calendar, notifications,
+  alerts, context, brief, hotkey, metrics and app: EventKit refreshes (duration,
+  counts), notification reschedules (reason, events, requests, result), each
+  start alert shown or skipped with its reason (badge only, already shown,
+  filtered), hotkey registration failures and the context file state. Lines
+  carry counts, outcomes and short opaque event references, never titles,
+  notes, attendees, locations, links or paths (ADR 0006).
+- PEEK-275: MetricKit crash, hang and energy payloads are kept in Application
+  Support for 30 days.
+- PEEK-275: Preferences > General > Diagnostics > "Export…" saves a JSON file
+  with the recent log journal, MetricKit payloads, versions, permission states
+  and settings as counts and switches, then shows it in the Finder. Nothing is
+  sent; no network, entitlement or privacy-manifest change.
+
+### Changed
+
+- Replaced the remaining `print` calls with diagnostics events.
 
 ## 1.13.0 - 2026-11-24
 
