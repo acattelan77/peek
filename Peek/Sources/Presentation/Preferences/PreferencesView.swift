@@ -41,7 +41,7 @@ struct PreferencesView: View {
                 case 0: generalTab(.meetings)
                 case 1: generalTab(.prepared)
                 case 2:
-                    ScrollView {
+                    ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: PeekSpacing.xxl) {
                             CalendarsTab(calendarManager: calendarManager, availableCalendars: availableCalendars).content
                             FiltersTab(calendarManager: calendarManager).content
@@ -111,7 +111,7 @@ struct CalendarsTab: View {
     let availableCalendars: [EKCalendar]
 
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             content
                 .padding(PeekSpacing.xl)
         }
@@ -203,7 +203,7 @@ struct FiltersTab: View {
     @ObservedObject var calendarManager: CalendarManager
 
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             content
                 .padding(PeekSpacing.xl)
         }
@@ -372,7 +372,7 @@ struct GeneralTab: View {
     }
 
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: PeekSpacing.lg) {
                 if section == .meetings {
                     // Peek 2.0 Preferences mockup: the alert ladder, which

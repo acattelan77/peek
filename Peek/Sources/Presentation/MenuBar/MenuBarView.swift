@@ -281,7 +281,7 @@ struct MenuBarView: View {
     }
 
     private var eventList: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: PeekMetrics.rowGap) {
                 if let next = calendarManager.upcomingEvents.first {
                     NextMeetingCard(
@@ -313,7 +313,7 @@ struct MenuBarView: View {
     // MARK: - Month view (PEEK-201)
 
     private func dayAgenda(for day: Date) -> some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: PeekMetrics.rowGap) {
                 PeekSectionLabel(text: sectionTitle(for: day))
 
@@ -923,7 +923,7 @@ struct MeetingPage: View {
             backBar
             Divider().overlay(PeekColor.hairline)
 
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: PeekSpacing.lg) {
                     summary(context)
                     peopleSection(context: context, detail: detail)
