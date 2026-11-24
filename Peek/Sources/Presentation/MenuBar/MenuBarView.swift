@@ -14,6 +14,7 @@ struct MenuBarView: View {
     private static let kUpArrowKeyCode: UInt16 = 126
 
     @ObservedObject var calendarManager: CalendarManager
+    @ObservedObject var discreetMode: DiscreetModeController = .shared
     @State private var showingPreferences = false
     @State private var selectedEventIndex: Int = 0
     /// The meeting whose page is open, if any.
@@ -115,7 +116,7 @@ struct MenuBarView: View {
 
                 Divider().overlay(PeekColor.hairline)
 
-                if chosenOtherDay == nil, calendarManager.showDayPriorities {
+                if chosenOtherDay == nil, calendarManager.showDayPriorities, !discreetMode.isActive {
                     DayPrioritiesBlock()
                 }
 
@@ -466,6 +467,17 @@ struct MenuBarView: View {
                 openCalendarApp()
             }
 
+            // PEEK-274: discreet mode for screen sharing. Accent while on.
+            PeekToolbarButton(
+                systemName: discreetMode.isActive ? "eye.slash.fill" : "eye.slash",
+                help: discreetMode.isActive
+                    ? NSLocalizedString("Discreet mode is on: show details", comment: "Help text: turn discreet mode off")
+                    : NSLocalizedString("Discreet mode: hide briefs and details", comment: "Help text: turn discreet mode on"),
+                tint: discreetMode.isActive ? PeekColor.accentText : nil
+            ) {
+                discreetMode.toggle()
+            }
+
             Spacer()
 
             PeekToolbarButton(systemName: "power", help: NSLocalizedString("Quit Peek", comment: "Help text: Quit Peek")) {
@@ -600,6 +612,14 @@ enum EventPresentation {
 
     static var allDayText: String {
         NSLocalizedString("All day", comment: "Time column for an all-day event")
+    }
+
+    /// Discreet mode (PEEK-274): the provider or the duration, nothing else.
+    static func discreetMeta(_ event: EKEvent) -> String {
+        DiscreetModePolicy.meta(
+            providerLabel: MeetingURLDetector.extract(from: event).map { MeetingProvider.label(for: $0) },
+            duration: duration(event)
+        )
     }
 
     static func duration(_ event: EKEvent) -> String? {
@@ -748,12 +768,13 @@ struct NextMeetingCard: View {
     var isMuted: Bool = false
     let onOpen: () -> Void
     @ObservedObject var briefService: MeetingBriefService = .shared
+    @ObservedObject var discreetMode: DiscreetModeController = .shared
 
     private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
     private var urgency: MeetingUrgency { EventPresentation.urgency(event) }
     private var tone: PeekTone { PeekTone(urgency) }
     private var context: MeetingContext {
-        event.isAllDay ? .empty : MeetingContextProvider.context(for: event)
+        event.isAllDay || discreetMode.isActive ? .empty : MeetingContextProvider.context(for: event)
     }
 
     var body: some View {
@@ -823,7 +844,9 @@ struct NextMeetingCard: View {
 
     @ViewBuilder
     private func subtitle(_ context: MeetingContext) -> some View {
-        if let headline = context.headline {
+        if discreetMode.isActive {
+            Text(EventPresentation.discreetMeta(event))
+        } else if let headline = context.headline {
             EventPresentation.headlineText(headline, emphasizing: context.people.first?.shortName)
         } else {
             Text(EventPresentation.meta(event))
@@ -832,7 +855,7 @@ struct NextMeetingCard: View {
 
     @ViewBuilder
     private var briefLine: some View {
-        if !event.isAllDay {
+        if !event.isAllDay, !discreetMode.isActive {
             if let brief = briefService.brief(for: event) {
                 Button(action: onOpen) {
                     HStack(spacing: PeekSpacing.iconGap) {
@@ -870,6 +893,7 @@ struct CompactEventRow: View {
     /// Alerts muted for this event (PEEK-273): a bell-slash before the badge.
     var isMuted: Bool = false
     let onOpen: () -> Void
+    @ObservedObject var discreetMode: DiscreetModeController = .shared
 
     var body: some View {
         let finished = EventPresentation.isFinished(event)
@@ -892,7 +916,7 @@ struct CompactEventRow: View {
                     .font(PeekFont.rowTitle)
                     .foregroundColor(PeekColor.ink)
                     .lineLimit(1)
-                Text(EventPresentation.meta(event))
+                Text(discreetMode.isActive ? EventPresentation.discreetMeta(event) : EventPresentation.meta(event))
                     .font(PeekFont.caption)
                     .foregroundColor(PeekColor.secondaryText)
                     .lineLimit(1)
@@ -939,12 +963,14 @@ struct MeetingPage: View {
     var calendarManager: CalendarManager? = nil
     let onBack: () -> Void
     @ObservedObject var briefService: MeetingBriefService = .shared
+    @ObservedObject var discreetMode: DiscreetModeController = .shared
 
     private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
     private var tone: PeekTone { PeekTone(EventPresentation.urgency(event)) }
 
     var body: some View {
-        let context = MeetingContextProvider.context(for: event)
+        let discreet = discreetMode.isActive
+        let context = discreet ? MeetingContext.empty : MeetingContextProvider.context(for: event)
         let detail = EventDetailBuilder.make(from: event)
         VStack(alignment: .leading, spacing: 0) {
             backBar
@@ -953,12 +979,18 @@ struct MeetingPage: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: PeekSpacing.lg) {
                     summary(context)
-                    peopleSection(context: context, detail: detail)
-                    briefCard
-                    externalContextSection(context)
-                    timeZonesSection
-                    notesSection(context.agenda ?? detail.notes)
-                    sourcesRow(context)
+                    if discreet {
+                        // PEEK-274: only the time, title and join button.
+                        discreetNotice
+                        timeZonesSection
+                    } else {
+                        peopleSection(context: context, detail: detail)
+                        briefCard
+                        externalContextSection(context)
+                        timeZonesSection
+                        notesSection(context.agenda ?? detail.notes)
+                        sourcesRow(context)
+                    }
                 }
                 .padding(PeekMetrics.meetingPageInsets)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1048,6 +1080,19 @@ struct MeetingPage: View {
                 EventJoinButton(event: event, url: meetingURL, fullWidth: true)
             }
         }
+    }
+
+    private var discreetNotice: some View {
+        HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+            Image(systemName: "eye.slash")
+                .font(PeekIcon.detail)
+                .accessibilityHidden(true)
+            Text(NSLocalizedString("Discreet mode is on. Brief, people and notes are hidden.", comment: "Meeting page: discreet mode notice"))
+                .font(PeekFont.caption)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundColor(PeekColor.secondaryText)
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: People

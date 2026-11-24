@@ -4,6 +4,21 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.16.0 - 2026-11-24
+
+### Added
+
+- PEEK-274: discreet mode for screen sharing. While it is on, the popover shows
+  only times, titles and the join button: no brief, day priorities, people,
+  notes, context or Obsidian links; the heads-up card drops the context and prep
+  lines, the full-screen start alert becomes the card, and the menu bar names the
+  event instead of a contact. Toggle it from a new eye button in the popover
+  footer or with a global shortcut (⌃⌥D by default, Preferences > Briefs >
+  Screen sharing); the menu-bar glyph becomes an eye while it is on. It also turns
+  on by itself while a display is mirrored (projector, TV, AirPlay mirroring),
+  and can be switched off for that session. macOS has no public API for Zoom,
+  Meet or Teams screen sharing, so those are not detected automatically.
+
 ## 1.15.0 - 2026-11-24
 
 ### Added

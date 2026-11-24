@@ -101,7 +101,7 @@ Plan: owner-approved 2026-11-24 (four PRs, in order). Diagnostics first so the o
 - **PEEK-271 — In review:** Wake, time zone, clock and day changes refresh events, reschedule every notification and re-evaluate the card and start alert; notifications are pinned to an absolute instant; snoozes run on the wall clock; a meeting that started up to 5 minutes before a wake gets a "started N min ago" alert.
 - **PEEK-272 — In review:** At most 60 lead-time notifications, nearest first, with 4 left for snoozes; one notification per recurring occurrence; the same meeting on two calendars shows and notifies once; meetings with a link or attendees are time-sensitive (entitlement pending, see `docs/APP_STORE.md`).
 - **PEEK-273 — In review:** Per-event control: mute alerts or hide one event or a whole recurring series from the popover and the meeting page, "Ignore" on the 2-minute card, a restore list in Preferences > Alerts. Export and context file untouched. Workstream: `docs/workstreams/per-event-control.md`. Ships in 1.15.0.
-- **PEEK-274 — Ready:** Screen-share discretion mode, after a detection spike.
+- **PEEK-274 — In review:** Discreet mode while sharing the screen: manual (popover footer, global shortcut) and automatic on display mirroring. Hides briefs, day priorities, people, notes and context; the full-screen alert degrades to the card. Zoom/Meet/Teams detection not shipped: no public API (see `docs/workstreams/screen-share-discretion.md`). Focus status deferred.
 
 ## Next — calendar usefulness
 
