@@ -4,13 +4,89 @@ import Foundation
 enum StatusBarDisplayMode: String, CaseIterable {
     case timeUntil = "Time Until"
     case actualTime = "Actual Time"
+}
+
+/// Preferences > Alerts > Menu bar > Show (Peek 2.0 mockup): countdown, start
+/// time, or the icon alone. Icon only is the "Always show icon" space policy.
+enum MenuBarShowOption: String, CaseIterable {
+    case countdown
+    case clock
+    case iconOnly
+
+    init(mode: StatusBarDisplayMode, spacePolicy: MenuBarSpacePolicy) {
+        if spacePolicy == .alwaysShowIcon {
+            self = .iconOnly
+        } else {
+            self = mode == .actualTime ? .clock : .countdown
+        }
+    }
 
     var displayName: String {
         switch self {
-        case .timeUntil:
-            return NSLocalizedString("Time Until", comment: "Status bar display mode: time remaining")
-        case .actualTime:
-            return NSLocalizedString("Actual Time", comment: "Status bar display mode: event start time")
+        case .countdown:
+            return NSLocalizedString("Countdown", comment: "Menu bar show option: minutes until the meeting")
+        case .clock:
+            return NSLocalizedString("Start time", comment: "Menu bar show option: the meeting's start time")
+        case .iconOnly:
+            return NSLocalizedString("Icon only", comment: "Menu bar show option: only the icon")
+        }
+    }
+
+    /// The display mode and space policy that produce this option, keeping
+    /// the current space policy unless it was the icon-only one.
+    func apply(currentPolicy: MenuBarSpacePolicy) -> (mode: StatusBarDisplayMode?, policy: MenuBarSpacePolicy) {
+        switch self {
+        case .iconOnly:
+            return (nil, .alwaysShowIcon)
+        case .countdown:
+            return (.timeUntil, currentPolicy == .alwaysShowIcon ? .automatic : currentPolicy)
+        case .clock:
+            return (.actualTime, currentPolicy == .alwaysShowIcon ? .automatic : currentPolicy)
+        }
+    }
+}
+
+/// One level of the alert ladder (Peek 2.0 mockup). Each moment offers the
+/// levels it supports.
+enum AlertLevel: String, CaseIterable {
+    case off
+    case notification
+    case headsUp
+    case fullScreen
+
+    /// Ahead of time (the notification lead time).
+    static let beforeOptions: [AlertLevel] = [.notification, .off]
+    /// 2 minutes before.
+    static let soonOptions: [AlertLevel] = [.headsUp, .off]
+    /// At the start.
+    static let startOptions: [AlertLevel] = [.fullScreen, .headsUp, .off]
+
+    init(_ style: StartAlertStyle) {
+        switch style {
+        case .off: self = .off
+        case .hud: self = .headsUp
+        case .fullScreen: self = .fullScreen
+        }
+    }
+
+    var startAlertStyle: StartAlertStyle {
+        switch self {
+        case .fullScreen: return .fullScreen
+        case .headsUp, .notification: return .hud
+        case .off: return .off
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .off:
+            return NSLocalizedString("Off", comment: "Start alert style: off")
+        case .notification:
+            return NSLocalizedString("Notification", comment: "Alert level: a macOS notification")
+        case .headsUp:
+            return NSLocalizedString("Heads-up card", comment: "Start alert style: heads-up card")
+        case .fullScreen:
+            return NSLocalizedString("Full screen", comment: "Start alert style: full screen")
         }
     }
 }

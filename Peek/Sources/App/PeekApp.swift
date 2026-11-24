@@ -64,6 +64,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var pulseTimer: Timer?
     private var isPulsing = false
     private var spacePolicy: StatusBarSpacePolicy!
+    /// The template glyph shown beside plain titles; pills draw a tinted copy.
+    private var statusGlyph: NSImage?
     private var statusItemWindowState: StatusBarItemWindowState = .notYetLaidOut
     private var collapsedWhileHidden = false
     private var outsideClickEventMonitor: Any?
@@ -98,6 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Set the menu bar icon
             if let icon = NSImage(named: "StatusBarIcon") {
                 icon.isTemplate = true // Enable template rendering for dark mode support
+                statusGlyph = icon
                 button.image = icon
                 button.imagePosition = .imageLeading // Icon on the left, text on the right
             }
@@ -193,15 +196,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
-        calendarManager.$showEventCount
+        calendarManager.$urgencyColorsEnabled
             .sink { [weak self] _ in
                 self?.updateMenuBar()
             }
             .store(in: &cancellables)
 
-        calendarManager.$urgencyColorsEnabled
+        // Badge-only calendars change which events may notify.
+        calendarManager.$badgeOnlyCalendarIDs
+            .dropFirst()
             .sink { [weak self] _ in
-                self?.updateMenuBar()
+                DispatchQueue.main.async {
+                    self?.maybeRescheduleNotifications(force: true)
+                }
             }
             .store(in: &cancellables)
 
@@ -622,6 +629,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             if let event = event, eventCount > 0 {
                 MeetingBriefService.shared.prepareIfDue(for: event)
+            }
+            if let event = event, eventCount > 0,
+               self.calendarManager.alerts(forCalendarID: event.calendar?.calendarIdentifier) {
                 let nextUrgency = MeetingUrgency.from(minutesUntil: Int(event.startDate.timeIntervalSince(Date())) / 60)
                 self.hudController.maybeShow(
                     for: event,
@@ -630,13 +640,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     style: self.calendarManager.startAlertStyle,
                     interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
                 )
+                self.hudController.maybeShowSoon(
+                    for: event,
+                    enabled: self.calendarManager.soonCardEnabled,
+                    appearanceMode: self.calendarManager.appearanceMode,
+                    interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
+                )
             }
 
-            if let shown = displayEvent, eventCount > 0 {
-                var displayCount = eventCount
-                if let index = self.calendarManager.upcomingEvents.firstIndex(where: { $0.eventIdentifier == shown.eventIdentifier }) {
-                    displayCount = eventCount - index
+            // A running meeting takes the menu bar ("18 min left") while the
+            // next event is still calm (Peek 2.0 menu bar states).
+            let now = Date()
+            let ongoing = self.calendarManager.activeEvents
+                .filter { candidate in
+                    !candidate.isAllDay
+                        && candidate.startDate <= now
+                        && candidate.endDate > now
+                        && candidate.eventIdentifier != displayEvent?.eventIdentifier
+                        && AppDelegate.isMeeting(candidate, requireJoinLink: onlyMeetings)
                 }
+                .min { $0.endDate < $1.endDate }
+            let nextPhase = displayEvent.map {
+                MenuBarPhase(urgency: MeetingUrgency.from(minutesUntil: Int($0.startDate.timeIntervalSince(now)) / 60))
+            }
+
+            if let running = ongoing,
+               StatusBarContentBuilder.showsInProgress(nextPhase: eventCount > 0 ? nextPhase : nil, hasOngoingMeeting: true) {
+                content = StatusBarContentBuilder.inProgress(title: running.title, endDate: running.endDate, now: now)
+                self.stopPulsing()
+                let nextUrgency = event.map { MeetingUrgency.from(minutesUntil: Int($0.startDate.timeIntervalSince(now)) / 60) } ?? .normal
+                self.adjustTimerForUrgency(nextUrgency)
+            } else if let shown = displayEvent, eventCount > 0 {
                 let label: String?
                 switch self.calendarManager.statusBarLabelStyle {
                 case .eventTitle:
@@ -649,9 +683,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     eventTitle: label,
                     fullTitle: shown.title,
                     startDate: shown.startDate,
-                    eventCount: onlyMeetings ? 1 : displayCount,
+                    joinProvider: MeetingURLDetector.extract(from: shown).map { MeetingProvider.label(for: $0) },
                     mode: self.calendarManager.statusBarMode,
-                    showCount: self.calendarManager.showEventCount
+                    now: now
                 )
 
                 self.updatePulsingState(urgency: content.urgency)
@@ -675,34 +709,61 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func applyStatusBarContent(button: NSStatusBarButton, content: StatusBarContent) {
-        // Prepare the full text presentation so it can be measured and used as a tooltip.
-        button.title = content.title
-        button.toolTip = content.tooltip
-        applyUrgencyStyle(to: button, urgency: content.urgency)
+    /// A meeting for the in-progress state: a join link, or attendees unless
+    /// the countdown follows meetings with a link only.
+    private static func isMeeting(_ event: EKEvent, requireJoinLink: Bool) -> Bool {
+        let hasJoinLink = MeetingURLDetector.extract(from: event) != nil
+        if requireJoinLink { return hasJoinLink }
+        return hasJoinLink || !(event.attendees ?? []).isEmpty
+    }
 
-        let metrics = statusItemMetrics(button: button, title: content.title)
+    private func applyStatusBarContent(button: NSStatusBarButton, content: StatusBarContent) {
+        let filled = content.phase.isFilled && calendarManager.urgencyColorsEnabled
+        let metrics = statusItemMetrics(
+            button: button,
+            requiredTitleWidth: StatusItemRenderer.requiredWidth(
+                title: content.title,
+                phase: content.phase,
+                filled: filled,
+                glyphWidth: statusGlyph?.size.width ?? 0
+            )
+        )
         let presentation = spacePolicy.update(
             availableWidth: metrics.availableWidth,
             requiredWidth: metrics.requiredWidth,
             notchMargin: metrics.notchMargin
         )
+        let showsText = presentation == .text
 
-        switch presentation {
-        case .iconOnly:
-            button.imagePosition = .imageOnly
+        if filled, let pill = StatusItemRenderer.pillImage(
+            glyph: statusGlyph,
+            title: showsText ? content.title : nil,
+            phase: content.phase,
+            barThickness: NSStatusBar.system.thickness
+        ) {
+            // Soon and now: one filled pill, glyph and text drawn together.
             button.title = ""
             button.attributedTitle = NSAttributedString(string: "")
-            button.toolTip = content.tooltip ?? content.title
-        case .text:
-            button.imagePosition = .imageLeading
+            button.image = pill
+            button.imagePosition = .imageOnly
+        } else {
+            button.image = statusGlyph
+            if showsText {
+                button.attributedTitle = StatusItemRenderer.plainTitle(content.title, phase: content.phase)
+                button.imagePosition = .imageLeading
+            } else {
+                button.title = ""
+                button.attributedTitle = NSAttributedString(string: "")
+                button.imagePosition = .imageOnly
+            }
         }
 
+        button.toolTip = showsText ? content.tooltip : (content.tooltip ?? content.title)
         button.setAccessibilityLabel(content.tooltip ?? content.title)
         popoverAnchorController.refreshIfNeeded()
     }
 
-    private func statusItemMetrics(button: NSStatusBarButton, title: String) -> (availableWidth: CGFloat, requiredWidth: CGFloat, notchMargin: CGFloat) {
+    private func statusItemMetrics(button: NSStatusBarButton, requiredTitleWidth: CGFloat) -> (availableWidth: CGFloat, requiredWidth: CGFloat, notchMargin: CGFloat) {
         let window = button.window
         let screen = window?.screen ?? NSScreen.main
         let screenFrame = screen?.frame ?? .zero
@@ -741,43 +802,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             generousWidth: screenFrame.width
         )
 
-        let iconWidth = button.image?.size.width ?? 0
-        let font = button.font ?? NSFont.menuBarFont(ofSize: 0)
-        let titleWidth = (title as NSString).size(withAttributes: [.font: font]).width
-        let requiredWidth = iconWidth + titleWidth + 12
+        let requiredWidth = requiredTitleWidth
 
         let notchMargin: CGFloat = frontierMinX != nil ? 60 : 0
 
         return (availableWidth, requiredWidth, notchMargin)
-    }
-
-    private func applyUrgencyStyle(to button: NSStatusBarButton, urgency: MeetingUrgency) {
-        let titleString = button.title
-        let attributedString = NSMutableAttributedString(string: titleString)
-
-        // Set color based on urgency (only if colors are enabled)
-        let color: NSColor
-        if calendarManager.urgencyColorsEnabled {
-            switch urgency {
-            case .critical:
-                color = PeekNSColor.statusCritical
-            case .urgent:
-                color = PeekNSColor.statusUrgent
-            case .normal:
-                color = .labelColor // System default
-            }
-        } else {
-            color = .labelColor // System default when disabled
-        }
-
-        // Apply color to the entire string
-        attributedString.addAttribute(.foregroundColor, value: color, range: NSRange(location: 0, length: attributedString.length))
-
-        // Use system menu bar font for proper alignment
-        let font = NSFont.menuBarFont(ofSize: 0)
-        attributedString.addAttribute(.font, value: font, range: NSRange(location: 0, length: attributedString.length))
-
-        button.attributedTitle = attributedString
     }
 
     private func updatePulsingState(urgency: MeetingUrgency) {
@@ -840,9 +869,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         notificationRetryWorkItem?.cancel()
         notificationRetryWorkItem = nil
 
-        let eventsToSchedule = calendarManager.allUpcomingEvents.isEmpty
-            ? calendarManager.upcomingEvents
-            : calendarManager.allUpcomingEvents
+        let eventsToSchedule = alertableUpcomingEvents()
 
         notificationManager.scheduleNotifications(
             for: eventsToSchedule,
@@ -868,12 +895,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: retry)
     }
 
-    private func currentNotificationEventSignature() -> [String] {
+    /// Upcoming events that may notify: badge-only calendars are left out.
+    private func alertableUpcomingEvents() -> [EKEvent] {
         let events = calendarManager.allUpcomingEvents.isEmpty
             ? calendarManager.upcomingEvents
             : calendarManager.allUpcomingEvents
+        return events.filter { calendarManager.alerts(forCalendarID: $0.calendar?.calendarIdentifier) }
+    }
 
-        return events.compactMap(NotificationContentSignature.make(for:))
+    private func currentNotificationEventSignature() -> [String] {
+        alertableUpcomingEvents().compactMap(NotificationContentSignature.make(for:))
     }
 
     private func maybeRescheduleNotifications(force: Bool) {

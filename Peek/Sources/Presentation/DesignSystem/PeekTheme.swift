@@ -441,6 +441,9 @@ enum PeekMetrics {
     static let pickerMedium: CGFloat = 150
     static let pickerWide: CGFloat = 180
     static let pickerSegmented: CGFloat = 200
+    static let pickerLevel: CGFloat = 140         // alert ladder level (mockup min 130)
+    static let pickerShowSegmented: CGFloat = 270 // Countdown / Start time / Icon only
+    static let chipDash: [CGFloat] = [3, 2]       // badge-only calendar chip
 
     // Onboarding
     static let onboardingSize = CGSize(width: 420, height: 460)

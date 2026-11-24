@@ -73,6 +73,7 @@ Workstream: `docs/workstreams/phase-4-glance-and-time-zones.md`. Ships in 1.10.0
 Workstream: `docs/workstreams/peek-2-mockup-alignment.md`. Ships in 1.11.0.
 
 - **PEEK-241 — In review:** Popover, meeting page, full-screen alert and Preferences follow the approved "Peek 2.0 mockup" canvas, light and dark. Footer keeps its icon buttons (owner decision 2026-11-24). Attendee names replace email addresses.
+- **PEEK-242 — In review:** Menu-bar states (calm, soon and now pills, in progress, icon only) and the Preferences alert ladder with a 2-minute heads-up card and badge-only calendars, as in the Peek 2.0 mockup (owner request 2026-11-24).
 
 ## Next — calendar usefulness
 

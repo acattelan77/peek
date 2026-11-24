@@ -56,9 +56,7 @@ final class StatusBarEventChooserTests: XCTestCase {
             eventTitle: "Marco",
             fullTitle: "Quarterly review",
             startDate: now.addingTimeInterval(8 * 60 + 5),
-            eventCount: 1,
             mode: .timeUntil,
-            showCount: true,
             now: now
         )
         XCTAssertTrue(content.title.contains("Marco"))

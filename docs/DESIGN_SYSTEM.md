@@ -56,9 +56,9 @@ Brand and status:
 - Critical (< 2 min) `critical` `#D13438` with `onCritical` white. `criticalText` `#B42A30`
   / dark `#FF8A8E`. `criticalWash` `#FCEBEC` / `#3A2427`.
 - Calm `calm` `#23955A` / dark `#3CC27E` (icons). `calmText` `#1E7D4B` / dark `#5DD39A`.
-- Menu-bar title tints `statusUrgent` `#A45A07` / dark `#FFB558` and `statusCritical`
-  `#B42A30` / dark `#FF8A8E`. They resolve against the status button's appearance, so a
-  light menu bar gets the dark tints.
+- Menu-bar pills (1.12.0): soon is `urgent` with `onUrgent` text, now is `critical` with
+  `onCritical` text, drawn by `StatusItemRenderer`. `statusUrgent` / `statusCritical` remain
+  as appearance-aware tints for any text-only urgency on the menu bar.
 
 Neutrals (light / dark):
 
@@ -125,9 +125,8 @@ accessibility label.
 
 Surfaces built on the system: the popover (`MenuBar/MenuBarView.swift`), Preferences
 (`Preferences/PreferencesView.swift`), onboarding (`Onboarding/OnboardingView.swift`), and
-the "Starting now" HUD (`HUD/StartingNowHUD.swift`). The menu-bar status item keeps a
-monochrome template glyph and tints only the title text, with `statusUrgent` and
-`statusCritical`.
+the "Starting now" HUD (`HUD/StartingNowHUD.swift`). The menu-bar status item follows
+"Menu-bar states" below.
 
 ## Popover layout (Peek 2.0)
 
@@ -152,8 +151,43 @@ Built in `MenuBar/MenuBarView.swift` and `MenuBar/MonthCalendarView.swift`, 360p
   avatars, "What to prepare" card with its source pill, invitation notes, sources line.
 - **Footer:** icon buttons, see below.
 - **Preferences tabs:** Alerts, Briefs, Calendars, General. Tab titles are one or two
-  short words and never wrap (`PeekTabButton` is single-line); the mockup's longer
-  "Never miss a meeting / Arrive prepared" labels wrapped and were shortened (owner, 2026-11-24).
+  short words and never wrap (`PeekTabButton` is single-line).
+
+## Menu-bar states (Peek 2.0, since 1.12.0)
+
+One item, five states, from the canvas frame "Stati della barra dei menu". Built in
+`StatusBar/StatusBarContentBuilder.swift` (text and phase) and `StatusItemRenderer` in
+`PeekComponents.swift` (drawing).
+
+- **Calm**, more than 10 minutes away: template glyph, "Quarterly review · 15:00" in label
+  color, medium weight. Another day reads "Tue 15:00".
+- **Soon**, 10 to 2 minutes: amber pill (`urgent` fill, `onUrgent` text, semibold),
+  "Quarterly review · 6 min". With Show set to Start time it keeps "· 15:00".
+- **Now**, under 2 minutes and up to 5 minutes late: red pill (`critical`, `onCritical`),
+  "Join now · Zoom", or "Title · now" without a link. Pulses unless Reduce Motion is on.
+- **In progress**, a meeting (join link or attendees) is running and the next event is
+  still calm: "18 min left" in secondary label color.
+- **Icon only**, when the bar is crowded, the notch is in the way, or Show is Icon only:
+  the glyph alone, inside the pill while soon or now.
+
+Pills are 3 by 8 pt padding, 5 pt corners, a 14 pt glyph and a 6 pt gap. They are drawn
+as one non-template image because a status button cannot paint behind its title. With
+"Use urgency colors" off, soon and now use the plain title. The count suffix "(+N)" is
+gone, as in the mockup.
+
+## Alerts tab (Peek 2.0, since 1.12.0)
+
+From the canvas frame "Preferenze divise per scopo":
+
+- **Alerts** is a ladder with one level per moment: the lead time (title is a menu, 5 to 30
+  minutes) with Notification or Off; "2 minutes before" with Heads-up card or Off; "At the
+  start" with Full screen, Heads-up card or Off.
+- **Which meetings:** "Interrupt only for meetings with a link or attendees", and one chip
+  per calendar. A dashed "· badge only" chip shows its events in the menu bar but never
+  notifies or interrupts.
+- **Joining a meeting:** native app switch and the join shortcut.
+- **Menu bar:** Show = Countdown / Start time / Icon only. Icon only is the "Always show
+  icon" space policy. The other menu-bar settings live in General.
 
 ## Deviations from the Peek 2.0 mockup
 
@@ -163,11 +197,8 @@ Deliberate. A future alignment pass must keep them unless the owner changes the 
   Quit on the right) from Peek 1.x. The mockup's text footer ("From Calendar · N calendars /
   Preferences / Open Calendar") is not used. Owner decision, 2026-11-24. The mockup canvas
   was updated to show the icon footer.
-- **Alert ladder in Preferences** (one level per moment: notification, HUD, full screen) is
-  not built: it changes alert behaviour. The current settings are regrouped by purpose
-  instead.
-- **Menu-bar item** keeps the 1.x title format and tinted text; the mockup's filled
-  amber/red pills are not built.
+- **Preferences tab labels** are Alerts and Briefs, shortened from the mockup's "Never miss
+  a meeting / Arrive prepared" so they fit on one line (owner, 2026-11-24).
 
 ## Rules for contributors
 
@@ -212,8 +243,9 @@ These handoff values failed WCAG AA and were changed:
 
 The status icon is a monochrome template image generated by `scripts/generate-assets.swift`.
 It is a simplified glyph of the app icon: a calendar page outline, header mark, two binding
-stubs, a lower-right fold, and a bolder next-event slot peeking behind it. Never embed color:
-macOS controls template tinting for light, dark, selected, and accessibility appearances.
+stubs, a lower-right fold, and a bolder next-event slot peeking behind it. Never embed color
+in the asset: macOS controls template tinting for light, dark, selected, and accessibility
+appearances. Only the soon and now pills draw a tinted copy of it.
 
 ## Visual QA (owner, on a Mac)
 
@@ -221,7 +253,8 @@ macOS controls template tinting for light, dark, selected, and accessibility app
 - Reduce Motion: the NOW dot, the critical row ring and the status-item pulse are static,
   and they switch live when the setting changes.
 - A row that turns critical while the popover is open starts pulsing.
-- Light menu bar: SOON/NOW title tints are readable.
+- Menu bar in each state: calm, soon (amber pill), now (red pill, pulsing), in progress,
+  icon only; on a light and a dark menu bar and next to the notch.
 - Menu bar with limited horizontal space.
 - Long event, calendar, location and keyword names.
 - 16 px app icon and 22 pt template icon.

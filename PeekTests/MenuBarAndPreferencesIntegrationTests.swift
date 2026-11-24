@@ -211,7 +211,8 @@ final class MenuBarAndPreferencesIntegrationTests: XCTestCase {
         calendarManager.maxEventsToShow = 10
         calendarManager.statusBarMode = .actualTime
         calendarManager.menuBarSpacePolicy = .alwaysShowIcon
-        calendarManager.showEventCount = false
+        calendarManager.soonCardEnabled = false
+        calendarManager.badgeOnlyCalendarIDs = ["personal"]
         calendarManager.urgencyColorsEnabled = false
         calendarManager.appearanceMode = .dark
         calendarManager.globalHotkey = .cmdOptionC
@@ -228,7 +229,8 @@ final class MenuBarAndPreferencesIntegrationTests: XCTestCase {
         XCTAssertEqual(restored.maxEventsToShow, 10)
         XCTAssertEqual(restored.statusBarMode, .actualTime)
         XCTAssertEqual(restored.menuBarSpacePolicy, .alwaysShowIcon)
-        XCTAssertFalse(restored.showEventCount)
+        XCTAssertFalse(restored.soonCardEnabled)
+        XCTAssertEqual(restored.badgeOnlyCalendarIDs, ["personal"])
         XCTAssertFalse(restored.urgencyColorsEnabled)
         XCTAssertEqual(restored.appearanceMode, .dark)
         XCTAssertEqual(restored.globalHotkey, .cmdOptionC)

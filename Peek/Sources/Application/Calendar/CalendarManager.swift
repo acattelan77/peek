@@ -22,7 +22,6 @@ class CalendarManager: ObservableObject {
     @Published var filterKeywords: String = ""
     @Published var statusBarMode: StatusBarDisplayMode = .timeUntil
     @Published var menuBarSpacePolicy: MenuBarSpacePolicy = .automatic
-    @Published var showEventCount: Bool = true
     @Published var appearanceMode: AppearanceMode = .auto
     @Published var globalHotkey: HotkeyOption = .cmdShiftC
     @Published var joinHotkey: JoinHotkeyOption = .ctrlOptionJ
@@ -37,6 +36,11 @@ class CalendarManager: ObservableObject {
     @Published var showMonthCalendar: Bool = true
     @Published var startAlertStyle: StartAlertStyle = .hud
     @Published var interruptOnlyForMeetings: Bool = true
+    /// Alert ladder, 2 minutes before: show the heads-up card.
+    @Published var soonCardEnabled: Bool = true
+    /// Calendars that only show in the menu bar: no notification, card or
+    /// start alert (Preferences > Alerts > Which meetings).
+    @Published var badgeOnlyCalendarIDs: Set<String> = []
     @Published var meetingContextUsesContacts: Bool = false
     @Published var contactsStatusMessage: String?
     @Published var contextFolderName: String?
@@ -64,7 +68,6 @@ class CalendarManager: ObservableObject {
     private let filterKeywordsKey = "filterKeywords"
     private let statusBarModeKey = "statusBarMode"
     private let menuBarSpacePolicyKey = "menuBarSpacePolicy"
-    private let showEventCountKey = "showEventCount"
     private let appearanceModeKey = "appearanceMode"
     private let globalHotkeyKey = "globalHotkey"
     private let notificationsEnabledKey = "notificationsEnabled"
@@ -75,6 +78,8 @@ class CalendarManager: ObservableObject {
     private let showMonthCalendarKey = "showMonthCalendar"
     private let startAlertStyleKey = "startAlertStyle"
     private let interruptOnlyForMeetingsKey = "interruptOnlyForMeetings"
+    private let soonCardEnabledKey = "soonCardEnabled"
+    private let badgeOnlyCalendarIDsKey = "badgeOnlyCalendarIDs"
     private let joinHotkeyKey = "joinHotkey"
     private let statusBarOnlyMeetingsKey = "statusBarOnlyMeetings"
     private let statusBarLabelStyleKey = "statusBarLabelStyle"
@@ -126,7 +131,6 @@ class CalendarManager: ObservableObject {
             menuBarSpacePolicy = policy
         }
 
-        showEventCount = defaults.object(forKey: showEventCountKey) as? Bool ?? true
 
         if let appearanceString = defaults.string(forKey: appearanceModeKey),
            let appearance = AppearanceMode(rawValue: appearanceString) {
@@ -150,6 +154,8 @@ class CalendarManager: ObservableObject {
         showMonthCalendar = defaults.object(forKey: showMonthCalendarKey) as? Bool ?? true
         startAlertStyle = defaults.string(forKey: startAlertStyleKey).flatMap(StartAlertStyle.init(rawValue:)) ?? .hud
         interruptOnlyForMeetings = defaults.object(forKey: interruptOnlyForMeetingsKey) as? Bool ?? true
+        soonCardEnabled = defaults.object(forKey: soonCardEnabledKey) as? Bool ?? true
+        badgeOnlyCalendarIDs = Set(defaults.array(forKey: badgeOnlyCalendarIDsKey) as? [String] ?? [])
         meetingContextUsesContacts = defaults.bool(forKey: MeetingContextProvider.useContactsKey)
         joinHotkey = defaults.string(forKey: joinHotkeyKey).flatMap(JoinHotkeyOption.init(rawValue:)) ?? .ctrlOptionJ
         statusBarOnlyMeetings = defaults.bool(forKey: statusBarOnlyMeetingsKey)
@@ -173,7 +179,6 @@ class CalendarManager: ObservableObject {
         defaults.set(filterKeywords, forKey: filterKeywordsKey)
         defaults.set(statusBarMode.rawValue, forKey: statusBarModeKey)
         defaults.set(menuBarSpacePolicy.rawValue, forKey: menuBarSpacePolicyKey)
-        defaults.set(showEventCount, forKey: showEventCountKey)
         defaults.set(appearanceMode.rawValue, forKey: appearanceModeKey)
         defaults.set(globalHotkey.rawValue, forKey: globalHotkeyKey)
         defaults.set(notificationsEnabled, forKey: notificationsEnabledKey)
@@ -183,6 +188,8 @@ class CalendarManager: ObservableObject {
         defaults.set(showMonthCalendar, forKey: showMonthCalendarKey)
         defaults.set(startAlertStyle.rawValue, forKey: startAlertStyleKey)
         defaults.set(interruptOnlyForMeetings, forKey: interruptOnlyForMeetingsKey)
+        defaults.set(soonCardEnabled, forKey: soonCardEnabledKey)
+        defaults.set(Array(badgeOnlyCalendarIDs), forKey: badgeOnlyCalendarIDsKey)
         defaults.set(meetingContextUsesContacts, forKey: MeetingContextProvider.useContactsKey)
         defaults.set(joinHotkey.rawValue, forKey: joinHotkeyKey)
         defaults.set(statusBarOnlyMeetings, forKey: statusBarOnlyMeetingsKey)
@@ -215,6 +222,20 @@ class CalendarManager: ObservableObject {
         }
         hasCustomCalendarSelection = true
         saveEnabledCalendars()
+    }
+
+    func toggleBadgeOnly(_ calendarID: String) {
+        if badgeOnlyCalendarIDs.contains(calendarID) {
+            badgeOnlyCalendarIDs.remove(calendarID)
+        } else {
+            badgeOnlyCalendarIDs.insert(calendarID)
+        }
+        defaults.set(Array(badgeOnlyCalendarIDs), forKey: badgeOnlyCalendarIDsKey)
+    }
+
+    /// Whether an event on `calendarID` may notify or interrupt.
+    func alerts(forCalendarID calendarID: String?) -> Bool {
+        AlertLadder.alerts(calendarID: calendarID, badgeOnlyCalendarIDs: badgeOnlyCalendarIDs)
     }
 
     func isCalendarEnabled(_ calendarID: String) -> Bool {

@@ -22,9 +22,12 @@ struct StartingNowHUD: View {
     /// "You're about to meet Marco, CEO at Northwind" when known.
     var contextLine: String? = nil
     var appearanceMode: AppearanceMode = .auto
+    /// Pill text; "STARTING NOW" unless the card warns ahead ("IN 2 MIN").
+    var statusText: String? = nil
 
     let onJoin: () -> Void
-    let onSnooze: () -> Void
+    /// Nil hides the snooze button (the 2-minute card: the start alert follows).
+    var onSnooze: (() -> Void)? = nil
     let onClose: () -> Void
 
     private var preferredColorScheme: ColorScheme? {
@@ -75,7 +78,7 @@ struct StartingNowHUD: View {
 
     private var header: some View {
         HStack {
-            PeekStatusPill(text: NSLocalizedString("STARTING NOW", comment: "HUD status pill"))
+            PeekStatusPill(text: statusText ?? NSLocalizedString("STARTING NOW", comment: "HUD status pill"))
 
             Spacer()
 
@@ -136,10 +139,12 @@ struct StartingNowHUD: View {
                 )))
             }
 
-            Button(action: onSnooze) {
-                Text(NSLocalizedString("Snooze 5 min", comment: "HUD snooze button"))
+            if let onSnooze {
+                Button(action: onSnooze) {
+                    Text(NSLocalizedString("Snooze 5 min", comment: "HUD snooze button"))
+                }
+                .buttonStyle(SecondaryFillButtonStyle())
             }
-            .buttonStyle(SecondaryFillButtonStyle())
 
             Spacer()
 

@@ -27,8 +27,8 @@ event rows, meeting page, full-screen alert and Preferences.
 
 - Popover footer: keeps the 1.x icon buttons (owner decision 2026-11-24, recorded in
   `docs/DESIGN_SYSTEM.md` and in the mockup canvas).
-- The Preferences alert ladder (one level per moment) and the menu-bar filled pills: both
-  change behaviour and need an owner decision.
+- The Preferences alert ladder and the menu-bar states: built afterwards in PEEK-242
+  (`menu-bar-states-alert-ladder.md`) on the owner's request.
 - Onboarding "Arrive prepared" step, HUD, app icon.
 
 ## Claimed files and subsystems
