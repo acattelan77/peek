@@ -212,6 +212,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        // Muting or hiding one event changes what is listed and what may
+        // notify (PEEK-273).
+        calendarManager.$eventOverrides
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.scheduleRefresh(debounce: 0.05)
+                DispatchQueue.main.async {
+                    self?.maybeRescheduleNotifications(force: true)
+                }
+            }
+            .store(in: &cancellables)
+
         // Observe notification settings changes
         calendarManager.$notificationsEnabled
             .sink { [weak self] isEnabled in
@@ -631,7 +643,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 MeetingBriefService.shared.prepareIfDue(for: event)
             }
             if let event = event, eventCount > 0,
-               self.calendarManager.alerts(forCalendarID: event.calendar?.calendarIdentifier) {
+               self.calendarManager.alerts(for: event) {
                 let nextUrgency = MeetingUrgency.from(minutesUntil: Int(event.startDate.timeIntervalSince(Date())) / 60)
                 self.hudController.maybeShow(
                     for: event,
@@ -895,12 +907,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: retry)
     }
 
-    /// Upcoming events that may notify: badge-only calendars are left out.
+    /// Upcoming events that may notify: badge-only calendars and muted or
+    /// hidden events (PEEK-273) are left out.
     private func alertableUpcomingEvents() -> [EKEvent] {
         let events = calendarManager.allUpcomingEvents.isEmpty
             ? calendarManager.upcomingEvents
             : calendarManager.allUpcomingEvents
-        return events.filter { calendarManager.alerts(forCalendarID: $0.calendar?.calendarIdentifier) }
+        return events.filter { calendarManager.alerts(for: $0) }
     }
 
     private func currentNotificationEventSignature() -> [String] {

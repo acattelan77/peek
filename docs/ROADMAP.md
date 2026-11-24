@@ -93,6 +93,12 @@ Workstream: `docs/workstreams/day-priorities-obsidian-links.md`. Ships in 1.13.0
 - **PEEK-263 — In review:** Prep count and first point in the lead-time notification and the 2-minute card.
 - **PEEK-264 — In review:** Context older than 36 hours hides the day block, adds "Context from <date>" on the meeting page, and Preferences shows when the file was generated.
 
+## Now — pre-release robustness (PEEK-271..275)
+
+Plan: https://claude.ai/artifact/SY8a1EeMdayjQe1FPkghVc (2026-11-24).
+
+- **PEEK-273 — In review:** Per-event control: mute alerts or hide one event or a whole recurring series from the popover and the meeting page, "Ignore" on the 2-minute card, a restore list in Preferences > Alerts. Export and context file untouched. Workstream: `docs/workstreams/per-event-control.md`. Ships in 1.14.0.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.

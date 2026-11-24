@@ -92,6 +92,7 @@ struct MenuBarView: View {
                 MeetingPage(
                     event: detailEvent,
                     worldClockZones: calendarManager.worldClockZones,
+                    calendarManager: calendarManager,
                     onBack: closeDetail
                 )
             } else {
@@ -291,9 +292,10 @@ struct MenuBarView: View {
                     NextMeetingCard(
                         event: next,
                         isSelected: selectedEventIndex == 0,
+                        isMuted: calendarManager.overrideAction(for: next) == .mute,
                         onOpen: { openDetail(next) }
                     )
-                    .contextMenu { EventContextMenu(event: next) }
+                    .contextMenu { EventContextMenu(event: next, calendarManager: calendarManager) }
                 }
 
                 ForEach(daySections) { section in
@@ -302,9 +304,10 @@ struct MenuBarView: View {
                         CompactEventRow(
                             event: row.event,
                             isSelected: row.index != nil && row.index == selectedEventIndex,
+                            isMuted: calendarManager.overrideAction(for: row.event) == .mute,
                             onOpen: { openDetail(row.event) }
                         )
-                        .contextMenu { EventContextMenu(event: row.event) }
+                        .contextMenu { EventContextMenu(event: row.event, calendarManager: calendarManager) }
                     }
                 }
             }
@@ -328,8 +331,12 @@ struct MenuBarView: View {
                         .padding(PeekSpacing.sm)
                 } else {
                     ForEach(dayEvents, id: \.eventIdentifier) { event in
-                        CompactEventRow(event: event, onOpen: { openDetail(event) })
-                            .contextMenu { EventContextMenu(event: event) }
+                        CompactEventRow(
+                            event: event,
+                            isMuted: calendarManager.overrideAction(for: event) == .mute,
+                            onOpen: { openDetail(event) }
+                        )
+                            .contextMenu { EventContextMenu(event: event, calendarManager: calendarManager) }
                     }
                 }
             }
@@ -734,6 +741,8 @@ struct EventJoinButton: View {
 struct NextMeetingCard: View {
     let event: EKEvent
     var isSelected: Bool = false
+    /// Alerts muted for this event (PEEK-273): a bell-slash beside the time.
+    var isMuted: Bool = false
     let onOpen: () -> Void
     @ObservedObject var briefService: MeetingBriefService = .shared
 
@@ -754,6 +763,9 @@ struct NextMeetingCard: View {
                     .foregroundColor(tone.text)
                     .lineLimit(1)
                 Spacer(minLength: PeekSpacing.sm)
+                if isMuted {
+                    MutedEventIcon()
+                }
                 Text(EventPresentation.timeRange(event))
                     .font(PeekFont.caption)
                     .foregroundColor(PeekColor.secondaryText)
@@ -852,6 +864,8 @@ struct NextMeetingCard: View {
 struct CompactEventRow: View {
     let event: EKEvent
     var isSelected: Bool = false
+    /// Alerts muted for this event (PEEK-273): a bell-slash before the badge.
+    var isMuted: Bool = false
     let onOpen: () -> Void
 
     var body: some View {
@@ -882,6 +896,10 @@ struct CompactEventRow: View {
             }
 
             Spacer(minLength: 0)
+
+            if isMuted {
+                MutedEventIcon()
+            }
 
             switch EventPresentation.urgency(event) {
             case .critical: PeekBadge(kind: .now)
@@ -914,6 +932,8 @@ struct CompactEventRow: View {
 struct MeetingPage: View {
     let event: EKEvent
     var worldClockZones: [String] = []
+    /// Non-nil adds the mute and hide menu to the back bar (PEEK-273).
+    var calendarManager: CalendarManager? = nil
     let onBack: () -> Void
     @ObservedObject var briefService: MeetingBriefService = .shared
 
@@ -958,6 +978,24 @@ struct MeetingPage: View {
                 .font(PeekFont.body)
                 .foregroundColor(PeekColor.secondaryText)
             Spacer()
+            if let calendarManager {
+                Menu {
+                    EventOverrideMenuItems(
+                        event: event,
+                        calendarManager: calendarManager,
+                        onHide: onBack
+                    )
+                } label: {
+                    Image(systemName: calendarManager.overrideAction(for: event) == .mute ? "bell.slash" : "ellipsis.circle")
+                        .font(PeekIcon.nav)
+                        .foregroundColor(PeekColor.secondaryText)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .help(NSLocalizedString("Mute or hide this event", comment: "Meeting page: event options menu"))
+                .accessibilityLabel(Text(NSLocalizedString("Mute or hide this event", comment: "Meeting page: event options menu")))
+            }
         }
         .padding(PeekMetrics.meetingBackBarInsets)
     }
@@ -1306,10 +1344,16 @@ struct MeetingPage: View {
 
 struct EventContextMenu: View {
     let event: EKEvent
+    var calendarManager: CalendarManager? = nil
 
     private var meetingURL: URL? { MeetingURLDetector.extract(from: event) }
 
     var body: some View {
+        if let calendarManager {
+            EventOverrideMenuItems(event: event, calendarManager: calendarManager)
+            Divider()
+        }
+
         if let meetingURL = meetingURL {
             Button(NSLocalizedString("Copy Meeting Link", comment: "Context menu: copy meeting link")) {
                 NSPasteboard.general.clearContents()
@@ -1334,6 +1378,80 @@ struct EventContextMenu: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(event.title ?? "", forType: .string)
         }
+    }
+}
+
+/// Mute, hide and restore for one event (PEEK-273). A recurring event asks
+/// each time: this occurrence (listed first) or the whole series.
+struct EventOverrideMenuItems: View {
+    let event: EKEvent
+    @ObservedObject var calendarManager: CalendarManager
+    /// Called after hiding, so a meeting page can return to the agenda.
+    var onHide: (() -> Void)? = nil
+
+    private var isRecurring: Bool { event.candidateIdentity?.isRecurring ?? false }
+
+    var body: some View {
+        if event.candidateIdentity != nil {
+            switch calendarManager.overrideAction(for: event) {
+            case .some(.mute):
+                Button(NSLocalizedString("Unmute Alerts", comment: "Event menu: restore alerts for a muted event")) {
+                    calendarManager.restoreEvent(event)
+                }
+                actionItem(.hide)
+            case .some(.hide):
+                Button(NSLocalizedString("Show Event", comment: "Event menu: restore a hidden event")) {
+                    calendarManager.restoreEvent(event)
+                }
+            case .none:
+                actionItem(.mute)
+                actionItem(.hide)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func actionItem(_ action: EventOverrideAction) -> some View {
+        let title = Self.title(for: action)
+        if isRecurring {
+            Menu(title) {
+                Button(NSLocalizedString("This Event Only", comment: "Event menu: apply to one occurrence of a recurring event")) {
+                    apply(action, wholeSeries: false)
+                }
+                Button(NSLocalizedString("All Events in the Series", comment: "Event menu: apply to every occurrence of a recurring event")) {
+                    apply(action, wholeSeries: true)
+                }
+            }
+        } else {
+            Button(title) { apply(action, wholeSeries: false) }
+        }
+    }
+
+    private func apply(_ action: EventOverrideAction, wholeSeries: Bool) {
+        calendarManager.setOverride(action, for: event, wholeSeries: wholeSeries)
+        if action == .hide {
+            onHide?()
+        }
+    }
+
+    static func title(for action: EventOverrideAction) -> String {
+        switch action {
+        case .mute:
+            return NSLocalizedString("Mute Alerts", comment: "Event menu: no notification, card or full-screen alert for this event")
+        case .hide:
+            return NSLocalizedString("Hide Event", comment: "Event menu: remove this event from the popover and menu bar")
+        }
+    }
+}
+
+/// The bell-slash beside a muted event's time (PEEK-273).
+struct MutedEventIcon: View {
+    var body: some View {
+        Image(systemName: "bell.slash")
+            .font(PeekIcon.meta)
+            .foregroundColor(PeekColor.tertiaryText)
+            .help(NSLocalizedString("Alerts muted", comment: "Muted event indicator"))
+            .accessibilityLabel(Text(NSLocalizedString("Alerts muted", comment: "Muted event indicator")))
     }
 }
 

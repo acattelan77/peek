@@ -442,6 +442,33 @@ struct GeneralTab: View {
                         }
                     }
 
+                    settingsGroup(NSLocalizedString("Muted and hidden events", comment: "Group label: per-event mute and hide")) {
+                        let overrides = visibleOverrides
+                        if overrides.isEmpty {
+                            rowFootnote(
+                                NSLocalizedString("Right-click an event in Peek to mute its alerts or hide it.", comment: "Muted and hidden events: empty state"),
+                                isError: false
+                            )
+                        } else {
+                            ForEach(Array(overrides.enumerated()), id: \.element.id) { index, entry in
+                                if index > 0 { RowDivider() }
+                                SettingRow(
+                                    entry.title.isEmpty ? NSLocalizedString("Untitled Event", comment: "Fallback event title") : entry.title,
+                                    subtitle: EventOverrideDescription.subtitle(for: entry)
+                                ) {
+                                    Button(NSLocalizedString("Restore", comment: "Muted and hidden events: restore button")) {
+                                        calendarManager.removeOverride(id: entry.id)
+                                    }
+                                    .buttonStyle(SecondaryFillButtonStyle())
+                                    .accessibilityLabel(Text(String(
+                                        format: NSLocalizedString("Restore %@", comment: "Accessibility: restore a muted or hidden event; placeholder is the title"),
+                                        entry.title
+                                    )))
+                                }
+                            }
+                        }
+                    }
+
                     settingsGroup(NSLocalizedString("Joining a meeting", comment: "Group label: joining meetings")) {
                         SettingRow(
                             NSLocalizedString("Open in the native app", comment: "Native meeting app toggle"),
@@ -845,6 +872,14 @@ struct GeneralTab: View {
         .sorted { $0.title < $1.title }
     }
 
+    /// Per-event choices still in effect, for the list (PEEK-273).
+    private var visibleOverrides: [EventOverride] {
+        let now = Date()
+        return calendarManager.eventOverrides.sortedForDisplay.filter { entry in
+            entry.expiresAt.map { $0 > now } ?? true
+        }
+    }
+
     private var beforeLevelBinding: Binding<AlertLevel> {
         Binding(
             get: { calendarManager.notificationsEnabled && calendarManager.notificationTiming != .none ? .notification : .off },
@@ -937,4 +972,36 @@ struct GeneralTab: View {
 
 func switchToggle(_ isOn: Binding<Bool>, label: String) -> some View {
     PeekSwitch(isOn: isOn, accessibilityLabel: label)
+}
+
+// MARK: - Muted and hidden events (PEEK-273)
+
+/// "Alerts muted · Tue 1 Dec at 10:00", "Hidden · every event in the series".
+enum EventOverrideDescription {
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+        return formatter
+    }()
+
+    static func subtitle(for entry: EventOverride) -> String {
+        let action: String
+        switch entry.action {
+        case .mute:
+            action = NSLocalizedString("Alerts muted", comment: "Muted event indicator")
+        case .hide:
+            action = NSLocalizedString("Hidden", comment: "Muted and hidden events: the event is hidden")
+        }
+        let when: String
+        if entry.scope == .series {
+            when = NSLocalizedString("every event in the series", comment: "Muted and hidden events: the choice covers a whole recurring series")
+        } else if let date = entry.occurrenceDate {
+            when = dateFormatter.string(from: date)
+        } else {
+            return action
+        }
+        return String(format: NSLocalizedString("%@ · %@", comment: "Two parts joined with a middle dot"), action, when)
+    }
 }

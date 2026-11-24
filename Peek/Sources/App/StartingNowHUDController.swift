@@ -38,6 +38,7 @@ final class StartingNowHUDController {
             appearanceMode: appearanceMode,
             statusText: String(format: NSLocalizedString("IN %d MIN", comment: "Heads-up card pill 2 minutes before a meeting"), minutes),
             allowsSnooze: false,
+            allowsIgnore: true,
             prepLine: PrepSummary.text(for: event)
         )
     }
@@ -70,6 +71,16 @@ final class StartingNowHUDController {
               presentationHistory.shouldPresent(eventID: eventID, eventEndDate: event.endDate, now: now) else { return }
 
         present(presentation, for: event, appearanceMode: appearanceMode)
+    }
+
+    /// "Ignore" (PEEK-273): closes the alert, cancels any snooze and skips the
+    /// rest of this occurrence's ladder (the start alert after the 2-minute card).
+    func ignore(_ event: EKEvent) {
+        close()
+        guard let eventID = event.eventIdentifier else { return }
+        let now = Date()
+        soonHistory.suppress(eventID: eventID, eventEndDate: event.endDate, now: now)
+        presentationHistory.suppress(eventID: eventID, eventEndDate: event.endDate, now: now)
     }
 
     func close() {
@@ -122,7 +133,7 @@ final class StartingNowHUDController {
                 self?.snooze(.fullScreen, for: event, appearanceMode: appearanceMode)
             },
             onDismiss: { [weak self] in
-                self?.close()
+                self?.ignore(event)
             }
         )
 
@@ -157,12 +168,19 @@ final class StartingNowHUDController {
         appearanceMode: AppearanceMode,
         statusText: String? = nil,
         allowsSnooze: Bool = true,
+        allowsIgnore: Bool = false,
         prepLine: String? = nil
     ) {
         close()
 
         let meetingURL = MeetingURLDetector.extract(from: event)
         let providerLabel = meetingURL.map { MeetingProvider.label(for: $0) }
+        var ignoreAction: (() -> Void)?
+        if allowsIgnore {
+            ignoreAction = { [weak self] in
+                self?.ignore(event)
+            }
+        }
         var snoozeAction: (() -> Void)?
         if allowsSnooze {
             snoozeAction = { [weak self] in
@@ -187,6 +205,7 @@ final class StartingNowHUDController {
                 self?.close()
             },
             onSnooze: snoozeAction,
+            onIgnore: ignoreAction,
             onClose: { [weak self] in
                 self?.close()
             }

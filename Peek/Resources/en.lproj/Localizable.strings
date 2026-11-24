@@ -38,7 +38,9 @@
 "Agenda" = "Agenda";
 "Alert timing" = "Alert timing";
 "Alerts" = "Alerts";
+"Alerts muted" = "Alerts muted";
 "Alerts on" = "Alerts on";
+"All Events in the Series" = "All Events in the Series";
 "All day" = "All day";
 "Always show icon" = "Always show icon";
 "Always show text" = "Always show text";
@@ -106,11 +108,14 @@
 "Grant calendar access" = "Grant calendar access";
 "Grant permission in System Settings → Privacy & Security → Calendars" = "Grant permission in System Settings → Privacy & Security → Calendars";
 "Heads-up card" = "Heads-up card";
+"Hidden" = "Hidden";
+"Hide Event" = "Hide Event";
 "Hide all-day events" = "Hide all-day events";
 "Hide declined events" = "Hide declined events";
 "Hide events whose title or notes contain these words (comma-separated)." = "Hide events whose title or notes contain these words (comma-separated).";
 "IN %d MIN" = "IN %d MIN";
 "Icon only" = "Icon only";
+"Ignore" = "Ignore";
 "In 1 minute" = "In 1 minute";
 "Interrupt only for meetings with a link or attendees" = "Interrupt only for meetings with a link or attendees";
 "Interrupts until you choose" = "Interrupts until you choose";
@@ -135,6 +140,9 @@
 "Meetings whose title or notes contain these words." = "Meetings whose title or notes contain these words.";
 "Menu bar" = "Menu bar";
 "Menu bar and shortcut" = "Menu bar and shortcut";
+"Mute Alerts" = "Mute Alerts";
+"Mute or hide this event" = "Mute or hide this event";
+"Muted and hidden events" = "Muted and hidden events";
 "NEXT" = "NEXT";
 "NOW" = "NOW";
 "Name in the menu bar" = "Name in the menu bar";
@@ -149,6 +157,7 @@
 "No calendars found" = "No calendars found";
 "No events on this day." = "No events on this day.";
 "No meetings today" = "No meetings today";
+"No more alerts for this meeting" = "No more alerts for this meeting";
 "No upcoming events" = "No upcoming events";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "No upcoming events. Peek will light up the moment something lands on your calendar.";
 "No upcoming meetings" = "No upcoming meetings";
@@ -186,7 +195,10 @@
 "Remove city" = "Remove city";
 "Remove keyword" = "Remove keyword";
 "Requesting…" = "Requesting…";
+"Restore" = "Restore";
+"Restore %@" = "Restore %@";
 "Return to join · Esc to dismiss" = "Return to join · Esc to dismiss";
+"Right-click an event in Peek to mute its alerts or hide it." = "Right-click an event in Peek to mute its alerts or hide it.";
 "SOON" = "SOON";
 "STARTING NOW" = "STARTING NOW";
 "STARTING NOW · %@" = "STARTING NOW · %@";
@@ -198,6 +210,7 @@
 "Send meeting details to Claude?" = "Send meeting details to Claude?";
 "Shortcut to join the next one" = "Shortcut to join the next one";
 "Show" = "Show";
+"Show Event" = "Show Event";
 "Show day priorities" = "Show day priorities";
 "Show in the menu bar" = "Show in the menu bar";
 "Show meeting" = "Show meeting";
@@ -226,6 +239,7 @@
 "The model declined to write a brief for this meeting." = "The model declined to write a brief for this meeting.";
 "The model returned no usable points." = "The model returned no usable points.";
 "Theme" = "Theme";
+"This Event Only" = "This Event Only";
 "This Mac doesn't support Apple Intelligence." = "This Mac doesn't support Apple Intelligence.";
 "This file uses format version %d, which this Peek doesn't support." = "This file uses format version %d, which this Peek doesn't support.";
 "Time zones" = "Time zones";
@@ -238,6 +252,7 @@
 "Try again" = "Try again";
 "Turn on Apple Intelligence in System Settings to use on-device briefs." = "Turn on Apple Intelligence in System Settings to use on-device briefs.";
 "Unknown attendee" = "Unknown attendee";
+"Unmute Alerts" = "Unmute Alerts";
 "Untitled Event" = "Untitled Event";
 "Upcoming Event" = "Upcoming Event";
 "Use Claude" = "Use Claude";
@@ -264,6 +279,7 @@
 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts." = "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts.";
 "Zoom and Teams when installed, otherwise the browser." = "Zoom and Teams when installed, otherwise the browser.";
 "context folder" = "context folder";
+"every event in the series" = "every event in the series";
 "from %@" = "from %@";
 "iCloud" = "iCloud";
 "in %d hr" = "in %d hr";

@@ -41,6 +41,8 @@ class CalendarManager: ObservableObject {
     /// Calendars that only show in the menu bar: no notification, card or
     /// start alert (Preferences > Alerts > Which meetings).
     @Published var badgeOnlyCalendarIDs: Set<String> = []
+    /// Per-event mute and hide choices (PEEK-273).
+    @Published private(set) var eventOverrides: EventOverrides = .none
     @Published var meetingContextUsesContacts: Bool = false
     @Published var contactsStatusMessage: String?
     @Published var contextFolderName: String?
@@ -87,6 +89,7 @@ class CalendarManager: ObservableObject {
     private let statusBarLabelStyleKey = "statusBarLabelStyle"
     private let worldClockZonesKey = "worldClockZones"
     private let showDayPrioritiesKey = "showDayPriorities"
+    private let eventOverridesKey = "eventOverrides"
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -165,6 +168,9 @@ class CalendarManager: ObservableObject {
         statusBarLabelStyle = defaults.string(forKey: statusBarLabelStyleKey).flatMap(StatusBarLabelStyle.init(rawValue:)) ?? .eventTitle
         worldClockZones = WorldClock.sanitized(defaults.array(forKey: worldClockZonesKey) as? [String] ?? [])
         showDayPriorities = defaults.object(forKey: showDayPrioritiesKey) as? Bool ?? true
+        var overrides = EventOverrides.decoded(from: defaults.object(forKey: eventOverridesKey) as? Data)
+        overrides.prune(now: Date())
+        eventOverrides = overrides
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -241,6 +247,56 @@ class CalendarManager: ObservableObject {
     /// Whether an event on `calendarID` may notify or interrupt.
     func alerts(forCalendarID calendarID: String?) -> Bool {
         AlertLadder.alerts(calendarID: calendarID, badgeOnlyCalendarIDs: badgeOnlyCalendarIDs)
+    }
+
+    /// Whether this event may notify or interrupt: its calendar is not
+    /// badge-only and the user has not muted or hidden it (PEEK-273).
+    func alerts(for event: EKEvent) -> Bool {
+        alerts(forCalendarID: event.calendar?.calendarIdentifier)
+            && !eventOverrides.isSilenced(event.candidateIdentity)
+    }
+
+    // MARK: - Per-event control (PEEK-273)
+
+    func overrideAction(for event: EKEvent) -> EventOverrideAction? {
+        eventOverrides.action(for: event.candidateIdentity)
+    }
+
+    /// Mutes or hides `event`; for a recurring event, `wholeSeries` picks the
+    /// whole series instead of this occurrence.
+    func setOverride(_ action: EventOverrideAction, for event: EKEvent, wholeSeries: Bool) {
+        guard let identity = event.candidateIdentity else { return }
+        var overrides = eventOverrides
+        overrides.set(
+            action,
+            for: identity,
+            wholeSeries: wholeSeries,
+            title: event.title ?? "",
+            endDate: event.endDate ?? identity.occurrenceDate
+        )
+        applyOverrides(overrides)
+    }
+
+    /// Clears every mute or hide that applies to `event`.
+    func restoreEvent(_ event: EKEvent) {
+        guard let identity = event.candidateIdentity else { return }
+        var overrides = eventOverrides
+        overrides.restore(identity)
+        applyOverrides(overrides)
+    }
+
+    /// Restores one entry from the Preferences list.
+    func removeOverride(id: String) {
+        var overrides = eventOverrides
+        overrides.remove(id: id)
+        applyOverrides(overrides)
+    }
+
+    private func applyOverrides(_ overrides: EventOverrides) {
+        var pruned = overrides
+        pruned.prune(now: Date())
+        eventOverrides = pruned
+        defaults.set(pruned.isEmpty ? nil : pruned.encoded(), forKey: eventOverridesKey)
     }
 
     func isCalendarEnabled(_ calendarID: String) -> Bool {
@@ -323,6 +379,7 @@ class CalendarManager: ObservableObject {
         let hideAllDayEvents = self.hideAllDayEvents
         let hideDeclinedEvents = self.hideDeclinedEvents
         let filterKeywords = self.filterKeywords
+        let eventOverrides = self.eventOverrides
 
         fetchQueue.async { [weak self] in
             guard let self = self else { return }
@@ -393,7 +450,8 @@ class CalendarManager: ObservableObject {
             let settings = EventFilterSettings(
                 hideAllDayEvents: hideAllDayEvents,
                 hideDeclinedEvents: hideDeclinedEvents,
-                filterKeywords: filterKeywords
+                filterKeywords: filterKeywords,
+                overrides: eventOverrides
             )
             let result = EventPipeline.filterAndSelect(
                 events: events,
@@ -467,7 +525,8 @@ class CalendarManager: ObservableObject {
         let settings = EventFilterSettings(
             hideAllDayEvents: hideAllDayEvents,
             hideDeclinedEvents: hideDeclinedEvents,
-            filterKeywords: filterKeywords
+            filterKeywords: filterKeywords,
+            overrides: eventOverrides
         )
 
         fetchQueue.async { [weak self] in

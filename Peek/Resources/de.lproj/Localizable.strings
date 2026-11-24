@@ -38,7 +38,9 @@
 "Agenda" = "Agenda";
 "Alert timing" = "Erinnerungszeitpunkt";
 "Alerts" = "Hinweise";
+"Alerts muted" = "Hinweise stummgeschaltet";
 "Alerts on" = "Hinweise an";
+"All Events in the Series" = "Alle Termine der Serie";
 "All day" = "Ganztägig";
 "Always show icon" = "Immer Symbol zeigen";
 "Always show text" = "Immer Text zeigen";
@@ -106,11 +108,14 @@
 "Grant calendar access" = "Kalenderzugriff erlauben";
 "Grant permission in System Settings → Privacy & Security → Calendars" = "Erteile die Berechtigung unter Systemeinstellungen → Datenschutz & Sicherheit → Kalender";
 "Heads-up card" = "Hinweiskarte";
+"Hidden" = "Ausgeblendet";
+"Hide Event" = "Termin ausblenden";
 "Hide all-day events" = "Ganztägige Termine ausblenden";
 "Hide declined events" = "Abgelehnte Termine ausblenden";
 "Hide events whose title or notes contain these words (comma-separated)." = "Termine ausblenden, deren Titel oder Notizen diese Wörter enthalten (durch Kommas getrennt).";
 "IN %d MIN" = "IN %d MIN.";
 "Icon only" = "Nur Symbol";
+"Ignore" = "Ignorieren";
 "In 1 minute" = "In 1 Minute";
 "Interrupt only for meetings with a link or attendees" = "Nur bei Meetings mit Link oder Teilnehmenden unterbrechen";
 "Interrupts until you choose" = "Unterbricht, bis du wählst";
@@ -135,6 +140,9 @@
 "Meetings whose title or notes contain these words." = "Meetings, deren Titel oder Notizen diese Wörter enthalten.";
 "Menu bar" = "Menüleiste";
 "Menu bar and shortcut" = "Menüleiste und Kurzbefehl";
+"Mute Alerts" = "Hinweise stummschalten";
+"Mute or hide this event" = "Diesen Termin stummschalten oder ausblenden";
+"Muted and hidden events" = "Stummgeschaltete und ausgeblendete Termine";
 "NEXT" = "ALS NÄCHSTES";
 "NOW" = "JETZT";
 "Name in the menu bar" = "Name in der Menüleiste";
@@ -149,6 +157,7 @@
 "No calendars found" = "Keine Kalender gefunden";
 "No events on this day." = "Keine Termine an diesem Tag.";
 "No meetings today" = "Heute keine Meetings";
+"No more alerts for this meeting" = "Keine weiteren Hinweise für dieses Meeting";
 "No upcoming events" = "Keine anstehenden Termine";
 "No upcoming events. Peek will light up the moment something lands on your calendar." = "Keine anstehenden Termine. Peek meldet sich, sobald etwas in deinem Kalender landet.";
 "No upcoming meetings" = "Keine anstehenden Meetings";
@@ -186,7 +195,10 @@
 "Remove city" = "Stadt entfernen";
 "Remove keyword" = "Stichwort entfernen";
 "Requesting…" = "Anfrage läuft …";
+"Restore" = "Wiederherstellen";
+"Restore %@" = "%@ wiederherstellen";
 "Return to join · Esc to dismiss" = "Return zum Beitreten · Esc zum Schließen";
+"Right-click an event in Peek to mute its alerts or hide it." = "Klicke in Peek mit der rechten Maustaste auf einen Termin, um seine Hinweise stummzuschalten oder ihn auszublenden.";
 "SOON" = "BALD";
 "STARTING NOW" = "BEGINNT JETZT";
 "STARTING NOW · %@" = "BEGINNT JETZT · %@";
@@ -198,6 +210,7 @@
 "Send meeting details to Claude?" = "Meeting-Details an Claude senden?";
 "Shortcut to join the next one" = "Kurzbefehl für das nächste Meeting";
 "Show" = "Anzeigen";
+"Show Event" = "Termin einblenden";
 "Show day priorities" = "Tagesprioritäten anzeigen";
 "Show in the menu bar" = "In der Menüleiste anzeigen";
 "Show meeting" = "Meeting anzeigen";
@@ -226,6 +239,7 @@
 "The model declined to write a brief for this meeting." = "Das Modell hat für dieses Meeting kein Briefing geschrieben.";
 "The model returned no usable points." = "Das Modell hat keine brauchbaren Punkte geliefert.";
 "Theme" = "Design";
+"This Event Only" = "Nur dieser Termin";
 "This Mac doesn't support Apple Intelligence." = "Dieser Mac unterstützt Apple Intelligence nicht.";
 "This file uses format version %d, which this Peek doesn't support." = "Diese Datei verwendet Formatversion %d, die diese Peek-Version nicht unterstützt.";
 "Time zones" = "Zeitzonen";
@@ -238,6 +252,7 @@
 "Try again" = "Erneut versuchen";
 "Turn on Apple Intelligence in System Settings to use on-device briefs." = "Aktiviere Apple Intelligence in den Systemeinstellungen, um Briefings auf dem Mac zu nutzen.";
 "Unknown attendee" = "Unbekannte Person";
+"Unmute Alerts" = "Hinweise wieder aktivieren";
 "Untitled Event" = "Unbenannter Termin";
 "Upcoming Event" = "Anstehender Termin";
 "Use Claude" = "Claude verwenden";
@@ -264,6 +279,7 @@
 "Your next meeting, always one glance away in the menu bar — with a one-click join the moment it starts." = "Dein nächstes Meeting, immer mit einem Blick in der Menüleiste, und mit einem Klick dabei, sobald es beginnt.";
 "Zoom and Teams when installed, otherwise the browser." = "Zoom und Teams, falls installiert, sonst der Browser.";
 "context folder" = "Kontextordner";
+"every event in the series" = "alle Termine der Serie";
 "from %@" = "von %@";
 "iCloud" = "iCloud";
 "in %d hr" = "in %d Std.";
