@@ -62,8 +62,8 @@ with its logs.
 
 - Linux: `bash scripts/check-version.sh`, `python3 scripts/check-localization.py`,
   `bash scripts/check-design-tokens.sh`, `git diff --check`.
-- Build and tests: run in CI (`build-and-test` on `macos-latest`), not locally.
-  Run link recorded in the pull request.
+- Build and tests ran in CI, not locally: `build-and-test` on `macos-latest`
+  passed on de57fb0, https://github.com/acattelan77/peek/actions/runs/45500541806
 
 ## Checks for the owner on the Mac
 
