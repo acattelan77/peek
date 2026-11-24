@@ -4,6 +4,14 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.12.4 - 2026-11-24
+
+### Changed
+
+- World clocks under the popover header show the city and the time on one line, each
+  in a tinted chip like the header buttons, so they stand apart from the month grid.
+  Chips wrap onto a new line when there are many cities.
+
 ## 1.12.2 - 2026-11-24
 
 ### Changed

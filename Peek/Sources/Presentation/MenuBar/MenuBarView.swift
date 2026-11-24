@@ -1326,28 +1326,13 @@ struct WorldClockStrip: View {
 
     var body: some View {
         TimelineView(.everyMinute) { context in
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: PeekMetrics.worldClockMinWidth), spacing: PeekSpacing.sm, alignment: .leading)],
-                alignment: .leading,
-                spacing: PeekSpacing.xs
-            ) {
+            PeekFlowLayout {
                 ForEach(WorldClock.entries(at: context.date, zones: zones), id: \.identifier) { entry in
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(entry.city)
-                            .font(PeekFont.caption)
-                            .foregroundColor(PeekColor.tertiaryText)
-                            .lineLimit(1)
-                        Text(entry.text)
-                            .font(PeekFont.bodyMetaMedium)
-                            .foregroundColor(PeekColor.bodyText)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                    }
-                    .accessibilityElement(children: .combine)
+                    PeekWorldClockChip(city: entry.city, time: entry.text)
                 }
             }
-            .padding(.horizontal, PeekSpacing.lg)
-            .padding(.vertical, PeekSpacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(PeekMetrics.worldClockStripInsets)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(NSLocalizedString("World clocks", comment: "Accessibility: world clock strip")))

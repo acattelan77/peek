@@ -150,6 +150,10 @@ Built in `MenuBar/MenuBarView.swift` and `MenuBar/MonthCalendarView.swift`, 360p
   headline 18 bold that names who you meet, full-width Join, WHO YOU'RE MEETING with
   avatars, "What to prepare" card with its source pill, invitation notes, sources line.
 - **Footer:** icon buttons, see below.
+- **World clocks:** under the header, one `PeekWorldClockChip` per city: "Tokyo 21:24"
+  on one line, city in `secondaryText` caption, time in `ink` 12.5 semibold with tabular
+  digits, on `fill` with `button` radius (the header buttons' surface), wrapped by
+  `PeekFlowLayout` (owner request 2026-11-24).
 - **Scroll views** never show scroll bars (`ScrollView(showsIndicators: false)`), as in the
   mockup; content still scrolls (owner, 2026-11-24).
 - **Preferences tabs:** Alerts, Briefs, Calendars, General. Tab titles are one or two

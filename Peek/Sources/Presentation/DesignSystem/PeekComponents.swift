@@ -462,6 +462,86 @@ struct PeekCalendarAlertChip: View {
     }
 }
 
+/// Lays children out left to right and wraps them onto new lines, each at
+/// its natural width (chips, world clocks).
+struct PeekFlowLayout: Layout {
+    var spacing: CGFloat = PeekSpacing.iconGap
+    var lineSpacing: CGFloat = PeekSpacing.iconGap
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+        let width = rows.map(\.width).max() ?? 0
+        let height = rows.map(\.height).reduce(0, +) + lineSpacing * CGFloat(max(rows.count - 1, 0))
+        let proposed = proposal.width.flatMap { $0.isFinite ? $0 : nil }
+        return CGSize(width: proposed ?? width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in arrange(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX
+            for index in row.indices {
+                let size = subviews[index].sizeThatFits(.unspecified)
+                subviews[index].place(
+                    at: CGPoint(x: x, y: y + (row.height - size.height) / 2),
+                    proposal: ProposedViewSize(size)
+                )
+                x += size.width + spacing
+            }
+            y += row.height + lineSpacing
+        }
+    }
+
+    private struct Row {
+        var indices: [Int] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func arrange(width maxWidth: CGFloat, subviews: Subviews) -> [Row] {
+        var rows: [Row] = []
+        var current = Row()
+        for index in subviews.indices {
+            let size = subviews[index].sizeThatFits(.unspecified)
+            let needed = current.indices.isEmpty ? size.width : current.width + spacing + size.width
+            if needed > maxWidth, !current.indices.isEmpty {
+                rows.append(current)
+                current = Row()
+            }
+            current.width = current.indices.isEmpty ? size.width : current.width + spacing + size.width
+            current.height = max(current.height, size.height)
+            current.indices.append(index)
+        }
+        if !current.indices.isEmpty { rows.append(current) }
+        return rows
+    }
+}
+
+/// One world clock: city and time on a single line, on the same fill as
+/// the header buttons so the strip reads apart from the month grid.
+struct PeekWorldClockChip: View {
+    let city: String
+    let time: String
+
+    var body: some View {
+        HStack(spacing: PeekSpacing.iconGap) {
+            Text(city)
+                .font(PeekFont.caption)
+                .foregroundColor(PeekColor.secondaryText)
+                .lineLimit(1)
+            Text(time)
+                .font(PeekFont.bodyMetaStrong)
+                .foregroundColor(PeekColor.ink)
+                .monospacedDigit()
+                .lineLimit(1)
+        }
+        .padding(PeekMetrics.worldClockInsets)
+        .background(PeekColor.fill)
+        .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 // MARK: - Tabs
 
 /// Underlined text tab used by Preferences.
