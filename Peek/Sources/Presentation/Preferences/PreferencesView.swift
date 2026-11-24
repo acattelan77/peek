@@ -819,7 +819,6 @@ struct GeneralTab: View {
         }
     }
 
-    @ViewBuilder
     // MARK: Alert ladder
 
     /// The lead time of the first step; the old "Disabled" timing reads as 10 minutes.
@@ -912,6 +911,7 @@ struct GeneralTab: View {
         .accessibilityLabel(label)
     }
 
+    @ViewBuilder
     private func settingsGroup<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             GroupLabel(label)
