@@ -48,6 +48,8 @@ enum DiagnosticRescheduleReason: String, Codable {
     case eventsChanged
     /// A setting that affects notifications changed, or a retry ran.
     case forced
+    /// A wake, or a time zone, clock or day change (PEEK-271).
+    case systemTime
 }
 
 /// What the context folder looked like when Peek last read it. Mirrors

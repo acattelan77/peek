@@ -323,6 +323,7 @@ class CalendarManager: ObservableObject {
         let hideAllDayEvents = self.hideAllDayEvents
         let hideDeclinedEvents = self.hideDeclinedEvents
         let filterKeywords = self.filterKeywords
+        let badgeOnlyCalendarIDs = self.badgeOnlyCalendarIDs
 
         fetchQueue.async { [weak self] in
             guard let self = self else { return }
@@ -361,7 +362,7 @@ class CalendarManager: ObservableObject {
             let now = Date()
 
             // Create start and end dates - look ahead based on user preference
-            let calendar = Calendar.current
+            let calendar = Calendar.autoupdatingCurrent
             guard let endDate = calendar.date(byAdding: .day, value: lookaheadDays, to: now) else {
                 DispatchQueue.main.async {
                     completion(nil)
@@ -379,7 +380,12 @@ class CalendarManager: ObservableObject {
             // Fetch events
             let events: [EKEvent]
             do {
-                events = try self.eventStore.events(matching: predicate)
+                let fetched = try self.eventStore.events(matching: predicate)
+                events = Self.deduplicated(
+                    fetched,
+                    calendars: calendars,
+                    badgeOnlyCalendarIDs: badgeOnlyCalendarIDs
+                )
             } catch {
                 Diagnostics.record(
                     .calendarRefreshFailed(errorCode: (error as NSError).code),
@@ -430,6 +436,40 @@ class CalendarManager: ObservableObject {
         }
     }
 
+    /// One event per meeting when the same meeting sits on two calendars
+    /// (PEEK-272): popover, menu bar and notifications see it once. The
+    /// PEEK-111 export reads EventKit on its own path and keeps every copy.
+    static func deduplicated(
+        _ events: [EKEvent],
+        calendars: [EKCalendar],
+        badgeOnlyCalendarIDs: Set<String>
+    ) -> [EKEvent] {
+        var rank: [String: Int] = [:]
+        for (index, calendar) in calendars.enumerated() where rank[calendar.calendarIdentifier] == nil {
+            rank[calendar.calendarIdentifier] = index
+        }
+        return EventDeduplicator.deduplicate(
+            events,
+            key: { event in
+                EventDeduplicator.key(
+                    title: event.title,
+                    start: event.startDate,
+                    end: event.endDate,
+                    link: MeetingURLDetector.extract(from: event)?.absoluteString
+                )
+            },
+            alerts: { event in
+                AlertLadder.alerts(
+                    calendarID: event.calendar?.calendarIdentifier,
+                    badgeOnlyCalendarIDs: badgeOnlyCalendarIDs
+                )
+            },
+            calendarRank: { event in
+                event.calendar.flatMap { rank[$0.calendarIdentifier] } ?? Int.max
+            }
+        )
+    }
+
     func getAllCalendars() -> [EKCalendar] {
         return fetchQueue.sync {
             eventStore.calendars(for: .event)
@@ -466,8 +506,8 @@ class CalendarManager: ObservableObject {
 
     /// The visible events that intersect the day starting at `day`.
     func fetchEvents(on day: Date, completion: @escaping ([EKEvent]) -> Void) {
-        let start = Calendar.current.startOfDay(for: day)
-        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start) else {
+        let start = Calendar.autoupdatingCurrent.startOfDay(for: day)
+        guard let end = Calendar.autoupdatingCurrent.date(byAdding: .day, value: 1, to: start) else {
             completion([])
             return
         }
@@ -481,6 +521,7 @@ class CalendarManager: ObservableObject {
         }
         let enabledCalendarIDs = self.enabledCalendarIDs
         let hasCustomCalendarSelection = self.hasCustomCalendarSelection
+        let badgeOnlyCalendarIDs = self.badgeOnlyCalendarIDs
         let settings = EventFilterSettings(
             hideAllDayEvents: hideAllDayEvents,
             hideDeclinedEvents: hideDeclinedEvents,
@@ -501,7 +542,11 @@ class CalendarManager: ObservableObject {
                     end: interval.end,
                     calendars: calendars
                 )
-                let events = (try? self.eventStore.events(matching: predicate)) ?? []
+                let events = Self.deduplicated(
+                    (try? self.eventStore.events(matching: predicate)) ?? [],
+                    calendars: calendars,
+                    badgeOnlyCalendarIDs: badgeOnlyCalendarIDs
+                )
                 visible = EventPipeline.visibleEvents(events, settings: settings)
             }
             DispatchQueue.main.async {
@@ -584,6 +629,7 @@ extension CalendarManager {
     /// "Today at 08:52", "23 Nov 2026 at 08:52".
     private static let generatedAtFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         formatter.doesRelativeDateFormatting = true

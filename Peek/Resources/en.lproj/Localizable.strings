@@ -279,3 +279,7 @@
 "now" = "now";
 "sk-ant-…" = "sk-ant-…";
 "starting now" = "starting now";
+
+/* PEEK-271: start alert shown late, after a wake */
+"STARTED %d MIN AGO" = "STARTED %d MIN AGO";
+"STARTED %d MIN AGO · %@" = "STARTED %d MIN AGO · %@";

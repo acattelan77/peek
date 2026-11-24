@@ -98,8 +98,8 @@ Workstream: `docs/workstreams/day-priorities-obsidian-links.md`. Ships in 1.13.0
 Plan: owner-approved 2026-11-24 (four PRs, in order). Diagnostics first so the others can be checked with its logs.
 
 - **PEEK-275 — In review:** Local diagnostics: `os.Logger` per category with no meeting content, a 14-day journal, MetricKit payloads kept 30 days, and "Export diagnostics" in Preferences > General. No network (ADR 0006). Workstream: `docs/workstreams/local-diagnostics.md`. Ships in 1.13.1.
-- **PEEK-271 — Ready:** Time robustness: wake, time-zone, clock and day-change observers; notifications anchored to absolute instants.
-- **PEEK-272 — Ready:** Notification reliability: 64-request cap, cross-calendar dedupe, snooze on wall-clock time.
+- **PEEK-271 — In review:** Wake, time zone, clock and day changes refresh events, reschedule every notification and re-evaluate the card and start alert; notifications are pinned to an absolute instant; snoozes run on the wall clock; a meeting that started up to 5 minutes before a wake gets a "started N min ago" alert.
+- **PEEK-272 — In review:** At most 60 lead-time notifications, nearest first, with 4 left for snoozes; one notification per recurring occurrence; the same meeting on two calendars shows and notifies once; meetings with a link or attendees are time-sensitive (entitlement pending, see `docs/APP_STORE.md`).
 - **PEEK-273 — Ready:** Per-event control: mute alerts, hide, dismiss; occurrence or series.
 - **PEEK-274 — Ready:** Screen-share discretion mode, after a detection spike.
 

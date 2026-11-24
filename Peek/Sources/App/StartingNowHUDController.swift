@@ -43,6 +43,8 @@ final class StartingNowHUDController {
         )
     }
     private var snoozeWorkItem: DispatchWorkItem?
+    /// The snoozed alert and its wall-clock due time (PEEK-271).
+    private var pendingSnooze: (snooze: PendingSnooze, event: EKEvent, appearanceMode: AppearanceMode)?
 
     /// Presents the start alert once when an event reaches its start time, as a
     /// heads-up card or a full-screen alert depending on the user's preferences.
@@ -63,9 +65,16 @@ final class StartingNowHUDController {
             hasJoinLink: MeetingURLDetector.extract(from: event) != nil,
             hasAttendees: !(event.attendees ?? []).isEmpty
         )
-        // Fire only in the first minute after the start time, and only once per event.
-        let started = event.startDate.timeIntervalSince(now)
-        let inStartWindow = started <= 0 && started > -60
+        // Fire once per event: in the first minute after the start time or,
+        // after a wake or a launch, up to five minutes late as "started N min ago".
+        let timing = LateStartPolicy.timing(secondsSinceStart: now.timeIntervalSince(event.startDate))
+        let inStartWindow: Bool
+        switch timing {
+        case .startingNow, .startedMinutesAgo:
+            inStartWindow = true
+        case .notYet, .tooLate:
+            inStartWindow = false
+        }
         guard presentation != .none else {
             if inStartWindow { Self.recordSkipped(.startCard, reason: .filtered, eventID: eventID) }
             return
@@ -78,7 +87,19 @@ final class StartingNowHUDController {
         }
 
         Self.recordShown(kind, eventID: eventID)
-        present(presentation, for: event, appearanceMode: appearanceMode)
+        present(presentation, for: event, appearanceMode: appearanceMode, timing: timing)
+    }
+    /// Shows a snoozed alert whose due time has passed. Called from the menu
+    /// bar tick and after a wake, so sleep cannot swallow a snooze.
+    func tick(now: Date = Date()) {
+        guard let pending = pendingSnooze, pending.snooze.isDue(now: now) else { return }
+        pendingSnooze = nil
+        snoozeWorkItem?.cancel()
+        snoozeWorkItem = nil
+        // A snoozed alert says how late it is, even past the late-start window.
+        let minutesSinceStart = Int(now.timeIntervalSince(pending.event.startDate) / 60)
+        let timing: LateStartPolicy.Timing = minutesSinceStart >= 1 ? .startedMinutesAgo(minutesSinceStart) : .startingNow
+        present(pending.snooze.presentation, for: pending.event, appearanceMode: pending.appearanceMode, timing: timing)
     }
 
     private static func recordShown(_ kind: DiagnosticAlertKind, eventID: String) {
@@ -98,24 +119,40 @@ final class StartingNowHUDController {
     func close() {
         snoozeWorkItem?.cancel()
         snoozeWorkItem = nil
+        pendingSnooze = nil
         hudWindow?.close()
         hudWindow = nil
         fullScreenWindow?.close()
         fullScreenWindow = nil
     }
 
-    private func present(_ presentation: StartAlertPresentation, for event: EKEvent, appearanceMode: AppearanceMode) {
+    private func present(
+        _ presentation: StartAlertPresentation,
+        for event: EKEvent,
+        appearanceMode: AppearanceMode,
+        timing: LateStartPolicy.Timing = .startingNow
+    ) {
+        var minutesLate: Int?
+        if case .startedMinutesAgo(let minutes) = timing {
+            minutesLate = minutes
+        }
         switch presentation {
         case .none:
             return
         case .hud:
-            show(for: event, appearanceMode: appearanceMode)
+            show(
+                for: event,
+                appearanceMode: appearanceMode,
+                statusText: minutesLate.map {
+                    String(format: NSLocalizedString("STARTED %d MIN AGO", comment: "Heads-up card pill when a meeting started a few minutes ago, after sleep"), $0)
+                }
+            )
         case .fullScreen:
-            showFullScreen(for: event, appearanceMode: appearanceMode)
+            showFullScreen(for: event, appearanceMode: appearanceMode, minutesLate: minutesLate)
         }
     }
 
-    private func showFullScreen(for event: EKEvent, appearanceMode: AppearanceMode) {
+    private func showFullScreen(for event: EKEvent, appearanceMode: AppearanceMode, minutesLate: Int? = nil) {
         close()
 
         let meetingURL = MeetingURLDetector.extract(from: event)
@@ -135,6 +172,7 @@ final class StartingNowHUDController {
             briefPoints: Array((MeetingBriefService.shared.brief(for: event)?.points ?? []).prefix(MeetingBrief.heroPointLimit)),
             joinProviderLabel: providerLabel,
             appearanceMode: appearanceMode,
+            minutesLate: minutesLate,
             onJoin: { [weak self] in
                 if let url = meetingURL {
                     MeetingLinkOpener.open(url)
@@ -258,11 +296,22 @@ final class StartingNowHUDController {
 
     private func snooze(_ presentation: StartAlertPresentation, for event: EKEvent, appearanceMode: AppearanceMode) {
         close()
+        let snooze = PendingSnooze(
+            eventKey: event.eventIdentifier ?? UUID().uuidString,
+            presentation: presentation,
+            snoozedAt: Date()
+        )
+        pendingSnooze = (snooze, event, appearanceMode)
+        // Wall-clock deadline: it keeps counting while the Mac sleeps. The
+        // menu bar tick and the wake handler call `tick` as a backstop.
         let work = DispatchWorkItem { [weak self] in
-            self?.present(presentation, for: event, appearanceMode: appearanceMode)
+            self?.tick()
         }
         snoozeWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + StartAlertPolicy.snoozeDelay(for: presentation), execute: work)
+        DispatchQueue.main.asyncAfter(
+            wallDeadline: .now() + StartAlertPolicy.snoozeDelay(for: presentation),
+            execute: work
+        )
     }
 }
 

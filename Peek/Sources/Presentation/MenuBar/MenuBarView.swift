@@ -34,12 +34,14 @@ struct MenuBarView: View {
 
     private static let dayAgendaFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.setLocalizedDateFormatFromTemplate("EEEE d MMMM")
         return formatter
     }()
 
     private static let headerDayFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.setLocalizedDateFormatFromTemplate("EEEE d")
         return formatter
     }()
@@ -557,6 +559,7 @@ struct MenuBarView: View {
 enum EventPresentation {
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.timeStyle = .short
         formatter.dateStyle = .none
         return formatter
@@ -1224,6 +1227,7 @@ struct MeetingPage: View {
     /// "23 Nov".
     private static let staleDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.setLocalizedDateFormatFromTemplate("d MMM")
         return formatter
     }()

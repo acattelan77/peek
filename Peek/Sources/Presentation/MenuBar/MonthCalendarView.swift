@@ -15,12 +15,14 @@ struct MonthCalendarView: View {
 
     private static let monthFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
         return formatter
     }()
 
     private static let accessibilityDayFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.dateStyle = .full
         formatter.timeStyle = .none
         return formatter

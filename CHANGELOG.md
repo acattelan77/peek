@@ -4,6 +4,33 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.14.0 - 2026-11-24
+
+### Fixed
+
+- PEEK-271: after a wake, a time zone change, a clock change or midnight, Peek
+  refreshes its events, reschedules every notification and re-checks the card
+  and start alert. Notifications are pinned to an absolute instant, so changing
+  time zone no longer moves them to the same clock time in the new zone.
+- PEEK-271: a snoozed card or full-screen alert runs on the wall clock, so a
+  snooze that runs out while the Mac sleeps shows at the wake.
+- PEEK-271: a meeting that started less than 5 minutes before a wake or a launch
+  still gets its start alert, worded "Started 3 min ago". Delivered reminders for
+  meetings that started more than 5 minutes ago are removed.
+- PEEK-272: Peek schedules at most the 60 nearest lead-time notifications,
+  leaving room for snoozes within the 64 macOS keeps; the rest are added as
+  earlier ones pass. Each occurrence of a recurring event gets its own reminder;
+  before, occurrences replaced one another.
+- PEEK-272: the same meeting on two calendars (same title, start, end and link)
+  shows, notifies and alerts once, keeping the copy on a calendar that alerts.
+  The `--export` JSON is unchanged.
+
+### Added
+
+- PEEK-272: reminders for meetings with a link or attendees are marked
+  time-sensitive. They break through Focus only once the time-sensitive
+  entitlement is added with App Store signing (see `docs/APP_STORE.md`).
+
 ## 1.13.1 - 2026-11-24
 
 ### Added
