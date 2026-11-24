@@ -75,6 +75,15 @@ Workstream: `docs/workstreams/peek-2-mockup-alignment.md`. Ships in 1.11.0.
 - **PEEK-241 — In review:** Popover, meeting page, full-screen alert and Preferences follow the approved "Peek 2.0 mockup" canvas, light and dark. Footer keeps its icon buttons (owner decision 2026-11-24). Attendee names replace email addresses.
 - **PEEK-242 — In review:** Menu-bar states (calm, soon and now pills, in progress, icon only) and the Preferences alert ladder with a 2-minute heads-up card and badge-only calendars, as in the Peek 2.0 mockup (owner request 2026-11-24).
 
+## Now — App Store readiness
+
+Workstream: `docs/workstreams/app-store-readiness.md`. Owner guide: `docs/APP_STORE.md`. Submission stays last and is the owner's.
+
+- **PEEK-251 — In review:** Privacy manifest and export-compliance key, checked in CI.
+- **PEEK-252 — In review:** Sandbox entitlements reviewed; bundle check script.
+- **PEEK-253 — In review:** App Store archive, export and TestFlight upload (manual workflow, cloud-managed signing) next to the Developer ID DMG; waits on the owner's App Store Connect API key.
+- **PEEK-254 — In review:** Apple-side steps, secrets, metadata, privacy answers, screenshots and TestFlight plan.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.

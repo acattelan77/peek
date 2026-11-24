@@ -38,6 +38,9 @@ jobs:
           xcodebuild -scheme "Peek" -configuration Debug -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
 
+      - name: Check App Store bundle requirements
+        run: ./scripts/check-app-bundle.sh build/Build/Products/Debug/Peek.app
+
       - name: Test (unsigned)
         run: |
           xcodebuild -scheme "Peek" -destination "platform=macOS" -derivedDataPath ./build \

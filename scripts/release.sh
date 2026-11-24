@@ -98,6 +98,7 @@ xcodebuild \
     -configuration Release \
     -derivedDataPath ./build \
     CODE_SIGN_IDENTITY="${APPLE_DEVELOPER_IDENTITY}" \
+    CODE_SIGN_STYLE=Manual \
     CODE_SIGNING_ALLOWED=YES \
     CODE_SIGNING_REQUIRED=YES \
     DEVELOPMENT_TEAM="${APPLE_TEAM_ID}" \
@@ -124,6 +125,7 @@ trap cleanup EXIT
 
 verify_app_signature "${APP_PATH}"
 verify_app_entitlements "${APP_PATH}" "${ENTITLEMENTS_PATH}"
+bash scripts/check-app-bundle.sh "${APP_PATH}" --distribution
 
 # Package the signed app into a DMG.
 echo "Packaging DMG..."
