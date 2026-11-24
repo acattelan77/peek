@@ -354,6 +354,8 @@ struct GeneralTab: View {
     @ObservedObject private var briefService = MeetingBriefService.shared
     @State private var apiKeyDraft = ""
     @State private var apiKeyMessage: String?
+    @State private var diagnosticsMessage: String?
+    @State private var diagnosticsFailed = false
     @State private var hasAPIKey = AnthropicKeyStore.hasKey
 
     private var launchAtLoginBinding: Binding<Bool> {
@@ -745,6 +747,23 @@ struct GeneralTab: View {
                         }
                     }
 
+                    // Diagnostics (PEEK-275)
+                    settingsGroup(NSLocalizedString("Diagnostics", comment: "Group label: local diagnostics")) {
+                        SettingRow(
+                            NSLocalizedString("Export diagnostics", comment: "Diagnostics export setting"),
+                            subtitle: NSLocalizedString("Saves a file on this Mac with Peek's recent activity and crash reports, without meeting details. Nothing is sent; you decide whether to share it.", comment: "Diagnostics export subtitle")
+                        ) {
+                            Button(NSLocalizedString("Export…", comment: "Diagnostics export button")) {
+                                exportDiagnostics()
+                            }
+                            .buttonStyle(SecondaryFillButtonStyle())
+                            .accessibilityLabel(NSLocalizedString("Export diagnostics", comment: "Diagnostics export setting"))
+                        }
+                        if let diagnosticsMessage {
+                            rowFootnote(diagnosticsMessage, isError: diagnosticsFailed)
+                        }
+                    }
+
                 }
             }
             .padding(PeekSpacing.xl)
@@ -925,6 +944,22 @@ struct GeneralTab: View {
         VStack(alignment: .leading, spacing: 0) {
             GroupLabel(label)
             InsetCard { content() }
+        }
+    }
+
+    private func exportDiagnostics() {
+        DiagnosticsExporter.exportAndReveal(calendarManager: calendarManager) { result in
+            switch result {
+            case .success(let url):
+                diagnosticsFailed = false
+                diagnosticsMessage = String(
+                    format: NSLocalizedString("Saved %@ and showed it in the Finder.", comment: "Diagnostics exported; placeholder is the file name"),
+                    url.lastPathComponent
+                )
+            case .failure:
+                diagnosticsFailed = true
+                diagnosticsMessage = NSLocalizedString("Couldn't save the diagnostics file.", comment: "Diagnostics export failed")
+            }
         }
     }
 

@@ -93,6 +93,16 @@ Workstream: `docs/workstreams/day-priorities-obsidian-links.md`. Ships in 1.13.0
 - **PEEK-263 — In review:** Prep count and first point in the lead-time notification and the 2-minute card.
 - **PEEK-264 — In review:** Context older than 36 hours hides the day block, adds "Context from <date>" on the meeting page, and Preferences shows when the file was generated.
 
+## Now — pre-release robustness
+
+Plan: owner-approved 2026-11-24 (four PRs, in order). Diagnostics first so the others can be checked with its logs.
+
+- **PEEK-275 — In review:** Local diagnostics: `os.Logger` per category with no meeting content, a 14-day journal, MetricKit payloads kept 30 days, and "Export diagnostics" in Preferences > General. No network (ADR 0006). Workstream: `docs/workstreams/local-diagnostics.md`. Ships in 1.13.1.
+- **PEEK-271 — Ready:** Time robustness: wake, time-zone, clock and day-change observers; notifications anchored to absolute instants.
+- **PEEK-272 — Ready:** Notification reliability: 64-request cap, cross-calendar dedupe, snooze on wall-clock time.
+- **PEEK-273 — Ready:** Per-event control: mute alerts, hide, dismiss; occurrence or series.
+- **PEEK-274 — Ready:** Screen-share discretion mode, after a detection spike.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.

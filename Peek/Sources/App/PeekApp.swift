@@ -80,6 +80,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Compose live infrastructure once, at the application boundary.
         environment = .live()
+        let launchVersion = AppVersion.from()
+        Diagnostics.record(.appLaunched(
+            version: launchVersion.marketingVersion,
+            build: launchVersion.buildNumber,
+            system: ProcessInfo.processInfo.operatingSystemVersionString
+        ))
+        MetricKitCollector.shared.start()
         calendarManager = environment.calendarManager
         notificationManager = environment.notificationScheduler
         spacePolicy = StatusBarSpacePolicy(policy: calendarManager.menuBarSpacePolicy)
@@ -264,6 +271,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self else { return }
                 let result = GlobalHotkeyCoordinator.apply(hotkey, using: self.joinHotkeyRegistrar)
                 self.calendarManager.joinHotkeyStatusMessage = result.errorMessage
+                if result.errorMessage != nil {
+                    Diagnostics.record(.hotkeyRegistrationFailed(shortcut: hotkey.rawValue))
+                }
             }
             .store(in: &cancellables)
 
@@ -317,13 +327,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// authorized (the system returns the cached decision without re-prompting).
     private func requestCalendarAccessAndStart() {
         calendarManager.requestAccess { [weak self] granted, error in
+            Diagnostics.record(.calendarAccess(granted: granted, errorCode: (error as NSError?)?.code))
             if granted {
                 self?.handleCalendarAccessChange(granted: true, shouldRefresh: true)
 
                 if self?.calendarManager.notificationsEnabled == true {
                     self?.notificationManager.requestPermission { notificationGranted in
                         if notificationGranted {
-                            self?.rescheduleNotifications()
+                            self?.rescheduleNotifications(reason: .permission)
                         } else {
                             self?.notificationManager.clearAllPendingNotifications()
                             self?.calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: .authorizationRequired)
@@ -331,9 +342,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             } else {
-                if let error = error {
-                    print("Calendar access error: \(error.localizedDescription)")
-                }
                 DispatchQueue.main.async {
                     self?.handleCalendarAccessChange(granted: false, shouldRefresh: false)
                 }
@@ -373,7 +381,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if granted && calendarManager.notificationsEnabled {
             notificationManager.requestPermission { [weak self] ok in
                 if ok {
-                    self?.rescheduleNotifications()
+                    self?.rescheduleNotifications(reason: .permission)
                 } else {
                     self?.notificationManager.clearAllPendingNotifications()
                     self?.calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: .authorizationRequired)
@@ -468,8 +476,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func applyGlobalHotkey(_ hotkey: HotkeyOption) {
         let result = GlobalHotkeyCoordinator.apply(hotkey, using: hotkeyRegistrar)
         calendarManager.hotkeyStatusMessage = result.errorMessage
-        if let message = result.errorMessage {
-            print(message)
+        if result.errorMessage != nil {
+            Diagnostics.record(.hotkeyRegistrationFailed(shortcut: hotkey.rawValue))
         }
     }
 
@@ -645,6 +653,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     enabled: self.calendarManager.soonCardEnabled,
                     appearanceMode: self.calendarManager.appearanceMode,
                     interruptOnlyForMeetings: self.calendarManager.interruptOnlyForMeetings
+                )
+            } else if let event = event, eventCount > 0, !event.isAllDay,
+                      (-60..<0).contains(event.startDate.timeIntervalSince(Date())) {
+                // A badge-only calendar reached its start time: say why no alert showed.
+                let ref = DiagnosticEventRef.make(identifier: event.eventIdentifier)
+                Diagnostics.record(
+                    .alertSkipped(kind: .startCard, reason: .badgeOnly, eventRef: ref),
+                    throttleKey: "alert.badgeOnly.\(ref)",
+                    minInterval: 3600
                 )
             }
 
@@ -856,9 +873,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func rescheduleNotifications() {
+    private func rescheduleNotifications(reason: DiagnosticRescheduleReason = .forced) {
         guard calendarManager.notificationsEnabled else {
             // Clear all pending notifications if disabled
+            Diagnostics.record(.notificationsCleared, throttleKey: "notifications.cleared", minInterval: 300)
             notificationRetryWorkItem?.cancel()
             notificationRetryWorkItem = nil
             calendarManager.notificationStatusMessage = nil
@@ -870,6 +888,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         notificationRetryWorkItem = nil
 
         let eventsToSchedule = alertableUpcomingEvents()
+        Diagnostics.record(.notificationsRescheduled(reason: reason, eventCount: eventsToSchedule.count))
 
         notificationManager.scheduleNotifications(
             for: eventsToSchedule,
@@ -881,6 +900,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func handleNotificationSchedulingResult(_ result: NotificationSchedulingResult) {
         calendarManager.notificationStatusMessage = NotificationSchedulingFeedback.message(for: result)
+        Diagnostics.record(.notificationsScheduled(result: String(describing: result)))
         guard NotificationSchedulingFeedback.shouldRetry(result), calendarManager.notificationsEnabled else {
             notificationRetryWorkItem?.cancel()
             notificationRetryWorkItem = nil
@@ -914,7 +934,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let signature = currentNotificationEventSignature()
         if force || signature != lastScheduledEventSignature {
             lastScheduledEventSignature = signature
-            rescheduleNotifications()
+            rescheduleNotifications(reason: force ? .forced : .eventsChanged)
         }
     }
 
