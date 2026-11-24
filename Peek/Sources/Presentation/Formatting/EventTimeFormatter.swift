@@ -9,12 +9,14 @@ enum TimeUntilComponents: Equatable {
 struct EventTimeFormatter {
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.timeStyle = .short
         return formatter
     }()
 
     private static let compactDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.timeZone = .autoupdatingCurrent
         formatter.setLocalizedDateFormatFromTemplate("MMM d")
         return formatter
     }()

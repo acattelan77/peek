@@ -14,6 +14,8 @@ struct MeetingStartAlert: View {
     /// Provider label such as "Zoom"; when non-nil the Join button is shown.
     let joinProviderLabel: String?
     var appearanceMode: AppearanceMode = .auto
+    /// Minutes since the start when the alert shows late, after a wake (PEEK-271).
+    var minutesLate: Int? = nil
 
     let onJoin: () -> Void
     let onSnooze: () -> Void
@@ -38,6 +40,19 @@ struct MeetingStartAlert: View {
         .preferredColorScheme(preferredColorScheme)
     }
 
+    private var pillText: String {
+        if let minutesLate {
+            return String(
+                format: NSLocalizedString("STARTED %d MIN AGO · %@", comment: "Full-screen alert pill when a meeting started a few minutes ago, after sleep; placeholders are minutes and start time"),
+                minutesLate, startTime
+            )
+        }
+        return String(
+            format: NSLocalizedString("STARTING NOW · %@", comment: "Full-screen alert pill with start time"),
+            startTime
+        )
+    }
+
     /// The headline says who you are meeting when known; the event title moves below it.
     private var headline: String { contextLine ?? title }
     private var subtitle: String? { contextLine == nil ? nil : title }
@@ -47,10 +62,7 @@ struct MeetingStartAlert: View {
             HStack(spacing: PeekSpacing.sm) {
                 HStack(spacing: PeekSpacing.iconGap) {
                     PulsingDot(color: PeekColor.onCritical, size: PeekMetrics.pulsingDot)
-                    Text(String(
-                        format: NSLocalizedString("STARTING NOW · %@", comment: "Full-screen alert pill with start time"),
-                        startTime
-                    ))
+                    Text(pillText)
                     .font(PeekFont.captionStrong)
                     .tracking(PeekFont.labelTracking)
                     .foregroundColor(PeekColor.onCritical)

@@ -38,6 +38,12 @@ struct NotificationContentSignature {
         ].joined(separator: separator)
     }
 
+    /// The whole schedule's signature. The time zone is part of it, so a
+    /// time zone change reschedules even when no event changed (PEEK-271).
+    static func schedule(eventSignatures: [String], timeZone: TimeZone) -> [String] {
+        ["tz:" + timeZone.identifier] + eventSignatures
+    }
+
     static func make(for event: EKEvent) -> String? {
         guard let eventID = event.eventIdentifier else {
             return nil

@@ -160,6 +160,16 @@ container, Foundation Models, and opening join links or the Zoom and Teams
 apps through `NSWorkspace`. `get-task-allow` is rejected by the scripts in
 distribution builds.
 
+Pending, for PEEK-272: reminders for meetings with a link or attendees set
+`interruptionLevel = .timeSensitive`, but they only break through Focus once the
+target carries `com.apple.developer.usernotifications.time-sensitive`. That is a
+`com.apple.developer` entitlement: it needs the Time Sensitive Notifications
+capability on the App ID and a provisioning profile, and an ad-hoc build that
+claims it without a profile may not launch. Add it to `Peek.entitlements` in
+the same change that sets up App Store and Developer ID provisioning, then
+check on TestFlight that a reminder arrives during a Focus with Peek allowed
+to send time-sensitive notifications.
+
 One thing to verify on TestFlight: the Northwind Notes LaunchAgent runs
 `/Applications/Peek.app/Contents/MacOS/Peek --export …`. A sandboxed App Store
 binary run that way keeps its sandbox and calendar grant, so this should work

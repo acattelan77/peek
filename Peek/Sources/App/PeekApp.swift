@@ -75,6 +75,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var refreshWorkItem: DispatchWorkItem?
     private var notificationRetryWorkItem: DispatchWorkItem?
     private var lastScheduledEventSignature: [String] = []
+    private let systemTimeObserver: any SystemTimeObserving = SystemTimeObserver()
+    /// Set by a wake or a clock change: the next refresh reschedules every
+    /// notification even if the events did not change (PEEK-271).
+    private var forceNotificationRescheduleOnRefresh = false
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -312,6 +316,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.scheduleRefresh(debounce: 1.0)
         }
 
+        // Wake, time zone, clock and day changes move every alert time (PEEK-271).
+        systemTimeObserver.start { [weak self] changes in
+            self?.handleSystemTimeChanges(changes)
+        }
+
         // First run shows onboarding, which drives calendar access itself. Existing
         // users (already authorized, or previously onboarded) skip straight to the
         // normal access flow.
@@ -408,7 +417,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popoverAnchorController.detach()
 
         calendarManager.stopObservingChanges()
+        systemTimeObserver.stop()
         hudController.close()
+    }
+
+    /// After a wake or a time zone, clock or day change: refresh the events,
+    /// reschedule every notification, update the menu bar and re-evaluate the
+    /// card and start alert. A snooze that ran out during sleep fires now.
+    private func handleSystemTimeChanges(_ changes: Set<SystemTimeChange>) {
+        guard !changes.isEmpty else { return }
+        forceNotificationRescheduleOnRefresh = true
+        hudController.tick()
+        guard calendarManager.hasCalendarAccess else { return }
+        scheduleRefresh(debounce: 0.1)
     }
 
     @objc private func handleAppDidBecomeActive() {
@@ -722,7 +743,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             self.applyStatusBarContent(button: button, content: content)
-            self.maybeRescheduleNotifications(force: false)
+            self.hudController.tick(now: now)
+            let force = self.forceNotificationRescheduleOnRefresh && self.calendarManager.notificationsEnabled
+            self.forceNotificationRescheduleOnRefresh = false
+            self.maybeRescheduleNotifications(force: force, reason: force ? .systemTime : .forced)
         }
     }
 
@@ -924,17 +948,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func currentNotificationEventSignature() -> [String] {
-        alertableUpcomingEvents().compactMap(NotificationContentSignature.make(for:))
+        NotificationContentSignature.schedule(
+            eventSignatures: alertableUpcomingEvents().compactMap(NotificationContentSignature.make(for:)),
+            timeZone: TimeZone.current
+        )
     }
 
-    private func maybeRescheduleNotifications(force: Bool) {
+    private func maybeRescheduleNotifications(force: Bool, reason: DiagnosticRescheduleReason = .forced) {
         if !force && !calendarManager.notificationsEnabled {
             return
         }
         let signature = currentNotificationEventSignature()
         if force || signature != lastScheduledEventSignature {
             lastScheduledEventSignature = signature
-            rescheduleNotifications(reason: force ? .forced : .eventsChanged)
+            rescheduleNotifications(reason: force ? reason : .eventsChanged)
         }
     }
 
