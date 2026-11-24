@@ -37,16 +37,18 @@ struct PreferencesView: View {
             Divider().overlay(PeekColor.hairline)
 
             Group {
-                if selectedTab == 0 {
-                    CalendarsTab(calendarManager: calendarManager, availableCalendars: availableCalendars)
-                } else if selectedTab == 1 {
-                    FiltersTab(calendarManager: calendarManager)
-                } else {
-                    GeneralTab(
-                        calendarManager: calendarManager,
-                        launchAtLogin: $launchAtLogin,
-                        launchAtLoginController: launchAtLoginController
-                    )
+                switch selectedTab {
+                case 0: generalTab(.meetings)
+                case 1: generalTab(.prepared)
+                case 2:
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: PeekSpacing.xxl) {
+                            CalendarsTab(calendarManager: calendarManager, availableCalendars: availableCalendars).content
+                            FiltersTab(calendarManager: calendarManager).content
+                        }
+                        .padding(PeekSpacing.xl)
+                    }
+                default: generalTab(.general)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -62,14 +64,24 @@ struct PreferencesView: View {
 
     private var tabBar: some View {
         HStack(spacing: PeekMetrics.tabGap) {
-            PeekTabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 0) { selectedTab = 0 }
-            PeekTabButton(title: NSLocalizedString("Filters", comment: "Preferences tab title"), isSelected: selectedTab == 1) { selectedTab = 1 }
-            PeekTabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 2) { selectedTab = 2 }
+            PeekTabButton(title: NSLocalizedString("Never miss a meeting", comment: "Preferences tab title"), isSelected: selectedTab == 0) { selectedTab = 0 }
+            PeekTabButton(title: NSLocalizedString("Arrive prepared", comment: "Preferences tab title"), isSelected: selectedTab == 1) { selectedTab = 1 }
+            PeekTabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 2) { selectedTab = 2 }
+            PeekTabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 3) { selectedTab = 3 }
             Spacer()
         }
         .padding(.horizontal, PeekSpacing.lg)
         .padding(.top, PeekSpacing.lg)
         .background(PeekColor.surface)
+    }
+
+    private func generalTab(_ section: GeneralTab.Section) -> some View {
+        GeneralTab(
+            calendarManager: calendarManager,
+            section: section,
+            launchAtLogin: $launchAtLogin,
+            launchAtLoginController: launchAtLoginController
+        )
     }
 
     private var footer: some View {
@@ -100,6 +112,12 @@ struct CalendarsTab: View {
 
     var body: some View {
         ScrollView {
+            content
+                .padding(PeekSpacing.xl)
+        }
+    }
+
+    var content: some View {
             VStack(alignment: .leading, spacing: PeekSpacing.sm) {
                 PeekSectionHeader(
                     title: NSLocalizedString("Calendars to monitor", comment: "Calendars tab heading"),
@@ -146,8 +164,6 @@ struct CalendarsTab: View {
                     }
                 }
             }
-            .padding(PeekSpacing.xl)
-        }
     }
 }
 
@@ -188,6 +204,12 @@ struct FiltersTab: View {
 
     var body: some View {
         ScrollView {
+            content
+                .padding(PeekSpacing.xl)
+        }
+    }
+
+    var content: some View {
             VStack(alignment: .leading, spacing: PeekSpacing.sm) {
                 PeekSectionHeader(
                     title: NSLocalizedString("Event filters", comment: "Filters tab heading"),
@@ -219,8 +241,6 @@ struct FiltersTab: View {
 
                 Spacer()
             }
-            .padding(PeekSpacing.xl)
-        }
     }
 }
 
@@ -321,8 +341,13 @@ private struct KeywordChipEditor: View {
 
 // MARK: - General Tab
 
+/// The settings grouped by purpose (Peek 2.0): never miss a meeting, arrive
+/// prepared, and general. One view keeps the shared state and bindings.
 struct GeneralTab: View {
+    enum Section { case meetings, prepared, general }
+
     @ObservedObject var calendarManager: CalendarManager
+    var section: Section = .general
     @Binding var launchAtLogin: Bool
     let launchAtLoginController: any LaunchAtLoginControlling
     @State private var launchAtLoginErrorMessage: String?
@@ -349,338 +374,349 @@ struct GeneralTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PeekSpacing.lg) {
-                // Launch at login (ungrouped card)
-                InsetCard {
-                    SettingRow(NSLocalizedString("Launch at login", comment: "Launch at login toggle")) {
-                        switchToggle(launchAtLoginBinding, label: NSLocalizedString("Launch at login", comment: "Launch at login toggle"))
-                    }
-                }
-                if let launchAtLoginErrorMessage {
-                    Text(launchAtLoginErrorMessage)
-                        .font(PeekFont.caption)
-                        .foregroundColor(PeekColor.criticalText)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, PeekSpacing.xs)
-                }
-
-                // Schedule
-                settingsGroup(NSLocalizedString("Schedule", comment: "Group label: schedule")) {
-                    SettingRow(NSLocalizedString("Look ahead", comment: "Look ahead setting")) {
-                        Picker("", selection: $calendarManager.lookaheadDays) {
-                            Text(NSLocalizedString("Today only", comment: "")).tag(1)
-                            Text(NSLocalizedString("Next 3 days", comment: "")).tag(3)
-                            Text(NSLocalizedString("Next 7 days", comment: "")).tag(7)
-                            Text(NSLocalizedString("Next 14 days", comment: "")).tag(14)
-                            Text(NSLocalizedString("Next 30 days", comment: "")).tag(30)
-                        }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerMedium)
-                        .accessibilityLabel(NSLocalizedString("Look ahead", comment: "Accessibility label for look ahead picker"))
-                    }
-                    RowDivider()
-                    SettingRow(NSLocalizedString("Max events to show", comment: "Max events setting")) {
-                        Picker("", selection: $calendarManager.maxEventsToShow) {
-                            ForEach([3, 5, 10, 15, 20], id: \.self) { Text("\($0)").tag($0) }
-                        }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerCompact)
-                        .accessibilityLabel(NSLocalizedString("Max events to show", comment: "Accessibility label for max events picker"))
-                    }
-                }
-
-                // Status bar display
-                settingsGroup(NSLocalizedString("Status bar display", comment: "Group label: status bar")) {
-                    SettingRow(NSLocalizedString("Time format", comment: "Time format setting")) {
-                        Picker("", selection: $calendarManager.statusBarMode) {
-                            ForEach(StatusBarDisplayMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerSegmented)
-                        .accessibilityLabel(NSLocalizedString("Time format", comment: "Accessibility label for time format"))
-                    }
-                    RowDivider()
-                    SettingRow(NSLocalizedString("Space policy", comment: "Space policy setting")) {
-                        Picker("", selection: $calendarManager.menuBarSpacePolicy) {
-                            ForEach(MenuBarSpacePolicy.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                        }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerWide)
-                        .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"),
-                        subtitle: NSLocalizedString("Skip events without a join link. Declined events follow the Filters tab.", comment: "Status bar: only meetings subtitle")
-                    ) {
-                        switchToggle($calendarManager.statusBarOnlyMeetings, label: NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"))
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"),
-                        subtitle: NSLocalizedString("A person's name needs attendees, Contacts or a context folder.", comment: "Status bar label subtitle")
-                    ) {
-                        Picker("", selection: $calendarManager.statusBarLabelStyle) {
-                            ForEach(StatusBarLabelStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                        }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerWide)
-                        .accessibilityLabel(NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"))
-                    }
-                    RowDivider()
-                    SettingRow(NSLocalizedString("Show event count badge", comment: "Show count toggle")) {
-                        switchToggle($calendarManager.showEventCount, label: NSLocalizedString("Show event count badge", comment: "Show count toggle"))
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Show month calendar", comment: "Month view toggle"),
-                        subtitle: NSLocalizedString("A compact month above your events. Choose a day to see its agenda.", comment: "Month view toggle subtitle")
-                    ) {
-                        switchToggle($calendarManager.showMonthCalendar, label: NSLocalizedString("Show month calendar", comment: "Month view toggle"))
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
-                        subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
-                    ) {
-                        switchToggle($calendarManager.urgencyColorsEnabled, label: NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"))
-                    }
-                }
-
-                // Time zones
-                settingsGroup(NSLocalizedString("Time zones", comment: "Group label: time zones")) {
-                    VStack(alignment: .leading, spacing: PeekSpacing.sm) {
-                        SettingRow(
-                            NSLocalizedString("World clocks", comment: "World clocks setting"),
-                            subtitle: NSLocalizedString("Shown under the date, and next to each meeting's time when you expand it.", comment: "World clocks subtitle")
-                        ) {
-                            Menu(NSLocalizedString("Add city…", comment: "Add world clock city")) {
-                                ForEach(WorldClock.suggestedIdentifiers.filter { !calendarManager.worldClockZones.contains($0) }, id: \.self) { identifier in
-                                    Button(WorldClock.cityName(for: identifier)) {
-                                        calendarManager.addWorldClock(identifier)
-                                    }
-                                }
+                if section == .meetings {
+                    // Shortcut & alerts
+                    settingsGroup(NSLocalizedString("Alerts and joining", comment: "Group label: alerts and joining meetings")) {
+                        SettingRow(NSLocalizedString("Global hotkey", comment: "Global hotkey setting")) {
+                            Picker("", selection: $calendarManager.globalHotkey) {
+                                ForEach(HotkeyOption.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                             }
-                            .fixedSize()
-                            .disabled(calendarManager.worldClockZones.count >= WorldClock.maxZones)
-                            .accessibilityLabel(NSLocalizedString("Add city…", comment: "Add world clock city"))
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerHotkey)
+                            .accessibilityLabel(NSLocalizedString("Global hotkey", comment: "Accessibility label for global hotkey"))
                         }
-                        if !calendarManager.worldClockZones.isEmpty {
-                            LazyVGrid(
-                                columns: [GridItem(.adaptive(minimum: PeekMetrics.chipMinWidth), spacing: PeekSpacing.iconGap, alignment: .leading)],
-                                alignment: .leading,
-                                spacing: PeekSpacing.iconGap
-                            ) {
-                                ForEach(calendarManager.worldClockZones, id: \.self) { identifier in
-                                    PeekKeywordChip(
-                                        title: WorldClock.cityName(for: identifier),
-                                        removeHelp: NSLocalizedString("Remove city", comment: "World clock chip remove help")
-                                    ) {
-                                        calendarManager.removeWorldClock(identifier)
-                                    }
-                                }
-                            }
-                            .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
+                        if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
+                            rowFootnote(hotkeyStatusMessage, isError: true)
                         }
-                    }
-                }
-
-                // Appearance
-                settingsGroup(NSLocalizedString("Appearance", comment: "Group label: appearance")) {
-                    SettingRow(NSLocalizedString("Theme", comment: "Theme setting")) {
-                        Picker("", selection: $calendarManager.appearanceMode) {
-                            ForEach(AppearanceMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerSegmented)
-                        .accessibilityLabel(NSLocalizedString("Theme", comment: "Accessibility label for theme"))
-                    }
-                }
-
-                // Shortcut & alerts
-                settingsGroup(NSLocalizedString("Shortcut & alerts", comment: "Group label: shortcut and alerts")) {
-                    SettingRow(NSLocalizedString("Global hotkey", comment: "Global hotkey setting")) {
-                        Picker("", selection: $calendarManager.globalHotkey) {
-                            ForEach(HotkeyOption.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                        }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerHotkey)
-                        .accessibilityLabel(NSLocalizedString("Global hotkey", comment: "Accessibility label for global hotkey"))
-                    }
-                    if let hotkeyStatusMessage = calendarManager.hotkeyStatusMessage {
-                        rowFootnote(hotkeyStatusMessage, isError: true)
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Join next meeting", comment: "Join hotkey setting"),
-                        subtitle: NSLocalizedString("Opens the meeting starting soon, or the one you're late for.", comment: "Join hotkey subtitle")
-                    ) {
-                        Picker("", selection: $calendarManager.joinHotkey) {
-                            ForEach(JoinHotkeyOption.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                        }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerHotkey)
-                        .accessibilityLabel(NSLocalizedString("Join next meeting", comment: "Join hotkey setting"))
-                    }
-                    if let joinHotkeyStatusMessage = calendarManager.joinHotkeyStatusMessage {
-                        rowFootnote(joinHotkeyStatusMessage, isError: true)
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Meeting notifications", comment: "Notifications toggle"),
-                        subtitle: NSLocalizedString("Alert with a join link before an event starts.", comment: "Notifications subtitle")
-                    ) {
-                        switchToggle($calendarManager.notificationsEnabled, label: NSLocalizedString("Meeting notifications", comment: "Notifications toggle"))
-                    }
-                    if let notificationStatusMessage = calendarManager.notificationStatusMessage {
-                        rowFootnote(notificationStatusMessage, isError: true)
-                    }
-                    if calendarManager.notificationsEnabled {
                         RowDivider()
-                        SettingRow(NSLocalizedString("Alert timing", comment: "Alert timing setting")) {
-                            Picker("", selection: $calendarManager.notificationTiming) {
-                                ForEach(NotificationTiming.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        SettingRow(
+                            NSLocalizedString("Join next meeting", comment: "Join hotkey setting"),
+                            subtitle: NSLocalizedString("Opens the meeting starting soon, or the one you're late for.", comment: "Join hotkey subtitle")
+                        ) {
+                            Picker("", selection: $calendarManager.joinHotkey) {
+                                ForEach(JoinHotkeyOption.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerHotkey)
+                            .accessibilityLabel(NSLocalizedString("Join next meeting", comment: "Join hotkey setting"))
+                        }
+                        if let joinHotkeyStatusMessage = calendarManager.joinHotkeyStatusMessage {
+                            rowFootnote(joinHotkeyStatusMessage, isError: true)
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Meeting notifications", comment: "Notifications toggle"),
+                            subtitle: NSLocalizedString("Alert with a join link before an event starts.", comment: "Notifications subtitle")
+                        ) {
+                            switchToggle($calendarManager.notificationsEnabled, label: NSLocalizedString("Meeting notifications", comment: "Notifications toggle"))
+                        }
+                        if let notificationStatusMessage = calendarManager.notificationStatusMessage {
+                            rowFootnote(notificationStatusMessage, isError: true)
+                        }
+                        if calendarManager.notificationsEnabled {
+                            RowDivider()
+                            SettingRow(NSLocalizedString("Alert timing", comment: "Alert timing setting")) {
+                                Picker("", selection: $calendarManager.notificationTiming) {
+                                    ForEach(NotificationTiming.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                                }
+                                .labelsHidden()
+                                .frame(width: PeekMetrics.pickerMedium)
+                                .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
+                            }
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("When a meeting starts", comment: "Start alert style setting"),
+                            subtitle: NSLocalizedString("Full screen interrupts whatever you are doing.", comment: "Start alert style subtitle")
+                        ) {
+                            Picker("", selection: $calendarManager.startAlertStyle) {
+                                ForEach(StartAlertStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                             .labelsHidden()
                             .frame(width: PeekMetrics.pickerMedium)
-                            .accessibilityLabel(NSLocalizedString("Alert timing", comment: "Accessibility label for alert timing"))
+                            .accessibilityLabel(NSLocalizedString("When a meeting starts", comment: "Start alert style setting"))
                         }
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("When a meeting starts", comment: "Start alert style setting"),
-                        subtitle: NSLocalizedString("Full screen interrupts whatever you are doing.", comment: "Start alert style subtitle")
-                    ) {
-                        Picker("", selection: $calendarManager.startAlertStyle) {
-                            ForEach(StartAlertStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        if calendarManager.startAlertStyle == .fullScreen {
+                            RowDivider()
+                            SettingRow(
+                                NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"),
+                                subtitle: NSLocalizedString("Use the heads-up card for events without a join link or attendees.", comment: "Interrupt only for meetings subtitle")
+                            ) {
+                                switchToggle($calendarManager.interruptOnlyForMeetings, label: NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"))
+                            }
                         }
-                        .labelsHidden()
-                        .frame(width: PeekMetrics.pickerMedium)
-                        .accessibilityLabel(NSLocalizedString("When a meeting starts", comment: "Start alert style setting"))
-                    }
-                    if calendarManager.startAlertStyle == .fullScreen {
                         RowDivider()
                         SettingRow(
-                            NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"),
-                            subtitle: NSLocalizedString("Use the heads-up card for events without a join link or attendees.", comment: "Interrupt only for meetings subtitle")
+                            NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"),
+                            subtitle: NSLocalizedString("Use Zoom or Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
                         ) {
-                            switchToggle($calendarManager.interruptOnlyForMeetings, label: NSLocalizedString("Only for real meetings", comment: "Interrupt only for meetings toggle"))
+                            switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"))
                         }
                     }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"),
-                        subtitle: NSLocalizedString("Use Zoom or Teams when installed, otherwise the browser.", comment: "Native meeting app subtitle")
-                    ) {
-                        switchToggle($calendarManager.openMeetingsInNativeApp, label: NSLocalizedString("Open meetings in the app", comment: "Native meeting app toggle"))
-                    }
-                }
 
-                // Meeting context
-                settingsGroup(NSLocalizedString("Meeting context", comment: "Group label: meeting context")) {
-                    SettingRow(
-                        NSLocalizedString("Show who you're meeting", comment: "Contacts enrichment toggle"),
-                        subtitle: NSLocalizedString("Match attendees with your Contacts for role and company. Stays on your Mac.", comment: "Contacts enrichment subtitle")
-                    ) {
-                        switchToggle(contactsContextBinding, label: NSLocalizedString("Show who you're meeting", comment: "Contacts enrichment toggle"))
-                    }
-                    if let contactsStatusMessage = calendarManager.contactsStatusMessage {
-                        rowFootnote(contactsStatusMessage, isError: true)
-                    }
-                    RowDivider()
-                    SettingRow(
-                        NSLocalizedString("Context folder", comment: "Context folder setting"),
-                        subtitle: calendarManager.contextFolderName.map {
-                            String(format: NSLocalizedString("Reading %@ in “%@”.", comment: "Context folder chosen; file name and folder name"), MeetingContextFile.fileName, $0)
-                        } ?? NSLocalizedString("Notes another app prepares for your meetings, such as a personal knowledge system.", comment: "Context folder subtitle")
-                    ) {
-                        HStack(spacing: PeekSpacing.sm) {
-                            if calendarManager.contextFolderName != nil {
-                                Button(NSLocalizedString("Remove", comment: "Remove context folder")) {
-                                    calendarManager.removeContextFolder()
-                                }
-                                .buttonStyle(SecondaryFillButtonStyle())
+
+                    // Status bar display
+                    settingsGroup(NSLocalizedString("Menu bar", comment: "Group label: menu bar")) {
+                        SettingRow(NSLocalizedString("Time format", comment: "Time format setting")) {
+                            Picker("", selection: $calendarManager.statusBarMode) {
+                                ForEach(StatusBarDisplayMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
-                            Button(NSLocalizedString("Choose…", comment: "Choose context folder")) {
-                                chooseContextFolder()
-                            }
-                            .buttonStyle(SecondaryFillButtonStyle())
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerSegmented)
+                            .accessibilityLabel(NSLocalizedString("Time format", comment: "Accessibility label for time format"))
                         }
-                    }
-                    if let contextFolderStatusMessage = calendarManager.contextFolderStatusMessage {
-                        rowFootnote(contextFolderStatusMessage, isError: false)
-                    }
-                }
-                .onAppear { calendarManager.refreshContextFolderState() }
-
-                // Meeting brief
-                settingsGroup(NSLocalizedString("Meeting brief", comment: "Group label: meeting brief")) {
-                    SettingRow(
-                        NSLocalizedString("Brief before meetings", comment: "Meeting brief toggle"),
-                        subtitle: NSLocalizedString("A few points on what to prepare, 15 minutes before a meeting with people or notes.", comment: "Meeting brief toggle subtitle")
-                    ) {
-                        switchToggle(briefEnabledBinding, label: NSLocalizedString("Brief before meetings", comment: "Meeting brief toggle"))
-                    }
-                    if briefService.isEnabled {
                         RowDivider()
-                        SettingRow(NSLocalizedString("Written by", comment: "Brief engine setting")) {
-                            Picker("", selection: briefEngineBinding) {
-                                ForEach(MeetingBriefService.EngineChoice.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        SettingRow(NSLocalizedString("Space policy", comment: "Space policy setting")) {
+                            Picker("", selection: $calendarManager.menuBarSpacePolicy) {
+                                ForEach(MenuBarSpacePolicy.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                             .labelsHidden()
                             .frame(width: PeekMetrics.pickerWide)
-                            .accessibilityLabel(NSLocalizedString("Written by", comment: "Brief engine setting"))
-                        }
-                        if let reason = briefService.availability(of: briefService.engineChoice).message {
-                            rowFootnote(reason, isError: false)
-                        }
-                        if briefService.engineChoice == .cloud {
-                            RowDivider()
-                            SettingRow(
-                                NSLocalizedString("Anthropic API key", comment: "API key setting"),
-                                subtitle: hasAPIKey
-                                    ? NSLocalizedString("Saved in your keychain.", comment: "API key saved subtitle")
-                                    : NSLocalizedString("Stored in your keychain, never in Peek's files.", comment: "API key empty subtitle")
-                            ) {
-                                HStack(spacing: PeekSpacing.sm) {
-                                    if hasAPIKey {
-                                        Button(NSLocalizedString("Remove", comment: "Remove API key")) {
-                                            AnthropicKeyStore.delete()
-                                            hasAPIKey = false
-                                            briefService.keyDidChange()
-                                        }
-                                        .buttonStyle(SecondaryFillButtonStyle())
-                                    } else {
-                                        SecureField(NSLocalizedString("sk-ant-…", comment: "API key field placeholder"), text: $apiKeyDraft)
-                                            .textFieldStyle(.roundedBorder)
-                                            .frame(width: PeekMetrics.pickerWide)
-                                            .onSubmit(saveAPIKey)
-                                            .accessibilityLabel(NSLocalizedString("Anthropic API key", comment: "API key setting"))
-                                        Button(NSLocalizedString("Save", comment: "Save API key")) {
-                                            saveAPIKey()
-                                        }
-                                        .buttonStyle(SecondaryFillButtonStyle())
-                                        .disabled(apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                    }
-                                }
-                            }
-                            if let apiKeyMessage {
-                                rowFootnote(apiKeyMessage, isError: true)
-                            }
+                            .accessibilityLabel(NSLocalizedString("Space policy", comment: "Accessibility label for space policy"))
                         }
                         RowDivider()
-                        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
-                            SettingRow(
-                                NSLocalizedString("Never brief", comment: "Brief exclusion keywords setting"),
-                                subtitle: NSLocalizedString("Meetings whose title or notes contain these words.", comment: "Brief exclusion keywords subtitle")
-                            ) {
-                                EmptyView()
+                        SettingRow(
+                            NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"),
+                            subtitle: NSLocalizedString("Skip events without a join link. Declined events follow the Filters tab.", comment: "Status bar: only meetings subtitle")
+                        ) {
+                            switchToggle($calendarManager.statusBarOnlyMeetings, label: NSLocalizedString("Count down to meetings only", comment: "Status bar: only meetings toggle"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"),
+                            subtitle: NSLocalizedString("A person's name needs attendees, Contacts or a context folder.", comment: "Status bar label subtitle")
+                        ) {
+                            Picker("", selection: $calendarManager.statusBarLabelStyle) {
+                                ForEach(StatusBarLabelStyle.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
-                            KeywordChipEditor(text: briefKeywordsBinding)
-                                .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerWide)
+                            .accessibilityLabel(NSLocalizedString("Name in the menu bar", comment: "Status bar label setting"))
+                        }
+                        RowDivider()
+                        SettingRow(NSLocalizedString("Show event count badge", comment: "Show count toggle")) {
+                            switchToggle($calendarManager.showEventCount, label: NSLocalizedString("Show event count badge", comment: "Show count toggle"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Show month calendar", comment: "Month view toggle"),
+                            subtitle: NSLocalizedString("A compact month above your events. Choose a day to see its agenda.", comment: "Month view toggle subtitle")
+                        ) {
+                            switchToggle($calendarManager.showMonthCalendar, label: NSLocalizedString("Show month calendar", comment: "Month view toggle"))
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"),
+                            subtitle: NSLocalizedString("Tint the title amber, then red, as time runs out.", comment: "Urgency colors subtitle")
+                        ) {
+                            switchToggle($calendarManager.urgencyColorsEnabled, label: NSLocalizedString("Use urgency colors", comment: "Urgency colors toggle"))
                         }
                     }
+
+                }
+                if section == .prepared {
+                    // Meeting context
+                    settingsGroup(NSLocalizedString("Meeting context", comment: "Group label: meeting context")) {
+                        SettingRow(
+                            NSLocalizedString("Show who you're meeting", comment: "Contacts enrichment toggle"),
+                            subtitle: NSLocalizedString("Match attendees with your Contacts for role and company. Stays on your Mac.", comment: "Contacts enrichment subtitle")
+                        ) {
+                            switchToggle(contactsContextBinding, label: NSLocalizedString("Show who you're meeting", comment: "Contacts enrichment toggle"))
+                        }
+                        if let contactsStatusMessage = calendarManager.contactsStatusMessage {
+                            rowFootnote(contactsStatusMessage, isError: true)
+                        }
+                        RowDivider()
+                        SettingRow(
+                            NSLocalizedString("Context folder", comment: "Context folder setting"),
+                            subtitle: calendarManager.contextFolderName.map {
+                                String(format: NSLocalizedString("Reading %@ in “%@”.", comment: "Context folder chosen; file name and folder name"), MeetingContextFile.fileName, $0)
+                            } ?? NSLocalizedString("Notes another app prepares for your meetings, such as a personal knowledge system.", comment: "Context folder subtitle")
+                        ) {
+                            HStack(spacing: PeekSpacing.sm) {
+                                if calendarManager.contextFolderName != nil {
+                                    Button(NSLocalizedString("Remove", comment: "Remove context folder")) {
+                                        calendarManager.removeContextFolder()
+                                    }
+                                    .buttonStyle(SecondaryFillButtonStyle())
+                                }
+                                Button(NSLocalizedString("Choose…", comment: "Choose context folder")) {
+                                    chooseContextFolder()
+                                }
+                                .buttonStyle(SecondaryFillButtonStyle())
+                            }
+                        }
+                        if let contextFolderStatusMessage = calendarManager.contextFolderStatusMessage {
+                            rowFootnote(contextFolderStatusMessage, isError: false)
+                        }
+                    }
+                    .onAppear { calendarManager.refreshContextFolderState() }
+
+
+                    // Meeting brief
+                    settingsGroup(NSLocalizedString("Meeting brief", comment: "Group label: meeting brief")) {
+                        SettingRow(
+                            NSLocalizedString("Brief before meetings", comment: "Meeting brief toggle"),
+                            subtitle: NSLocalizedString("A few points on what to prepare, 15 minutes before a meeting with people or notes.", comment: "Meeting brief toggle subtitle")
+                        ) {
+                            switchToggle(briefEnabledBinding, label: NSLocalizedString("Brief before meetings", comment: "Meeting brief toggle"))
+                        }
+                        if briefService.isEnabled {
+                            RowDivider()
+                            SettingRow(NSLocalizedString("Written by", comment: "Brief engine setting")) {
+                                Picker("", selection: briefEngineBinding) {
+                                    ForEach(MeetingBriefService.EngineChoice.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                                }
+                                .labelsHidden()
+                                .frame(width: PeekMetrics.pickerWide)
+                                .accessibilityLabel(NSLocalizedString("Written by", comment: "Brief engine setting"))
+                            }
+                            if let reason = briefService.availability(of: briefService.engineChoice).message {
+                                rowFootnote(reason, isError: false)
+                            }
+                            if briefService.engineChoice == .cloud {
+                                RowDivider()
+                                SettingRow(
+                                    NSLocalizedString("Anthropic API key", comment: "API key setting"),
+                                    subtitle: hasAPIKey
+                                        ? NSLocalizedString("Saved in your keychain.", comment: "API key saved subtitle")
+                                        : NSLocalizedString("Stored in your keychain, never in Peek's files.", comment: "API key empty subtitle")
+                                ) {
+                                    HStack(spacing: PeekSpacing.sm) {
+                                        if hasAPIKey {
+                                            Button(NSLocalizedString("Remove", comment: "Remove API key")) {
+                                                AnthropicKeyStore.delete()
+                                                hasAPIKey = false
+                                                briefService.keyDidChange()
+                                            }
+                                            .buttonStyle(SecondaryFillButtonStyle())
+                                        } else {
+                                            SecureField(NSLocalizedString("sk-ant-…", comment: "API key field placeholder"), text: $apiKeyDraft)
+                                                .textFieldStyle(.roundedBorder)
+                                                .frame(width: PeekMetrics.pickerWide)
+                                                .onSubmit(saveAPIKey)
+                                                .accessibilityLabel(NSLocalizedString("Anthropic API key", comment: "API key setting"))
+                                            Button(NSLocalizedString("Save", comment: "Save API key")) {
+                                                saveAPIKey()
+                                            }
+                                            .buttonStyle(SecondaryFillButtonStyle())
+                                            .disabled(apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                        }
+                                    }
+                                }
+                                if let apiKeyMessage {
+                                    rowFootnote(apiKeyMessage, isError: true)
+                                }
+                            }
+                            RowDivider()
+                            VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                                SettingRow(
+                                    NSLocalizedString("Never brief", comment: "Brief exclusion keywords setting"),
+                                    subtitle: NSLocalizedString("Meetings whose title or notes contain these words.", comment: "Brief exclusion keywords subtitle")
+                                ) {
+                                    EmptyView()
+                                }
+                                KeywordChipEditor(text: briefKeywordsBinding)
+                                    .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
+                            }
+                        }
+                    }
+                }
+                if section == .general {
+                    // Launch at login (ungrouped card)
+                    InsetCard {
+                        SettingRow(NSLocalizedString("Launch at login", comment: "Launch at login toggle")) {
+                            switchToggle(launchAtLoginBinding, label: NSLocalizedString("Launch at login", comment: "Launch at login toggle"))
+                        }
+                    }
+                    if let launchAtLoginErrorMessage {
+                        Text(launchAtLoginErrorMessage)
+                            .font(PeekFont.caption)
+                            .foregroundColor(PeekColor.criticalText)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, PeekSpacing.xs)
+                    }
+
+
+                    // Schedule
+                    settingsGroup(NSLocalizedString("Schedule", comment: "Group label: schedule")) {
+                        SettingRow(NSLocalizedString("Look ahead", comment: "Look ahead setting")) {
+                            Picker("", selection: $calendarManager.lookaheadDays) {
+                                Text(NSLocalizedString("Today only", comment: "")).tag(1)
+                                Text(NSLocalizedString("Next 3 days", comment: "")).tag(3)
+                                Text(NSLocalizedString("Next 7 days", comment: "")).tag(7)
+                                Text(NSLocalizedString("Next 14 days", comment: "")).tag(14)
+                                Text(NSLocalizedString("Next 30 days", comment: "")).tag(30)
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerMedium)
+                            .accessibilityLabel(NSLocalizedString("Look ahead", comment: "Accessibility label for look ahead picker"))
+                        }
+                        RowDivider()
+                        SettingRow(NSLocalizedString("Max events to show", comment: "Max events setting")) {
+                            Picker("", selection: $calendarManager.maxEventsToShow) {
+                                ForEach([3, 5, 10, 15, 20], id: \.self) { Text("\($0)").tag($0) }
+                            }
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerCompact)
+                            .accessibilityLabel(NSLocalizedString("Max events to show", comment: "Accessibility label for max events picker"))
+                        }
+                    }
+
+
+                    // Time zones
+                    settingsGroup(NSLocalizedString("Time zones", comment: "Group label: time zones")) {
+                        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                            SettingRow(
+                                NSLocalizedString("World clocks", comment: "World clocks setting"),
+                                subtitle: NSLocalizedString("Shown under the date, and next to each meeting's time when you expand it.", comment: "World clocks subtitle")
+                            ) {
+                                Menu(NSLocalizedString("Add city…", comment: "Add world clock city")) {
+                                    ForEach(WorldClock.suggestedIdentifiers.filter { !calendarManager.worldClockZones.contains($0) }, id: \.self) { identifier in
+                                        Button(WorldClock.cityName(for: identifier)) {
+                                            calendarManager.addWorldClock(identifier)
+                                        }
+                                    }
+                                }
+                                .fixedSize()
+                                .disabled(calendarManager.worldClockZones.count >= WorldClock.maxZones)
+                                .accessibilityLabel(NSLocalizedString("Add city…", comment: "Add world clock city"))
+                            }
+                            if !calendarManager.worldClockZones.isEmpty {
+                                LazyVGrid(
+                                    columns: [GridItem(.adaptive(minimum: PeekMetrics.chipMinWidth), spacing: PeekSpacing.iconGap, alignment: .leading)],
+                                    alignment: .leading,
+                                    spacing: PeekSpacing.iconGap
+                                ) {
+                                    ForEach(calendarManager.worldClockZones, id: \.self) { identifier in
+                                        PeekKeywordChip(
+                                            title: WorldClock.cityName(for: identifier),
+                                            removeHelp: NSLocalizedString("Remove city", comment: "World clock chip remove help")
+                                        ) {
+                                            calendarManager.removeWorldClock(identifier)
+                                        }
+                                    }
+                                }
+                                .padding([.horizontal, .bottom], PeekMetrics.cardContentPadding)
+                            }
+                        }
+                    }
+
+
+                    // Appearance
+                    settingsGroup(NSLocalizedString("Appearance", comment: "Group label: appearance")) {
+                        SettingRow(NSLocalizedString("Theme", comment: "Theme setting")) {
+                            Picker("", selection: $calendarManager.appearanceMode) {
+                                ForEach(AppearanceMode.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                            .frame(width: PeekMetrics.pickerSegmented)
+                            .accessibilityLabel(NSLocalizedString("Theme", comment: "Accessibility label for theme"))
+                        }
+                    }
+
                 }
             }
             .padding(PeekSpacing.xl)

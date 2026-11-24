@@ -4,6 +4,33 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.11.0 - 2026-11-24
+
+### Changed
+
+- PEEK-241: the popover follows the Peek 2.0 mockups. The header shows the month with
+  "Monday 23 · 4 meetings today" and ‹ Today › buttons; the month grid uses short
+  uppercase weekdays and quieter past and out-of-month days; the next meeting is a
+  compact card with a "NEXT · IN 24 MIN" eyebrow, the time range, who you are meeting,
+  Join on the right and "Brief ready: N points to prepare"; other events are compact
+  rows grouped under Today, Tomorrow and later days, and today's finished meetings stay
+  in the list, dimmed. The footer keeps its icon buttons.
+- Choosing a meeting opens its page in the popover (who you are meeting, what to
+  prepare, invitation notes, time zones, sources) instead of expanding the row.
+  Escape goes back to the agenda.
+- The full-screen alert leads with who you are meeting, shows the first thing to
+  prepare and uses large Join, "In 1 minute" and Dismiss buttons.
+- Preferences are grouped by purpose: Never miss a meeting, Arrive prepared, Calendars
+  (with filters) and General.
+- Italian copy matches the mockups ("Entra in Zoom", "e altre 2 persone").
+
+### Fixed
+
+- Attendees whose calendar entry carries only an email address are shown by name
+  ("grace.hopper@…" becomes "Grace Hopper") in the popover, the alert, the
+  menu-bar name and the brief input. Addresses that do not look like a name
+  ("info@…", "j2@…") are still shown as they are.
+
 ## 1.10.0 - 2026-11-23
 
 ### Added

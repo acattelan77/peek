@@ -86,18 +86,21 @@ enum PeekNSColor {
     // Washes
     static let blueTint = NSColor.peek("#E9EEFD", dark: "#2A3352")            // soft accent button, icon tile
     static let nextWash = NSColor.peek("#F1F4FE", dark: "#233056")            // NEXT row background
+    static let nextBorder = NSColor.peek("#DDE4FB", dark: "#2F3D66", hcLight: "#9A9FA8", hcDark: "#FFFFFF59") // NEXT card outline
 
     // Urgency (2–10 min). Amber is too light for white text, so fills carry dark text.
     static let urgent = NSColor.peek("#E8912B")
     static let urgentText = NSColor.peek("#A45A07", dark: "#F0A54A")
     static let onUrgent = NSColor.peek("#1F1606")
     static let urgentWash = NSColor.peek("#FDF2E3", dark: "#3A2E1C")
+    static let urgentBorder = NSColor.peek("#F6DDB8", dark: "#4E3D24", hcLight: "#9A9FA8", hcDark: "#FFFFFF59")
 
     // Critical (< 2 min). Fill darkened from the handoff #E5484D so white text passes AA.
     static let critical = NSColor.peek("#D13438")
     static let criticalText = NSColor.peek("#B42A30", dark: "#FF8A8E")
     static let onCritical = NSColor.peek("#FFFFFF")
     static let criticalWash = NSColor.peek("#FCEBEC", dark: "#3A2427")
+    static let criticalBorder = NSColor.peek("#F5CDCF", dark: "#55302F", hcLight: "#9A9FA8", hcDark: "#FFFFFF59")
 
     // Calm / success
     static let calm = NSColor.peek("#23955A", dark: "#3CC27E")                // icons
@@ -127,6 +130,9 @@ enum PeekNSColor {
     static let bodyText = NSColor.peek("#40454E", dark: "#C4C8CF")
     static let secondaryText = NSColor.peek("#555A63", dark: "#B0B4BC", hcLight: "#40454E", hcDark: "#C4C8CF")
     static let tertiaryText = NSColor.peek("#676C75", dark: "#999EA7", hcLight: "#555A63", hcDark: "#B0B4BC")
+    /// Days outside the displayed month. Decorative context, so it sits below AA by design;
+    /// Increased Contrast raises it to the tertiary value.
+    static let mutedText = NSColor.peek("#A3A7AE", dark: "#6B7079", hcLight: "#676C75", hcDark: "#999EA7")
 
     // Full-screen alert backdrop (PEEK-203)
     static let scrim = NSColor.peek("#0F101499", dark: "#000000B3")
@@ -148,16 +154,19 @@ enum PeekColor {
 
     static let blueTint = Color(nsColor: PeekNSColor.blueTint)
     static let nextWash = Color(nsColor: PeekNSColor.nextWash)
+    static let nextBorder = Color(nsColor: PeekNSColor.nextBorder)
 
     static let urgent = Color(nsColor: PeekNSColor.urgent)
     static let urgentText = Color(nsColor: PeekNSColor.urgentText)
     static let onUrgent = Color(nsColor: PeekNSColor.onUrgent)
     static let urgentWash = Color(nsColor: PeekNSColor.urgentWash)
+    static let urgentBorder = Color(nsColor: PeekNSColor.urgentBorder)
 
     static let critical = Color(nsColor: PeekNSColor.critical)
     static let criticalText = Color(nsColor: PeekNSColor.criticalText)
     static let onCritical = Color(nsColor: PeekNSColor.onCritical)
     static let criticalWash = Color(nsColor: PeekNSColor.criticalWash)
+    static let criticalBorder = Color(nsColor: PeekNSColor.criticalBorder)
 
     static let calm = Color(nsColor: PeekNSColor.calm)
     static let calmText = Color(nsColor: PeekNSColor.calmText)
@@ -177,6 +186,7 @@ enum PeekColor {
     static let bodyText = Color(nsColor: PeekNSColor.bodyText)
     static let secondaryText = Color(nsColor: PeekNSColor.secondaryText)
     static let tertiaryText = Color(nsColor: PeekNSColor.tertiaryText)
+    static let mutedText = Color(nsColor: PeekNSColor.mutedText)
 
     static let shadow = Color(nsColor: PeekNSColor.shadow)
     static let scrim = Color(nsColor: PeekNSColor.scrim)
@@ -243,6 +253,15 @@ enum PeekTone {
         case .critical: return PeekColor.criticalWash
         }
     }
+
+    /// Outline of a washed card (the next-meeting card).
+    var border: Color {
+        switch self {
+        case .accent: return PeekColor.nextBorder
+        case .urgent: return PeekColor.urgentBorder
+        case .critical: return PeekColor.criticalBorder
+        }
+    }
 }
 
 // MARK: - Typography tokens
@@ -256,21 +275,36 @@ enum PeekFont {
     static let onboardingTitle = Font.system(size: 20, weight: .bold)  // onboarding steps, HUD title
     static let title = Font.system(size: 15, weight: .semibold)        // popover header, section headings
     static let headline = Font.system(size: 14, weight: .semibold)     // NEXT row title
-    static let rowTitle = Font.system(size: 14, weight: .medium)       // normal event row title
+    static let rowTitle = Font.system(size: 13, weight: .medium)       // compact event row title (Peek 2.0)
+    static let meetingTitle = Font.system(size: 18, weight: .bold)     // meeting page headline
+    static let alertTitle = Font.system(size: 26, weight: .bold)       // full-screen alert headline
+    static let alertSubtitle = Font.system(size: 14, weight: .regular)
+    static let alertBrief = Font.system(size: 13.5, weight: .regular)
+    static let alertButton = Font.system(size: 15, weight: .semibold)
+    static let alertSecondaryButton = Font.system(size: 14, weight: .medium)
     static let body = Font.system(size: 13, weight: .regular)
     static let bodyEmphasis = Font.system(size: 13, weight: .semibold) // selected tab
     static let button = Font.system(size: 13, weight: .semibold)       // primary button
     static let bodyMeta = Font.system(size: 12.5, weight: .regular)
     static let bodyMetaMedium = Font.system(size: 12.5, weight: .medium) // secondary / soft buttons
     static let bodyMetaStrong = Font.system(size: 12.5, weight: .semibold) // Join button
+    static let rowTime = Font.system(size: 12, weight: .regular)       // time column in compact rows
+    static let dayNumber = Font.system(size: 12, weight: .medium)      // month grid
+    static let dayNumberStrong = Font.system(size: 12, weight: .semibold)
+    static let navButton = Font.system(size: 12, weight: .medium)      // header "Today"
+    static let footerMeta = Font.system(size: 12, weight: .regular)    // alert detail and hint
     static let caption = Font.system(size: 11, weight: .regular)
     static let captionStrong = Font.system(size: 11, weight: .semibold)
-    static let label = Font.system(size: 9, weight: .bold)             // NEXT / SOON / NOW / ALL DAY
+    static let sectionLabel = Font.system(size: 10, weight: .semibold) // TODAY / TOMORROW, weekday row, group labels
+    static let smallCaption = Font.system(size: 10.5, weight: .regular) // sources, pill text
+    static let smallCaptionStrong = Font.system(size: 10.5, weight: .semibold)
+    static let label = Font.system(size: 9, weight: .bold)             // NEXT / SOON / NOW / ALL DAY, eyebrows
     static let mono = Font.system(size: 12, weight: .medium, design: .monospaced)
 
     /// Letter-spacing for uppercase labels.
     static let labelTracking: CGFloat = 0.5
     static let groupLabelTracking: CGFloat = 0.66
+    static let weekdayTracking: CGFloat = 0.4
 }
 
 /// SF Symbol sizes. Symbols scale with their font, so sizes live next to type.
@@ -281,6 +315,7 @@ enum PeekIcon {
     static let inlineAction = Font.system(size: 14, weight: .semibold) // add-keyword button
     static let dismiss = Font.system(size: 13, weight: .medium)        // HUD close
     static let meta = Font.system(size: 12, weight: .regular)          // clock next to time
+    static let nav = Font.system(size: 11, weight: .semibold)          // header chevrons
     static let detail = Font.system(size: 11, weight: .regular)        // provider, location, attendee
     static let checkmark = Font.system(size: 11, weight: .bold)        // checkbox tick
     static let chipRemove = Font.system(size: 9, weight: .bold)        // keyword chip ×
@@ -316,6 +351,7 @@ enum PeekRadius {
     static let window: CGFloat = 12
     static let tile: CGFloat = 14
     static let hud: CGFloat = 16
+    static let alertButton: CGFloat = 10
     static let appIconLarge: CGFloat = 19
     static let pill: CGFloat = 999
 }
@@ -324,11 +360,32 @@ enum PeekRadius {
 /// (pixel-matched to the reference) and live only here.
 enum PeekMetrics {
     // Popover
-    static let popoverWidth: CGFloat = 350
+    static let popoverWidth: CGFloat = 360
     static let popoverListMaxHeight: CGFloat = 400
     static let headerIcon: CGFloat = 26
     static let headerGap: CGFloat = 10
     static let headerVerticalPadding: CGFloat = 13
+    static let headerInsets = EdgeInsets(top: 14, leading: 16, bottom: 10, trailing: 16)
+    static let headerNavButton: CGFloat = 28
+    static let headerNavGap: CGFloat = 4
+    static let listInsets = EdgeInsets(top: 12, leading: 12, bottom: 6, trailing: 12)
+    static let sectionLabelInsets = EdgeInsets(top: 8, leading: 4, bottom: 0, trailing: 4)
+    static let compactRowInsets = EdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
+    static let compactRowGap: CGFloat = 10
+    static let rowTimeWidth: CGFloat = 44
+    static let finishedRowOpacity: Double = 0.55
+    static let nextCardInsets = EdgeInsets(top: 11, leading: 14, bottom: 12, trailing: 12)
+    static let nextCardRailInset: CGFloat = 10
+    static let nextCardGap: CGFloat = 8
+    static let joinButtonHeight: CGFloat = 32
+    static let meetingJoinButtonHeight: CGFloat = 36
+    static let avatar: CGFloat = 32
+    static let briefBullet: CGFloat = 5
+    static let meetingPageInsets = EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
+    static let meetingBackBarInsets = EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
+    static let meetingPageMaxHeight: CGFloat = 560
+    static let briefCardInsets = EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
+    static let sourcePillInsets = EdgeInsets(top: 3, leading: 8, bottom: 3, trailing: 8)
     static let footerVerticalPadding: CGFloat = 9
     static let rowGap: CGFloat = 6
     static let heroRowInsets = EdgeInsets(top: 11, leading: 11, bottom: 11, trailing: 12)
@@ -342,10 +399,10 @@ enum PeekMetrics {
     static let toolbarButton: CGFloat = 18
 
     // Month view (PEEK-201)
-    static let monthDayCellHeight: CGFloat = 30
+    static let monthDayCellHeight: CGFloat = 32
+    static let monthGridInsets = EdgeInsets(top: 0, leading: 12, bottom: 10, trailing: 12)
     static let monthDayNumber = CGSize(width: 24, height: 20)
     static let monthEventDot: CGFloat = 4
-    static let monthNavButton: CGFloat = 24
     static let monthDotGap: CGFloat = 2
 
     // Buttons
@@ -405,6 +462,10 @@ enum PeekMetrics {
     static let alertWidth: CGFloat = 520
     static let alertInsets = EdgeInsets(top: 28, leading: 28, bottom: 22, trailing: 28)
     static let alertSectionGap: CGFloat = 18
+    static let alertButtonHeight: CGFloat = 48
+    static let alertPillInsets = EdgeInsets(top: 5, leading: 11, bottom: 5, trailing: 11)
+    static let alertBriefInsets = EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
+    static let alertButtonInsets = EdgeInsets(top: 0, leading: 18, bottom: 0, trailing: 18)
 
     // Focus ring
     static let focusRing: CGFloat = 3

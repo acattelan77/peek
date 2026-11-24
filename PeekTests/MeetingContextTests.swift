@@ -157,7 +157,29 @@ final class MeetingContextBuilderTests: XCTestCase {
         )
 
         XCTAssertEqual(context.people.map(\.shortName), ["Marco", "Anna", "Paolo"])
-        XCTAssertEqual(context.headline, "You're about to meet Marco and 2 others")
+        XCTAssertEqual(context.headline, "You're about to meet Marco, CEO at Northwind, and 2 others")
+    }
+
+    func testSeveralPeopleWithoutRoleUseTheShortForm() {
+        let attendees = [
+            AttendeeInput(name: "Anna Rossi", email: "anna@northwind.example"),
+            AttendeeInput(name: "Paolo Bianchi", email: "paolo@northwind.example"),
+            AttendeeInput(name: "Luca Verdi", email: "luca@northwind.example")
+        ]
+        let context = MeetingContextBuilder.make(attendees: attendees, notes: nil, contacts: nil, external: nil)
+        XCTAssertEqual(context.headline, "You're about to meet Anna and 2 others")
+    }
+
+    func testAnEmailInTheNameFieldBecomesAName() {
+        let attendees = [
+            AttendeeInput(name: "grace.hopper@northwind.example", email: "grace.hopper@northwind.example"),
+            AttendeeInput(name: nil, email: "info@example.org"),
+            AttendeeInput(name: nil, email: "j2@example.org")
+        ]
+        let context = MeetingContextBuilder.make(attendees: attendees, notes: nil, contacts: nil, external: nil)
+        XCTAssertEqual(context.people.map(\.name), ["Grace Hopper", "info@example.org", "j2@example.org"])
+        XCTAssertEqual(context.people.first?.shortName, "Grace")
+        XCTAssertEqual(context.headline, "You're about to meet Grace and 2 others")
     }
 
     func testTwoPeopleHeadline() {

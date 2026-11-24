@@ -134,8 +134,11 @@ enum MeetingContextBuilder {
 
             let card = email.flatMap { contacts?.card(forEmail: $0) }
             let extra = email.flatMap { address in external.first { normalizedEmail($0.email) == address } }
-            let name = nonEmpty(extra?.name) ?? nonEmpty(card?.fullName) ?? nonEmpty(attendee.name) ?? email ?? dedupeKey
-            let shortName = nonEmpty(card?.givenName) ?? firstWord(of: name, isEmail: email == name)
+            // Calendars often put the address in the name field; an address is never a name.
+            let calendarName = nonEmpty(attendee.name).flatMap { $0.contains("@") ? nil : $0 }
+            let name = nonEmpty(extra?.name) ?? nonEmpty(card?.fullName) ?? calendarName
+                ?? email.flatMap(displayName(fromEmail:)) ?? email ?? dedupeKey
+            let shortName = nonEmpty(card?.givenName) ?? firstWord(of: name, isEmail: name.contains("@"))
             let domain = email.flatMap(companyDomain(fromEmail:))
 
             people.append(MeetingPerson(
@@ -168,9 +171,29 @@ enum MeetingContextBuilder {
         case 2:
             return String(format: NSLocalizedString("You're about to meet %@ and %@", comment: "Meeting headline: two people"), lead.shortName, people[1].shortName)
         default:
+            // Only a real role or company earns the long form; an email domain is noise here.
+            if lead.role != nil || lead.company != nil, let descriptor = lead.descriptor {
+                return String(format: NSLocalizedString("You're about to meet %@, %@, and %d others", comment: "Meeting headline: several people, lead with role"), lead.shortName, descriptor, people.count - 1)
+            }
             return String(format: NSLocalizedString("You're about to meet %@ and %d others", comment: "Meeting headline: several people"), lead.shortName, people.count - 1)
         }
     }
+
+    /// "grace.hopper@northwind.example" → "Grace Hopper". Nil when the local part
+    /// does not look like a name (digits, role mailboxes such as "info", one letter).
+    static func displayName(fromEmail email: String) -> String? {
+        guard let at = email.firstIndex(of: "@") else { return nil }
+        let local = email[..<at].split(separator: "+").first.map(String.init) ?? ""
+        let parts = local.split(whereSeparator: { $0 == "." || $0 == "_" || $0 == "-" }).map(String.init)
+        guard !parts.isEmpty, parts.count <= 4,
+              parts.allSatisfy({ $0.count >= 2 && $0.allSatisfy(\.isLetter) }) else { return nil }
+        if parts.count == 1, roleMailboxes.contains(parts[0].lowercased()) { return nil }
+        return parts.map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }.joined(separator: " ")
+    }
+
+    static let roleMailboxes: Set<String> = [
+        "info", "admin", "support", "hello", "contact", "sales", "office", "team", "noreply", "calendar", "booking"
+    ]
 
     static func normalizedEmail(_ email: String?) -> String? {
         guard var value = email?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !value.isEmpty else { return nil }

@@ -2,8 +2,13 @@
 
 Peek's design system is its own ("calm glance"). It is not derived from any other brand.
 
-- **Visual reference:** the Claude Design handoff in `design_handoff_peek_design_system/`
-  (layouts, screen states, copy). Where this document and the handoff disagree on a
+- **Layout reference (Peek 2.0, since 1.11.0):** the "Peek 2.0 mockup" design canvas
+  (claude.ai artifact `B8Un31gdcqtookHfZvbPb2`, approved 2026-11-23): popover with compact
+  month, meeting page, full-screen alert, Preferences by purpose, light and dark. Where it
+  disagrees with the older handoff on layout, the canvas wins, except for the deliberate
+  deviations listed in "Deviations from the Peek 2.0 mockup" below.
+- **Visual reference (tokens, older screens):** the Claude Design handoff in
+  `design_handoff_peek_design_system/` (tokens, onboarding, HUD, icon). Where this document and the handoff disagree on a
   **color value**, this document and the code win: several handoff hues failed WCAG AA
   and were adjusted in 1.6.0 (see "Accessibility deviations from the handoff").
 - **Source of truth in code:** `Peek/Sources/Presentation/DesignSystem/`.
@@ -97,7 +102,7 @@ accessibility label.
 - `PeekRadius`: `rail` 2, `badge` 4, `checkbox` 5, `button` 6, `join` 7, `row` 9, `card` 10,
   `window` 12, `tile` 14, `hud` 16, `appIconLarge` 19, `pill` 999.
 - `PeekMetrics`: component dimensions and insets pixel-matched to the handoff (popover
-  350pt, row insets, HUD 380pt, checkbox 18pt, picker widths, focus ring, disabled opacity).
+  360pt, row insets, HUD 380pt, checkbox 18pt, picker widths, focus ring, disabled opacity).
   Off-grid values are deliberate and live only here.
 - `PeekElevation` (`.peekShadow(_:)`): card, popover, HUD, window, using the `shadow` token.
 - `PeekDuration`: press, step, dot pulse and row pulse. Every animation is gated by Reduce
@@ -106,11 +111,12 @@ accessibility label.
 ## Components (`PeekComponents.swift`)
 
 - Status: `PeekBadge` (NEXT / SOON / NOW / ALL DAY), `PeekStatusPill` (HUD "STARTING NOW"),
-  `CountPill`, `PulsingDot`.
+  `CountPill`, `PulsingDot`, `PeekSectionLabel` (TODAY / TOMORROW), `PeekAvatar`.
 - Containers: `InsetCard`, `InsetCardMessage`, `SettingRow`, `SettingFootnote`,
   `RowDivider`, `GroupLabel`, `PeekSectionHeader`, `PeekIconTile`, `PeekAppIcon`.
 - Controls: `PrimaryButtonStyle`, `SoftAccentButtonStyle`, `SecondaryFillButtonStyle`
-  (all with pressed and disabled states), `JoinButtonStyle(tone:)`, `PeekToolbarButton`,
+  (all with pressed and disabled states), `JoinButtonStyle(tone:compact:)`,
+  `HeaderNavButtonStyle` (‹ Today ›), `AlertButtonStyle` (full-screen alert), `PeekToolbarButton`,
   `PeekTabButton`, `PeekSwitch`, `PeekCheckboxRow`, `PeekKeywordChip`.
 - Modifiers: `.peekFocusRing(_:)` (solid and wider under Increased Contrast),
   `.peekCriticalPulse(_:)` (starts when a row turns critical while visible and stays static
@@ -122,6 +128,43 @@ Surfaces built on the system: the popover (`MenuBar/MenuBarView.swift`), Prefere
 the "Starting now" HUD (`HUD/StartingNowHUD.swift`). The menu-bar status item keeps a
 monochrome template glyph and tints only the title text, with `statusUrgent` and
 `statusCritical`.
+
+## Popover layout (Peek 2.0)
+
+Built in `MenuBar/MenuBarView.swift` and `MenuBar/MonthCalendarView.swift`, 360pt wide:
+
+- **Header:** month title (15 semibold) over "Monday 23 · 4 meetings today" (11, secondary),
+  with ‹ Today › buttons (28pt, `fill`) on the right. Without the month grid the title is
+  today's date and the subtitle the meeting count. No app icon or count pill.
+- **Month grid:** uppercase short weekdays (10 semibold, tracking 0.4), day numbers 12
+  medium in 32pt cells, today on an accent square, past days tertiary, other months
+  `mutedText` without dots, past dots muted.
+- **Next-meeting card:** `nextWash` with `nextBorder` (per `PeekTone`), 3pt rail inset 10pt,
+  radius 10. Eyebrow "NEXT · IN 24 MIN" (9 bold, tone text) with the time range top right;
+  title 14 semibold; "You're about to meet **Marco**, CEO at Northwind, and 2 others"
+  (12.5, the name in semibold ink); Join on the right; "Brief ready: N points to prepare".
+- **Compact rows:** on `canvas`, grouped under TODAY / TOMORROW / weekday date. Time
+  column 44pt (12, tabular), 8pt calendar dot, title 13 medium, one meta line 11
+  ("Google Meet · 30 min", "Teams · 6 participants", location, or calendar). Finished
+  meetings of today stay in the list at 55% opacity with "Finished".
+- **Meeting page:** choosing the card or a row opens it in place: "‹ Agenda" bar, eyebrow,
+  headline 18 bold that names who you meet, full-width Join, WHO YOU'RE MEETING with
+  avatars, "What to prepare" card with its source pill, invitation notes, sources line.
+- **Footer:** icon buttons, see below.
+
+## Deviations from the Peek 2.0 mockup
+
+Deliberate. A future alignment pass must keep them unless the owner changes the decision.
+
+- **Popover footer keeps the icon buttons** (Preferences gear, Refresh, Open Calendar, and
+  Quit on the right) from Peek 1.x. The mockup's text footer ("From Calendar · N calendars /
+  Preferences / Open Calendar") is not used. Owner decision, 2026-11-24. The mockup canvas
+  was updated to show the icon footer.
+- **Alert ladder in Preferences** (one level per moment: notification, HUD, full screen) is
+  not built: it changes alert behaviour. The current settings are regrouped by purpose
+  instead.
+- **Menu-bar item** keeps the 1.x title format and tinted text; the mockup's filled
+  amber/red pills are not built.
 
 ## Rules for contributors
 
