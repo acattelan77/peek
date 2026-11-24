@@ -37,6 +37,7 @@
 "Agenda" = "Agenda";
 "Alert timing" = "Antelación del aviso";
 "Alert with a join link before an event starts." = "Aviso con enlace para unirte antes de que empiece un evento.";
+"Alerts" = "Avisos";
 "Alerts and joining" = "Avisos y acceso";
 "All day" = "Todo el día";
 "Always show icon" = "Mostrar siempre el icono";
@@ -46,7 +47,6 @@
 "Appearance" = "Apariencia";
 "Apple Intelligence is still getting ready. Try again later." = "Apple Intelligence aún se está preparando. Inténtalo más tarde.";
 "Apple Intelligence isn't available right now." = "Apple Intelligence no está disponible ahora mismo.";
-"Arrive prepared" = "Llega preparado";
 "Auto" = "Automático";
 "Automatic" = "Automático";
 "Back to the agenda" = "Volver a la agenda";
@@ -54,6 +54,7 @@
 "Brief before meetings" = "Resumen antes de las reuniones";
 "Brief ready: %d points to prepare" = "Brief listo: %d puntos que preparar";
 "Brief ready: 1 point to prepare" = "Brief listo: 1 punto que preparar";
+"Briefs" = "Briefs";
 "Calendar" = "Calendario";
 "Calendar access needed" = "Se necesita acceso al calendario";
 "Calendar access not granted" = "Acceso al calendario no concedido";
@@ -128,7 +129,6 @@
 "NOW!" = "¡AHORA!";
 "Name in the menu bar" = "Nombre en la barra de menús";
 "Never brief" = "Nunca resumir";
-"Never miss a meeting" = "No te pierdas reuniones";
 "Next 14 days" = "Próximos 14 días";
 "Next 3 days" = "Próximos 3 días";
 "Next 30 days" = "Próximos 30 días";

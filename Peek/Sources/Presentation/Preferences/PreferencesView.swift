@@ -64,8 +64,8 @@ struct PreferencesView: View {
 
     private var tabBar: some View {
         HStack(spacing: PeekMetrics.tabGap) {
-            PeekTabButton(title: NSLocalizedString("Never miss a meeting", comment: "Preferences tab title"), isSelected: selectedTab == 0) { selectedTab = 0 }
-            PeekTabButton(title: NSLocalizedString("Arrive prepared", comment: "Preferences tab title"), isSelected: selectedTab == 1) { selectedTab = 1 }
+            PeekTabButton(title: NSLocalizedString("Alerts", comment: "Preferences tab title: alerts, joining and the menu bar"), isSelected: selectedTab == 0) { selectedTab = 0 }
+            PeekTabButton(title: NSLocalizedString("Briefs", comment: "Preferences tab title: meeting context and briefs"), isSelected: selectedTab == 1) { selectedTab = 1 }
             PeekTabButton(title: NSLocalizedString("Calendars", comment: "Preferences tab title"), isSelected: selectedTab == 2) { selectedTab = 2 }
             PeekTabButton(title: NSLocalizedString("General", comment: "Preferences tab title"), isSelected: selectedTab == 3) { selectedTab = 3 }
             Spacer()
