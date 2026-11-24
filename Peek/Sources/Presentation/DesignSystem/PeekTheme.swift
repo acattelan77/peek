@@ -420,7 +420,8 @@ enum PeekMetrics {
     static let statusPillInsets = EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
     static let chipRemoveTarget: CGFloat = 14
     static let chipMinWidth: CGFloat = 84
-    static let worldClockMinWidth: CGFloat = 72
+    static let worldClockInsets = EdgeInsets(top: 5, leading: 9, bottom: 5, trailing: 9)
+    static let worldClockStripInsets = EdgeInsets(top: 2, leading: 16, bottom: 10, trailing: 16)
     static let pulsingDotSmall: CGFloat = 5
     static let pulsingDot: CGFloat = 6
 
