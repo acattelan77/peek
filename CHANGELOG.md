@@ -4,6 +4,28 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.13.0 - 2026-11-24
+
+### Added
+
+- PEEK-261: the context file may carry an optional `day` object (date, headline,
+  priorities, links). When its date is today, the popover shows "Today's
+  priorities" above the next meeting: the headline, up to three priorities in
+  order (done ones dimmed) and up to three link buttons. Read-only. Preferences >
+  Briefs has a "Show day priorities" switch, on by default.
+- PEEK-263: the lead-time notification and the 2-minute heads-up card say how
+  many points from the context file are still to prepare and show the first one
+  ("2 to prepare: Confirm the renewal position").
+- PEEK-264: a context file generated more than 36 hours ago hides the day block,
+  and the meeting page adds "Context from 23 Nov" under the context. Preferences
+  shows when the file was last generated.
+
+### Changed
+
+- PEEK-262: context-file links may use `obsidian://` as well as `https://`, for
+  meeting links and day links. Every other scheme is still dropped, and a link is
+  checked again before a click opens it.
+
 ## 1.12.5 - 2026-11-24
 
 ### Added

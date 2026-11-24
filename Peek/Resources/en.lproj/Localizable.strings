@@ -14,10 +14,12 @@
 "%d min left" = "%d min left";
 "%d other people" = "%d other people";
 "%d participants" = "%d participants";
+"%d to prepare: %@" = "%d to prepare: %@";
 "%dh %dm left" = "%dh %dm left";
 "+%d more" = "+%d more";
 "1 meeting today" = "1 meeting today";
 "1 other person" = "1 other person";
+"1 to prepare: %@" = "1 to prepare: %@";
 "10 minutes before" = "10 minutes before";
 "15 minutes before" = "15 minutes before";
 "2 minutes before" = "2 minutes before";
@@ -72,6 +74,7 @@
 "Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts." = "Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts.";
 "Context" = "Context";
 "Context folder" = "Context folder";
+"Context from %@" = "Context from %@";
 "Control which events are displayed." = "Control which events are displayed.";
 "Copy Event Title" = "Copy Event Title";
 "Copy Location" = "Copy Location";
@@ -86,6 +89,7 @@
 "Disabled" = "Disabled";
 "Dismiss" = "Dismiss";
 "Done" = "Done";
+"Done: %@" = "Done: %@";
 "Esc to dismiss" = "Esc to dismiss";
 "Event filters" = "Event filters";
 "Event title" = "Event title";
@@ -171,6 +175,8 @@
 "Read-only · stays local" = "Read-only · stays local";
 "Reading %@ in “%@”." = "Reading %@ in “%@”.";
 "Reading context for %d events." = "Reading context for %d events.";
+"Reading context for %d events. Last generated %@, more than 36 hours ago, so day priorities are hidden." = "Reading context for %d events. Last generated %@, more than 36 hours ago, so day priorities are hidden.";
+"Reading context for %d events. Last generated %@." = "Reading context for %d events. Last generated %@.";
 "Red menu bar and a card at the top" = "Red menu bar and a card at the top";
 "Refresh events" = "Refresh events";
 "Refreshed" = "Refreshed";
@@ -192,6 +198,7 @@
 "Send meeting details to Claude?" = "Send meeting details to Claude?";
 "Shortcut to join the next one" = "Shortcut to join the next one";
 "Show" = "Show";
+"Show day priorities" = "Show day priorities";
 "Show in the menu bar" = "Show in the menu bar";
 "Show meeting" = "Show meeting";
 "Show month calendar" = "Show month calendar";
@@ -224,6 +231,8 @@
 "Time zones" = "Time zones";
 "Today" = "Today";
 "Today only" = "Today only";
+"Today's priorities" = "Today's priorities";
+"Today's priorities and links from the context file, above the next meeting." = "Today's priorities and links from the context file, above the next meeting.";
 "Tomorrow" = "Tomorrow";
 "Too many requests right now. Peek will try again later." = "Too many requests right now. Peek will try again later.";
 "Try again" = "Try again";

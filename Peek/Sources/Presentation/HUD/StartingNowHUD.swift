@@ -21,6 +21,8 @@ struct StartingNowHUD: View {
     let joinProviderLabel: String?
     /// "You're about to meet Marco, CEO at Northwind" when known.
     var contextLine: String? = nil
+    /// "2 to prepare: Confirm the renewal position" on the 2-minute card (PEEK-263).
+    var prepLine: String? = nil
     var appearanceMode: AppearanceMode = .auto
     /// Pill text; "STARTING NOW" unless the card warns ahead ("IN 2 MIN").
     var statusText: String? = nil
@@ -63,6 +65,20 @@ struct StartingNowHUD: View {
                         .foregroundColor(PeekColor.bodyText)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+                if let prepLine {
+                    HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+                        Image(systemName: "checklist")
+                            .font(PeekIcon.meta)
+                            .foregroundColor(PeekColor.accentText)
+                            .accessibilityHidden(true)
+                        Text(prepLine)
+                            .font(PeekFont.bodyMetaMedium)
+                            .foregroundColor(PeekColor.ink)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
                 actionRow
             }

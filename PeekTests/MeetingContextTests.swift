@@ -303,3 +303,323 @@ final class MeetingContextFileTests: XCTestCase {
         XCTAssertTrue(headline.hasSuffix("…"))
     }
 }
+
+// MARK: - Day priorities, links, prep count, stale context (PEEK-261..264)
+
+final class ContextDayTests: XCTestCase {
+    private func decode(_ json: String) throws -> MeetingContextFile {
+        try MeetingContextFile.decode(Data(json.utf8))
+    }
+
+    private func calendar(_ identifier: String) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: identifier)!
+        return calendar
+    }
+
+    private func date(_ value: String) -> Date {
+        MeetingContextFile.parseDate(value)!
+    }
+
+    private let sample = """
+    {"schemaVersion": 1, "generatedAt": "2026-11-25T08:52:00+01:00",
+     "day": {"date": "2026-11-25", "headline": "Square call with Marco moved to today",
+             "priorities": [{"text": "Talking points for Marco", "done": false},
+                            {"text": "Ask which price was sent", "done": true},
+                            {"text": "Approve the objectives"}],
+             "links": [{"title": "Day log", "url": "obsidian://open?vault=Notes&file=today"}]},
+     "events": [{"id": "evt-1", "bullets": ["Confirm the renewal position"]}]}
+    """
+
+    func testDayIsDecoded() throws {
+        let file = try decode(sample)
+        let day = try XCTUnwrap(file.day)
+        XCTAssertEqual(day.headline, "Square call with Marco moved to today")
+        XCTAssertEqual(day.priorities.map(\.text), ["Talking points for Marco", "Ask which price was sent", "Approve the objectives"])
+        XCTAssertEqual(day.priorities.map(\.done), [false, true, false])
+        XCTAssertEqual(day.links.map(\.title), ["Day log"])
+        XCTAssertEqual(day.links.first?.url.scheme, "obsidian")
+        XCTAssertEqual(file.entries.count, 1)
+    }
+
+    func testMissingDayIsNil() throws {
+        let file = try decode("{\"schemaVersion\": 1, \"events\": [{\"id\": \"a\"}]}")
+        XCTAssertNil(file.day)
+        XCTAssertNil(file.visibleDay())
+        XCTAssertEqual(file.entries.count, 1)
+    }
+
+    func testMalformedDayIsDroppedAndTheRestWorks() throws {
+        let cases = [
+            "\"day\": \"today\"",
+            "\"day\": 42",
+            "\"day\": {\"date\": 20261125}",
+            "\"day\": {\"headline\": \"No date\"}",
+            "\"day\": {\"date\": \"25/11/2026\"}",
+            "\"day\": {\"date\": \"2026-02-30\"}",
+            "\"day\": {\"date\": \"2026-11-25\", \"priorities\": \"not a list\"}",
+            "\"day\": null"
+        ]
+        for fragment in cases {
+            let file = try decode("{\"schemaVersion\": 1, \(fragment), \"events\": [{\"id\": \"a\", \"bullets\": [\"One\"]}]}")
+            XCTAssertNil(file.day, fragment)
+            XCTAssertEqual(file.entry(forEventID: "a", start: nil)?.bullets, ["One"], fragment)
+        }
+    }
+
+    func testMalformedPrioritiesAndLinksAreSkipped() throws {
+        let file = try decode("""
+        {"schemaVersion": 1, "day": {"date": "2026-11-25",
+          "priorities": [{"text": "Good"}, {"done": true}, "bare string", {"text": 7}, {"text": "  "}, {"text": "Also good", "done": "yes"}],
+          "links": [{"url": 3}, {"title": "Ok", "url": "https://example.com"}]}}
+        """)
+        let day = try XCTUnwrap(file.day)
+        XCTAssertEqual(day.priorities.map(\.text), ["Good"])
+        XCTAssertEqual(day.links.map(\.title), ["Ok"])
+    }
+
+    func testLimitsAreApplied() throws {
+        let long = String(repeating: "b", count: 400)
+        let priorities = (1...8).map { "{\"text\": \"P\($0) \(long)\"}" }.joined(separator: ",")
+        let links = (1...5).map { "{\"title\": \"L\($0)\", \"url\": \"https://example.com/\($0)\"}" }.joined(separator: ",")
+        let file = try decode("""
+        {"schemaVersion": 1, "day": {"date": "2026-11-25", "headline": "\(long)", "priorities": [\(priorities)], "links": [\(links)]}}
+        """)
+        let day = try XCTUnwrap(file.day)
+        XCTAssertEqual(day.priorities.count, MeetingContextFile.Limits.maxDayPriorities)
+        XCTAssertEqual(day.shownPriorities.count, 3)
+        XCTAssertEqual(day.shownPriorities.first?.text.hasPrefix("P1 "), true)
+        XCTAssertTrue(day.priorities.allSatisfy { $0.text.count == MeetingContextFile.Limits.maxDayPriority && $0.text.hasSuffix("…") })
+        XCTAssertEqual(day.headline?.count, MeetingContextFile.Limits.maxDayHeadline)
+        XCTAssertEqual(day.links.map(\.title), ["L1", "L2", "L3"])
+    }
+
+    func testOnlyTodaysDateIsShown() throws {
+        let rome = calendar("Europe/Rome")
+        let file = try decode(sample)
+        XCTAssertNotNil(file.visibleDay(now: date("2026-11-25T09:00:00+01:00"), calendar: rome))
+        XCTAssertNil(file.visibleDay(now: date("2026-11-26T09:00:00+01:00"), calendar: rome), "Tomorrow")
+        XCTAssertNil(file.visibleDay(now: date("2026-11-24T20:00:00+01:00"), calendar: rome), "Yesterday")
+    }
+
+    func testDateMatchingAcrossMidnight() throws {
+        let rome = calendar("Europe/Rome")
+        // generatedAt omitted so freshness doesn't depend on the test instant.
+        let file = try decode("{\"schemaVersion\": 1, \"day\": {\"date\": \"2026-11-25\", \"headline\": \"H\"}}")
+        XCTAssertNil(file.visibleDay(now: date("2026-11-24T23:59:30+01:00"), calendar: rome))
+        XCTAssertNotNil(file.visibleDay(now: date("2026-11-25T00:00:30+01:00"), calendar: rome))
+        XCTAssertNotNil(file.visibleDay(now: date("2026-11-25T23:59:30+01:00"), calendar: rome))
+        XCTAssertNil(file.visibleDay(now: date("2026-11-26T00:00:30+01:00"), calendar: rome))
+    }
+
+    func testDateMatchingFollowsTheTimeZone() throws {
+        let file = try decode("{\"schemaVersion\": 1, \"day\": {\"date\": \"2026-11-25\", \"headline\": \"H\"}}")
+        // 02:00 in Rome on the 25th is still the 24th in New York.
+        let instant = date("2026-11-25T02:00:00+01:00")
+        XCTAssertNotNil(file.visibleDay(now: instant, calendar: calendar("Europe/Rome")))
+        XCTAssertNil(file.visibleDay(now: instant, calendar: calendar("America/New_York")))
+        // 23:00 in New York on the 24th is the 25th in Tokyo.
+        let evening = date("2026-11-24T23:00:00-05:00")
+        XCTAssertNotNil(file.visibleDay(now: evening, calendar: calendar("Asia/Tokyo")))
+    }
+
+    func testDayWithNothingToShowIsHidden() throws {
+        let rome = calendar("Europe/Rome")
+        let file = try decode("{\"schemaVersion\": 1, \"day\": {\"date\": \"2026-11-25\", \"priorities\": [], \"links\": [{\"url\": \"http://example.com\"}]}}")
+        XCTAssertNotNil(file.day)
+        XCTAssertNil(file.visibleDay(now: date("2026-11-25T09:00:00+01:00"), calendar: rome))
+    }
+}
+
+final class ContextLinkPolicyTests: XCTestCase {
+    private let accepted = [
+        "https://example.com/notes",
+        "obsidian://open?vault=Notes&file=today",
+        "OBSIDIAN://open?vault=Notes"
+    ]
+    private let rejected = [
+        "http://example.com",
+        "file:///etc/passwd",
+        "javascript:alert(1)",
+        "x-apple.systempreferences:com.apple.preference.security",
+        "zoommtg://zoom.us/join",
+        "//example.com/no-scheme",
+        "example.com/no-scheme",
+        "https://",
+        "obsidian://"
+    ]
+
+    private func file(_ urls: [String]) throws -> MeetingContextFile {
+        let links = urls.map { "{\"title\": \"T\", \"url\": \"\($0)\"}" }.joined(separator: ",")
+        return try MeetingContextFile.decode(Data("""
+        {"schemaVersion": 1, "day": {"date": "2026-11-25", "links": [\(links)]},
+         "events": [{"id": "e", "links": [\(links)]}]}
+        """.utf8))
+    }
+
+    func testAllowlistIsFixed() {
+        XCTAssertEqual(ContextLinkPolicy.allowedSchemes, ["https", "obsidian"])
+    }
+
+    func testAcceptedSchemes() throws {
+        for url in accepted {
+            let decoded = try file([url])
+            XCTAssertEqual(decoded.day?.links.count, 1, "day link \(url)")
+            XCTAssertEqual(decoded.entry(forEventID: "e", start: nil)?.links.count, 1, "event link \(url)")
+        }
+    }
+
+    func testRejectedSchemes() throws {
+        for url in rejected {
+            let decoded = try file([url])
+            XCTAssertEqual(decoded.day?.links.count ?? 0, 0, "day link \(url)")
+            XCTAssertEqual(decoded.entry(forEventID: "e", start: nil)?.links.count, 0, "event link \(url)")
+        }
+        XCTAssertEqual(try file([""]).day?.links.count ?? 0, 0, "empty url")
+    }
+
+    func testOpenerChecksThePolicyAgain() {
+        XCTAssertFalse(ContextLinkOpener.open(URL(string: "file:///etc/passwd")!))
+        XCTAssertFalse(ContextLinkOpener.open(URL(string: "http://example.com")!))
+    }
+}
+
+final class PrepSummaryTests: XCTestCase {
+    private let languages = ["en", "it", "de", "fr", "es"]
+
+    private func bundle(_ language: String) throws -> Bundle {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"), language)
+        return try XCTUnwrap(Bundle(path: path), language)
+    }
+
+    func testNoBulletsNoText() throws {
+        for language in languages {
+            XCTAssertNil(PrepSummary.text(for: [], bundle: try bundle(language)), language)
+        }
+    }
+
+    func testOneAndSeveralBulletsInEveryLanguage() throws {
+        let expected: [String: (one: String, two: String)] = [
+            "en": ("1 to prepare: Confirm the renewal position", "2 to prepare: Confirm the renewal position"),
+            "it": ("1 da preparare: Confirm the renewal position", "2 da preparare: Confirm the renewal position"),
+            "de": ("1 Punkt vorzubereiten: Confirm the renewal position", "2 Punkte vorzubereiten: Confirm the renewal position"),
+            "fr": ("1 à préparer : Confirm the renewal position", "2 à préparer : Confirm the renewal position"),
+            "es": ("1 por preparar: Confirm the renewal position", "2 por preparar: Confirm the renewal position")
+        ]
+        for language in languages {
+            let bundle = try bundle(language)
+            let first = "Confirm the renewal position"
+            XCTAssertEqual(PrepSummary.text(for: [first], bundle: bundle), expected[language]?.one, language)
+            XCTAssertEqual(PrepSummary.text(for: [first, "Bring the usage report"], bundle: bundle), expected[language]?.two, language)
+            XCTAssertEqual(
+                PrepSummary.text(for: [first, "b", "c", "d", "e"], bundle: bundle),
+                expected[language]?.two.replacingOccurrences(of: "2", with: "5"),
+                language
+            )
+        }
+    }
+
+    func testNotificationBody() {
+        XCTAssertEqual(NotificationManager.body(details: "Starts at 10:00", prepText: nil), "Starts at 10:00")
+        XCTAssertEqual(
+            NotificationManager.body(details: "Starts at 10:00", prepText: "2 to prepare: Confirm"),
+            "Starts at 10:00\n2 to prepare: Confirm"
+        )
+    }
+
+    func testChangedPrepListChangesTheNotificationSignature() {
+        let start = Date(timeIntervalSince1970: 1_900_000_000)
+        let before = NotificationContentSignature.make(eventID: "e", startDate: start, title: "T", location: nil, meetingURLString: nil, prepText: "2 to prepare: A")
+        let after = NotificationContentSignature.make(eventID: "e", startDate: start, title: "T", location: nil, meetingURLString: nil, prepText: "1 to prepare: B")
+        XCTAssertNotEqual(before, after)
+    }
+}
+
+final class StaleContextTests: XCTestCase {
+    private let generated = MeetingContextFile.parseDate("2026-11-25T08:00:00+01:00")!
+
+    private func file(generatedAt: String?) throws -> MeetingContextFile {
+        let stamp = generatedAt.map { "\"generatedAt\": \"\($0)\"," } ?? ""
+        return try MeetingContextFile.decode(Data("""
+        {"schemaVersion": 1, \(stamp) "day": {"date": "2026-11-26", "headline": "H"}, "events": [{"id": "e", "summary": "S"}]}
+        """.utf8))
+    }
+
+    private var rome: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Rome")!
+        return calendar
+    }
+
+    func testFreshAt35Hours() throws {
+        let file = try file(generatedAt: "2026-11-25T08:00:00+01:00")
+        let now = generated.addingTimeInterval(35 * 3600) // 2026-11-26 19:00 Rome
+        XCTAssertFalse(file.isStale(now: now))
+        XCTAssertNotNil(file.visibleDay(now: now, calendar: rome))
+    }
+
+    func testStaleAt37Hours() throws {
+        let file = try file(generatedAt: "2026-11-25T08:00:00+01:00")
+        let now = generated.addingTimeInterval(37 * 3600) // 2026-11-26 21:00 Rome
+        XCTAssertTrue(file.isStale(now: now))
+        XCTAssertNil(file.visibleDay(now: now, calendar: rome))
+        // Meetings keep their context, with the date it came from.
+        XCTAssertEqual(file.entry(forEventID: "e", start: nil)?.summary, "S")
+    }
+
+    func testMissingGeneratedAtIsFresh() throws {
+        let file = try file(generatedAt: nil)
+        XCTAssertFalse(file.isStale(now: generated.addingTimeInterval(30 * 24 * 3600)))
+        XCTAssertNotNil(file.visibleDay(now: MeetingContextFile.parseDate("2026-11-26T09:00:00+01:00")!, calendar: rome))
+    }
+
+    func testMeetingContextCarriesTheStaleDateOnlyWithExternalContext() {
+        let entry = MeetingContextFile.Entry(id: "e", startAt: nil, headline: nil, summary: "S", bullets: [], people: [], links: [])
+        let stale = MeetingContextBuilder.make(attendees: [], notes: nil, contacts: nil, external: entry, externalStaleSince: generated)
+        XCTAssertEqual(stale.staleContextDate, generated)
+        let fresh = MeetingContextBuilder.make(attendees: [], notes: nil, contacts: nil, external: entry, externalStaleSince: nil)
+        XCTAssertNil(fresh.staleContextDate)
+        let none = MeetingContextBuilder.make(attendees: [], notes: nil, contacts: nil, external: nil, externalStaleSince: generated)
+        XCTAssertNil(none.staleContextDate)
+    }
+
+    func testPreferencesShowWhenTheFileWasGenerated() {
+        let now = generated.addingTimeInterval(3600)
+        let fresh = CalendarManager.message(for: .ready(eventCount: 3, generatedAt: generated), now: now)
+        XCTAssertEqual(fresh?.contains("3"), true)
+        XCTAssertNotEqual(fresh, CalendarManager.message(for: .ready(eventCount: 3, generatedAt: nil), now: now))
+        let stale = CalendarManager.message(for: .ready(eventCount: 3, generatedAt: generated), now: generated.addingTimeInterval(37 * 3600))
+        XCTAssertNotEqual(stale, fresh)
+    }
+}
+
+final class DayNeverReachesBriefTests: XCTestCase {
+    func testBriefInputHoldsNothingFromDay() throws {
+        let file = try MeetingContextFile.decode(Data("""
+        {"schemaVersion": 1,
+         "day": {"date": "2026-11-25", "headline": "DAY-HEADLINE-SECRET",
+                 "priorities": [{"text": "DAY-PRIORITY-SECRET"}],
+                 "links": [{"title": "DAY-LINK-SECRET", "url": "obsidian://open?vault=Notes&file=day"}]},
+         "events": [{"id": "e", "summary": "Event summary", "bullets": ["Event bullet"]}]}
+        """.utf8))
+        XCTAssertNotNil(file.day)
+        let context = MeetingContextBuilder.make(
+            attendees: [AttendeeInput(name: "Giulia Rossi", email: "giulia@northwind.example")],
+            notes: "Agenda",
+            contacts: nil,
+            external: file.entry(forEventID: "e", start: nil)
+        )
+        let input = BriefInput(title: "Review", start: Date(timeIntervalSince1970: 1_900_000_000), context: context)
+
+        // The fields are exactly the ADR 0005 list.
+        let fields = Mirror(reflecting: input).children.compactMap(\.label)
+        XCTAssertEqual(fields, ["title", "start", "people", "agenda", "contextSummary", "contextPoints"])
+        XCTAssertEqual(input.contextSummary, "Event summary")
+        XCTAssertEqual(input.contextPoints, ["Event bullet"])
+
+        let everything = String(describing: input) + BriefPrompt.prompt(for: input, now: input.start)
+        for secret in ["DAY-HEADLINE-SECRET", "DAY-PRIORITY-SECRET", "DAY-LINK-SECRET", "obsidian"] {
+            XCTAssertFalse(everything.contains(secret), secret)
+        }
+    }
+}

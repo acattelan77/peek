@@ -45,6 +45,8 @@ class CalendarManager: ObservableObject {
     @Published var contactsStatusMessage: String?
     @Published var contextFolderName: String?
     @Published var contextFolderStatusMessage: String?
+    /// Popover day block from the context file (PEEK-261). On by default.
+    @Published var showDayPriorities: Bool = true
 
     /// Whether the first-run onboarding flow has been completed. Persisted so it is
     /// only shown once.
@@ -84,6 +86,7 @@ class CalendarManager: ObservableObject {
     private let statusBarOnlyMeetingsKey = "statusBarOnlyMeetings"
     private let statusBarLabelStyleKey = "statusBarLabelStyle"
     private let worldClockZonesKey = "worldClockZones"
+    private let showDayPrioritiesKey = "showDayPriorities"
 
     init(
         eventStore: any CalendarEventStoring = EventKitCalendarEventStore(),
@@ -161,6 +164,7 @@ class CalendarManager: ObservableObject {
         statusBarOnlyMeetings = defaults.bool(forKey: statusBarOnlyMeetingsKey)
         statusBarLabelStyle = defaults.string(forKey: statusBarLabelStyleKey).flatMap(StatusBarLabelStyle.init(rawValue:)) ?? .eventTitle
         worldClockZones = WorldClock.sanitized(defaults.array(forKey: worldClockZonesKey) as? [String] ?? [])
+        showDayPriorities = defaults.object(forKey: showDayPrioritiesKey) as? Bool ?? true
 
         hasCompletedOnboarding = defaults.bool(forKey: hasCompletedOnboardingKey)
     }
@@ -195,6 +199,7 @@ class CalendarManager: ObservableObject {
         defaults.set(statusBarOnlyMeetings, forKey: statusBarOnlyMeetingsKey)
         defaults.set(statusBarLabelStyle.rawValue, forKey: statusBarLabelStyleKey)
         defaults.set(worldClockZones, forKey: worldClockZonesKey)
+        defaults.set(showDayPriorities, forKey: showDayPrioritiesKey)
     }
 
     // MARK: - World clocks (PEEK-233)
@@ -544,7 +549,16 @@ extension CalendarManager {
         contextFolderStatusMessage = Self.message(for: store.status())
     }
 
-    static func message(for status: ContextFolderStore.Status) -> String? {
+    /// "Today at 08:52", "23 Nov 2026 at 08:52".
+    private static let generatedAtFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+        return formatter
+    }()
+
+    static func message(for status: ContextFolderStore.Status, now: Date = Date()) -> String? {
         switch status {
         case .noFolder:
             return nil
@@ -565,10 +579,23 @@ extension CalendarManager {
                 format: NSLocalizedString("This file uses format version %d, which this Peek doesn't support.", comment: "Context file schema version unsupported"),
                 version
             )
-        case .ready(let count):
+        case .ready(let count, let generatedAt):
+            guard let generatedAt else {
+                return String(
+                    format: NSLocalizedString("Reading context for %d events.", comment: "Context file loaded; placeholder is the number of events"),
+                    count
+                )
+            }
+            let when = generatedAtFormatter.string(from: generatedAt)
+            if now.timeIntervalSince(generatedAt) > MeetingContextFile.staleAfter {
+                return String(
+                    format: NSLocalizedString("Reading context for %d events. Last generated %@, more than 36 hours ago, so day priorities are hidden.", comment: "Context file loaded but stale; placeholders are the number of events and when it was generated"),
+                    count, when
+                )
+            }
             return String(
-                format: NSLocalizedString("Reading context for %d events.", comment: "Context file loaded; placeholder is the number of events"),
-                count
+                format: NSLocalizedString("Reading context for %d events. Last generated %@.", comment: "Context file loaded; placeholders are the number of events and when it was generated"),
+                count, when
             )
         }
     }

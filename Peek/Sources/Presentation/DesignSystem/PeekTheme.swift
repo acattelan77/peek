@@ -369,6 +369,8 @@ enum PeekMetrics {
     static let headerNavButton: CGFloat = 28
     static let headerNavGap: CGFloat = 4
     static let listInsets = EdgeInsets(top: 12, leading: 12, bottom: 6, trailing: 12)
+    /// Day priorities block above the list (PEEK-261); the list adds its own top inset.
+    static let dayBlockInsets = EdgeInsets(top: 12, leading: 12, bottom: 0, trailing: 12)
     static let sectionLabelInsets = EdgeInsets(top: 8, leading: 4, bottom: 0, trailing: 4)
     static let compactRowInsets = EdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
     static let compactRowGap: CGFloat = 10

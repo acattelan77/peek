@@ -26,7 +26,8 @@ enum MeetingContextProvider {
             attendees: attendeeInputs(for: event),
             notes: event.notes,
             contacts: lookup,
-            external: external
+            external: external,
+            externalStaleSince: folder.staleSince()
         )
     }
 
@@ -48,5 +49,19 @@ enum MeetingContextProvider {
         guard url.scheme?.lowercased() == "mailto" else { return nil }
         let value = String(url.absoluteString.dropFirst("mailto:".count))
         return value.removingPercentEncoding ?? value
+    }
+}
+
+extension PrepSummary {
+    /// The prep line for an event, from its context-file bullets (PEEK-263).
+    /// Reads only the matched entry, without Contacts, so it is cheap enough
+    /// for the notification signature computed on every tick.
+    static func text(for event: EKEvent, folder: ContextFolderStore = .shared) -> String? {
+        guard !event.isAllDay else { return nil }
+        let entry = folder.entry(
+            forEventID: CalendarExportEventMapper.stableIdentifier(for: event),
+            start: event.startDate
+        )
+        return text(for: entry?.bullets ?? [])
     }
 }

@@ -25,14 +25,16 @@ struct NotificationContentSignature {
         startDate: Date,
         title: String?,
         location: String?,
-        meetingURLString: String?
+        meetingURLString: String?,
+        prepText: String? = nil
     ) -> String {
         [
             eventID,
             String(startDate.timeIntervalSince1970),
             title ?? "",
             location ?? "",
-            meetingURLString ?? ""
+            meetingURLString ?? "",
+            prepText ?? ""
         ].joined(separator: separator)
     }
 
@@ -46,7 +48,9 @@ struct NotificationContentSignature {
             startDate: event.startDate,
             title: event.title,
             location: event.location,
-            meetingURLString: MeetingURLDetector.extract(from: event)?.absoluteString
+            meetingURLString: MeetingURLDetector.extract(from: event)?.absoluteString,
+            // A changed prep list reschedules the notification (PEEK-263).
+            prepText: PrepSummary.text(for: event)
         )
     }
 }
@@ -262,6 +266,17 @@ enum MeetingLinkOpener {
         if let target {
             NSWorkspace.shared.open(target)
         }
+    }
+}
+
+/// Opens a link from the context file (PEEK-262): only on an explicit click,
+/// only for a scheme in `ContextLinkPolicy`. `obsidian://` hands the link to
+/// the Obsidian app through Launch Services, which the sandbox allows.
+enum ContextLinkOpener {
+    @discardableResult
+    static func open(_ url: URL, workspace: NSWorkspace = .shared) -> Bool {
+        guard ContextLinkPolicy.isAllowed(url) else { return false }
+        return workspace.open(url)
     }
 }
 

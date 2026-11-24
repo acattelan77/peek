@@ -37,7 +37,8 @@ final class StartingNowHUDController {
             for: event,
             appearanceMode: appearanceMode,
             statusText: String(format: NSLocalizedString("IN %d MIN", comment: "Heads-up card pill 2 minutes before a meeting"), minutes),
-            allowsSnooze: false
+            allowsSnooze: false,
+            prepLine: PrepSummary.text(for: event)
         )
     }
     private var snoozeWorkItem: DispatchWorkItem?
@@ -155,7 +156,8 @@ final class StartingNowHUDController {
         for event: EKEvent,
         appearanceMode: AppearanceMode,
         statusText: String? = nil,
-        allowsSnooze: Bool = true
+        allowsSnooze: Bool = true,
+        prepLine: String? = nil
     ) {
         close()
 
@@ -175,6 +177,7 @@ final class StartingNowHUDController {
             calendarColor: event.calendar.map { Color($0.color) },
             joinProviderLabel: providerLabel,
             contextLine: MeetingContextProvider.context(for: event).headline,
+            prepLine: prepLine,
             appearanceMode: appearanceMode,
             statusText: statusText,
             onJoin: { [weak self] in
