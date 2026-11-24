@@ -34,7 +34,13 @@ read-only security bookmark and reads one file in it:
       ],
       "links": [{"title": "Account notes", "url": "https://example.com/notes"}]
     }
-  ]
+  ],
+  "day": {
+    "date": "2026-11-24",
+    "headline": "Renewal call moved to today",
+    "priorities": [{"text": "Talking points for the renewal call", "done": false}],
+    "links": [{"title": "Day log", "url": "obsidian://open?vault=Notes&file=today"}]
+  }
 }
 ```
 
@@ -49,7 +55,7 @@ read-only security bookmark and reads one file in it:
   their `name`, `role` and `company` win over Contacts, which win over the
   email domain.
 * Limits: 1 MiB per file, 1000 events, 6 bullets, 25 people, 6 links; long
-  strings are clipped. Links must be `https`.
+  strings are clipped. Links must be `https` or `obsidian` (see "Amendment").
 * Peek checks the file's modification date at most every 30 seconds.
 
 ## Consequences
@@ -61,3 +67,31 @@ read-only security bookmark and reads one file in it:
   planned with the writer. The PEEK-111 export contract is unchanged.
 * A phase 3 AI brief from Northwind Notes can travel in `summary` and `bullets`
   without Peek calling any model.
+
+## Amendment 2026-11-24: `day` object, `obsidian://` links, stale files (PEEK-261..264)
+
+The change is additive, so `schemaVersion` stays `1`.
+
+* **`day`** (optional, top level). `date` (`YYYY-MM-DD`, a local calendar
+  date) is required; `headline`, `priorities` (`[{text, done}]`) and `links`
+  are optional. Limits: 5 priorities decoded, 3 shown, 200 characters each;
+  headline 200 characters; 3 links. A missing, malformed or undated `day` is
+  ignored without an error and the rest of the file keeps working. The popover
+  shows it only when `date` is today in the user's time zone. Peek never writes
+  back: `done` is display only. The `day` object never reaches a brief engine:
+  `BriefInput` (ADR 0005) is unchanged, and a test asserts it. Its text is held
+  in memory with the rest of the file and is never logged or written anywhere.
+* **Bullets** are the points still open; a writer leaves done points out. The
+  lead-time notification and the 2-minute card count them ("2 to prepare: …").
+* **Links.** The allowlist is fixed in code: `https` and `obsidian`, for
+  `events[].links` and `day.links`. Every other scheme (`http`, `file`,
+  `javascript`, `x-apple…`, app schemes) is dropped when the file is read, and
+  the opener checks the scheme again. `obsidian` is accepted because the file
+  comes from a folder the user chose, and the link opens a local app only when
+  the user clicks it, through `NSWorkspace`; Launch Services opening a URL for
+  another app needs no extra sandbox entitlement. Peek never opens a link on
+  its own.
+* **Stale files.** A file whose `generatedAt` is more than 36 hours old hides
+  the day block; meetings keep their context with a quiet "Context from <date>"
+  line, and Preferences shows when the file was last generated. A file without
+  `generatedAt` counts as fresh.

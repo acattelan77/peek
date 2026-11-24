@@ -164,6 +164,13 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         return details
     }
 
+    /// "Starts at 10:00 • Room" and, when the context file has open points,
+    /// "2 to prepare: Confirm the renewal position" on a second line (PEEK-263).
+    static func body(details: String, prepText: String?) -> String {
+        guard let prepText else { return details }
+        return details + "\n" + prepText
+    }
+
     private func makeNotificationRequest(
         for event: EKEvent,
         minutesBefore: TimeInterval,
@@ -177,7 +184,10 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
         let content = UNMutableNotificationContent()
         content.title = event.title ?? NSLocalizedString("Upcoming Event", comment: "Notification title fallback")
-        content.body = formatEventDetails(event, minutesBefore: Int(minutesBefore / 60))
+        content.body = Self.body(
+            details: formatEventDetails(event, minutesBefore: Int(minutesBefore / 60)),
+            prepText: PrepSummary.text(for: event)
+        )
         content.sound = .default
         content.userInfo = [eventIDKey: eventID]
 

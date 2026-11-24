@@ -112,6 +112,10 @@ struct MenuBarView: View {
 
                 Divider().overlay(PeekColor.hairline)
 
+                if chosenOtherDay == nil, calendarManager.showDayPriorities {
+                    DayPrioritiesBlock()
+                }
+
                 if let day = chosenOtherDay {
                     dayAgenda(for: day)
                 } else if calendarManager.upcomingEvents.isEmpty && finishedToday.isEmpty {
@@ -1189,7 +1193,7 @@ struct MeetingPage: View {
                     }
                     ForEach(Array(context.links.enumerated()), id: \.offset) { _, link in
                         Button {
-                            NSWorkspace.shared.open(link.url)
+                            ContextLinkOpener.open(link.url)
                         } label: {
                             HStack(spacing: PeekSpacing.xs) {
                                 Image(systemName: "link")
@@ -1204,10 +1208,25 @@ struct MeetingPage: View {
                         .buttonStyle(.plain)
                         .help(link.url.absoluteString)
                     }
+                    if let staleDate = context.staleContextDate {
+                        Text(String(
+                            format: NSLocalizedString("Context from %@", comment: "Meeting page: the context file is more than 36 hours old; placeholder is its date"),
+                            Self.staleDateFormatter.string(from: staleDate)
+                        ))
+                        .font(PeekFont.caption)
+                        .foregroundColor(PeekColor.tertiaryText)
+                    }
                 }
             }
         }
     }
+
+    /// "23 Nov".
+    private static let staleDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("d MMM")
+        return formatter
+    }()
 
     @ViewBuilder
     private var timeZonesSection: some View {
@@ -1315,6 +1334,100 @@ struct EventContextMenu: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(event.title ?? "", forType: .string)
         }
+    }
+}
+
+// MARK: - Day priorities (PEEK-261)
+
+/// Today's priorities and links from the context file, above the next-meeting
+/// card. Shown only when `day.date` is today and the file is fresh. Read-only:
+/// done priorities are dimmed, and Peek never writes back.
+struct DayPrioritiesBlock: View {
+    var folder: ContextFolderStore = .shared
+
+    var body: some View {
+        // Re-evaluated every minute, so the block appears and hides at midnight.
+        TimelineView(.everyMinute) { timeline in
+            if let day = folder.day(now: timeline.date) {
+                content(day)
+            }
+        }
+    }
+
+    private func content(_ day: MeetingContextFile.Day) -> some View {
+        VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+            Text(NSLocalizedString("Today's priorities", comment: "Popover: eyebrow above the day's priorities from the context file").uppercased(with: .current))
+                .font(PeekFont.label)
+                .tracking(PeekFont.labelTracking)
+                .foregroundColor(PeekColor.accentText)
+                .accessibilityAddTraits(.isHeader)
+
+            if let headline = day.headline {
+                Text(headline)
+                    .font(PeekFont.bodyEmphasis)
+                    .foregroundColor(PeekColor.ink)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if !day.shownPriorities.isEmpty {
+                VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+                    ForEach(Array(day.shownPriorities.enumerated()), id: \.offset) { _, priority in
+                        priorityRow(priority)
+                    }
+                }
+            }
+
+            if !day.links.isEmpty {
+                HStack(spacing: PeekSpacing.sm) {
+                    ForEach(Array(day.links.enumerated()), id: \.offset) { _, link in
+                        Button {
+                            ContextLinkOpener.open(link.url)
+                        } label: {
+                            HStack(spacing: PeekSpacing.iconGap) {
+                                Image(systemName: "arrow.up.forward.square")
+                                    .font(PeekIcon.detail)
+                                    .accessibilityHidden(true)
+                                Text(link.title)
+                                    .lineLimit(1)
+                            }
+                        }
+                        .buttonStyle(SoftAccentButtonStyle())
+                        .help(link.url.absoluteString)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .padding(PeekMetrics.nextCardInsets)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PeekColor.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous)
+                .strokeBorder(PeekColor.hairline, lineWidth: PeekSpacing.hairline)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: PeekRadius.card, style: .continuous))
+        .padding(PeekMetrics.dayBlockInsets)
+        .background(PeekColor.canvas)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func priorityRow(_ priority: MeetingContextFile.Day.Priority) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
+            Image(systemName: priority.done ? "checkmark.circle.fill" : "circle")
+                .font(PeekIcon.detail)
+                .foregroundColor(priority.done ? PeekColor.tertiaryText : PeekColor.accentText)
+                .accessibilityHidden(true)
+            Text(priority.text)
+                .font(PeekFont.bodyMeta)
+                .foregroundColor(priority.done ? PeekColor.tertiaryText : PeekColor.bodyText)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(priority.done
+            ? String(format: NSLocalizedString("Done: %@", comment: "Accessibility: a day priority already done"), priority.text)
+            : priority.text))
     }
 }
 

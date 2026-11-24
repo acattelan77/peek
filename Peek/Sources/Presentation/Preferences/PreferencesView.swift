@@ -513,6 +513,15 @@ struct GeneralTab: View {
                         if let contextFolderStatusMessage = calendarManager.contextFolderStatusMessage {
                             rowFootnote(contextFolderStatusMessage, isError: false)
                         }
+                        if calendarManager.contextFolderName != nil {
+                            RowDivider()
+                            SettingRow(
+                                NSLocalizedString("Show day priorities", comment: "Day priorities toggle"),
+                                subtitle: NSLocalizedString("Today's priorities and links from the context file, above the next meeting.", comment: "Day priorities toggle subtitle")
+                            ) {
+                                switchToggle($calendarManager.showDayPriorities, label: NSLocalizedString("Show day priorities", comment: "Day priorities toggle"))
+                            }
+                        }
                     }
                     .onAppear { calendarManager.refreshContextFolderState() }
 

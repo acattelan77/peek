@@ -14,10 +14,12 @@
 "%d min left" = "ancora %d min";
 "%d other people" = "altre %d persone";
 "%d participants" = "%d partecipanti";
+"%d to prepare: %@" = "%d da preparare: %@";
 "%dh %dm left" = "ancora %d h %d min";
 "+%d more" = "+%d altri";
 "1 meeting today" = "1 meeting oggi";
 "1 other person" = "un'altra persona";
+"1 to prepare: %@" = "1 da preparare: %@";
 "10 minutes before" = "10 minuti prima";
 "15 minutes before" = "15 minuti prima";
 "2 minutes before" = "2 minuti prima";
@@ -72,6 +74,7 @@
 "Contacts access is off. Allow Peek in System Settings → Privacy & Security → Contacts." = "L'accesso ai contatti è disattivato. Consenti Peek in Impostazioni di Sistema → Privacy e sicurezza → Contatti.";
 "Context" = "Contesto";
 "Context folder" = "Cartella di contesto";
+"Context from %@" = "Contesto del %@";
 "Control which events are displayed." = "Scegli quali eventi mostrare.";
 "Copy Event Title" = "Copia titolo evento";
 "Copy Location" = "Copia luogo";
@@ -86,6 +89,7 @@
 "Disabled" = "Disattivato";
 "Dismiss" = "Chiudi";
 "Done" = "Fine";
+"Done: %@" = "Fatto: %@";
 "Esc to dismiss" = "Esc per chiudere";
 "Event filters" = "Filtri eventi";
 "Event title" = "Titolo dell'evento";
@@ -171,6 +175,8 @@
 "Read-only · stays local" = "Sola lettura · resta in locale";
 "Reading %@ in “%@”." = "Lettura di %@ in «%@».";
 "Reading context for %d events." = "Contesto disponibile per %d eventi.";
+"Reading context for %d events. Last generated %@, more than 36 hours ago, so day priorities are hidden." = "Contesto disponibile per %d eventi. Ultimo aggiornamento: %@, più di 36 ore fa, quindi le priorità del giorno sono nascoste.";
+"Reading context for %d events. Last generated %@." = "Contesto disponibile per %d eventi. Ultimo aggiornamento: %@.";
 "Red menu bar and a card at the top" = "Barra dei menu rossa e scheda in alto";
 "Refresh events" = "Aggiorna eventi";
 "Refreshed" = "Aggiornato";
@@ -192,6 +198,7 @@
 "Send meeting details to Claude?" = "Inviare i dettagli dei meeting a Claude?";
 "Shortcut to join the next one" = "Scorciatoia per entrare nel prossimo";
 "Show" = "Mostra";
+"Show day priorities" = "Mostra le priorità del giorno";
 "Show in the menu bar" = "Mostra nella barra dei menu";
 "Show meeting" = "Mostra il meeting";
 "Show month calendar" = "Mostra calendario mensile";
@@ -224,6 +231,8 @@
 "Time zones" = "Fusi orari";
 "Today" = "Oggi";
 "Today only" = "Solo oggi";
+"Today's priorities" = "Priorità di oggi";
+"Today's priorities and links from the context file, above the next meeting." = "Le priorità di oggi e i link dal file di contesto, sopra il prossimo meeting.";
 "Tomorrow" = "Domani";
 "Too many requests right now. Peek will try again later." = "Troppe richieste in questo momento. Peek riproverà più tardi.";
 "Try again" = "Riprova";

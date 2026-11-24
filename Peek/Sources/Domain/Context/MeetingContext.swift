@@ -79,6 +79,9 @@ struct MeetingContext: Equatable {
     let summary: String?
     let bullets: [String]
     let links: [MeetingContextFile.Link]
+    /// When the context file is stale (PEEK-264): its `generatedAt`, so the
+    /// meeting page can say "Context from 23 Nov". Nil when fresh or unused.
+    var staleContextDate: Date? = nil
 
     static let empty = MeetingContext(headline: nil, people: [], agenda: nil, summary: nil, bullets: [], links: [])
 
@@ -88,6 +91,19 @@ struct MeetingContext: Equatable {
 
     var hasExternalContext: Bool {
         summary != nil || !bullets.isEmpty || !links.isEmpty
+    }
+}
+
+/// "2 to prepare: Confirm the renewal position" (PEEK-263): how many points
+/// from the context file are still open, and the first one. The writer leaves
+/// done points out of `bullets`, so every bullet counts. Nil with no bullets.
+enum PrepSummary {
+    static func text(for bullets: [String], bundle: Bundle = .main) -> String? {
+        guard let first = bullets.first else { return nil }
+        if bullets.count == 1 {
+            return String(format: NSLocalizedString("1 to prepare: %@", bundle: bundle, comment: "Prep count with the first point, one point"), first)
+        }
+        return String(format: NSLocalizedString("%d to prepare: %@", bundle: bundle, comment: "Prep count with the first point, several points"), bullets.count, first)
     }
 }
 
@@ -104,7 +120,8 @@ enum MeetingContextBuilder {
         attendees: [AttendeeInput],
         notes: String?,
         contacts: ContactLookup?,
-        external: MeetingContextFile.Entry?
+        external: MeetingContextFile.Entry?,
+        externalStaleSince: Date? = nil
     ) -> MeetingContext {
         let people = makePeople(attendees: attendees, contacts: contacts, external: external?.people ?? [])
         let bullets = external?.bullets ?? []
@@ -114,7 +131,8 @@ enum MeetingContextBuilder {
             agenda: InvitationTextCleaner.clean(notes),
             summary: external?.summary,
             bullets: bullets,
-            links: external?.links ?? []
+            links: external?.links ?? [],
+            staleContextDate: external == nil ? nil : externalStaleSince
         )
     }
 

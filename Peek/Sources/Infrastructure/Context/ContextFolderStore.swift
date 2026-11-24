@@ -55,6 +55,19 @@ final class ContextFolderStore {
         return currentFile()?.entry(forEventID: id, start: start)
     }
 
+    /// The day block to show now, or nil (PEEK-261): no folder or file, no
+    /// `day`, another date, nothing to show, or a stale file. Held in memory
+    /// only, like the rest of the file; never logged or written anywhere.
+    func day(now: Date = Date(), calendar: Calendar = .autoupdatingCurrent) -> MeetingContextFile.Day? {
+        currentFile()?.visibleDay(now: now, calendar: calendar)
+    }
+
+    /// The file's `generatedAt` when it is stale (PEEK-264), else nil.
+    func staleSince(now: Date = Date()) -> Date? {
+        guard let file = currentFile(), file.isStale(now: now) else { return nil }
+        return file.generatedAt
+    }
+
     /// Why the file isn't being used, for a Preferences footnote.
     func status() -> Status {
         guard hasFolder else { return .noFolder }
@@ -65,7 +78,7 @@ final class ContextFolderStore {
         guard let data = try? Data(contentsOf: fileURL) else { return .fileMissing }
         do {
             let file = try MeetingContextFile.decode(data)
-            return .ready(eventCount: file.entries.count)
+            return .ready(eventCount: file.entries.count, generatedAt: file.generatedAt)
         } catch MeetingContextFile.DecodeError.unsupportedVersion(let version) {
             return .unsupportedVersion(version)
         } catch {
@@ -79,7 +92,7 @@ final class ContextFolderStore {
         case fileMissing
         case unreadable
         case unsupportedVersion(Int)
-        case ready(eventCount: Int)
+        case ready(eventCount: Int, generatedAt: Date?)
     }
 
     // MARK: Private

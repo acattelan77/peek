@@ -84,6 +84,15 @@ Workstream: `docs/workstreams/app-store-readiness.md`. Owner guide: `docs/APP_ST
 - **PEEK-253 — In review:** App Store archive, export and TestFlight upload (manual workflow, cloud-managed signing) next to the Developer ID DMG; waits on the owner's App Store Connect API key.
 - **PEEK-254 — In review:** Apple-side steps, secrets, metadata, privacy answers, screenshots and TestFlight plan.
 
+## Now — day priorities and Obsidian links from the context file
+
+Workstream: `docs/workstreams/day-priorities-obsidian-links.md`. Ships in 1.13.0. Owner spec 2026-11-24; contract in ADR 0004 (amendment).
+
+- **PEEK-261 — In review:** Optional `day` object in the context file; the popover shows today's priorities, headline and links above the next meeting. Preferences > Briefs switch, on by default.
+- **PEEK-262 — In review:** `obsidian://` joins `https://` on a fixed link allowlist for meeting and day links; opened only on click.
+- **PEEK-263 — In review:** Prep count and first point in the lead-time notification and the 2-minute card.
+- **PEEK-264 — In review:** Context older than 36 hours hides the day block, adds "Context from <date>" on the meeting page, and Preferences shows when the file was generated.
+
 ## Next — calendar usefulness
 
 - **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.
