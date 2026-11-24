@@ -31,14 +31,17 @@ Peek/Sources/
 ├── App/                    # NSApplication lifecycle and composition entry
 ├── Application/
 │   ├── Calendar/           # CalendarManager and app-facing calendar state
+│   ├── Diagnostics/        # Diagnostics export report (PEEK-275)
 │   └── CalendarExport/     # Headless CLI orchestration and argument parsing
 ├── Domain/
 │   ├── Events/             # Filtering, ordering, urgency
 │   ├── CalendarExport/     # Versioned export payload and serialization policy
+│   ├── Diagnostics/        # Content-free diagnostic events, retention (ADR 0006)
 │   ├── Meetings/           # Trusted meeting-link extraction
 │   └── Models/             # Preferences and constraints
 ├── Infrastructure/
 │   ├── Calendar/           # EventKit adapter and conformances
+│   ├── Diagnostics/        # os.Logger, journal, MetricKit, export
 │   ├── Notifications/      # UserNotifications scheduler
 │   └── Preferences/        # UserDefaults boundary
 └── Presentation/

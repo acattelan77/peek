@@ -31,6 +31,7 @@ final class StartingNowHUDController {
             hasAttendees: !(event.attendees ?? []).isEmpty
         ) else { return }
         guard soonHistory.shouldPresent(eventID: eventID, eventEndDate: event.endDate, now: now) else { return }
+        Self.recordShown(.soonCard, eventID: eventID)
 
         let minutes = max(1, Int((event.startDate.timeIntervalSince(now) / 60).rounded(.up)))
         show(
@@ -62,14 +63,36 @@ final class StartingNowHUDController {
             hasJoinLink: MeetingURLDetector.extract(from: event) != nil,
             hasAttendees: !(event.attendees ?? []).isEmpty
         )
-        guard presentation != .none else { return }
-
         // Fire only in the first minute after the start time, and only once per event.
         let started = event.startDate.timeIntervalSince(now)
-        guard started <= 0, started > -60,
-              presentationHistory.shouldPresent(eventID: eventID, eventEndDate: event.endDate, now: now) else { return }
+        let inStartWindow = started <= 0 && started > -60
+        guard presentation != .none else {
+            if inStartWindow { Self.recordSkipped(.startCard, reason: .filtered, eventID: eventID) }
+            return
+        }
+        let kind: DiagnosticAlertKind = presentation == .fullScreen ? .startFullScreen : .startCard
+        guard inStartWindow else { return }
+        guard presentationHistory.shouldPresent(eventID: eventID, eventEndDate: event.endDate, now: now) else {
+            Self.recordSkipped(kind, reason: .alreadyShown, eventID: eventID)
+            return
+        }
 
+        Self.recordShown(kind, eventID: eventID)
         present(presentation, for: event, appearanceMode: appearanceMode)
+    }
+
+    private static func recordShown(_ kind: DiagnosticAlertKind, eventID: String) {
+        Diagnostics.record(.alertShown(kind: kind, eventRef: DiagnosticEventRef.make(identifier: eventID)))
+    }
+
+    /// Skips repeat on every status-bar tick; one line per event and reason is enough.
+    private static func recordSkipped(_ kind: DiagnosticAlertKind, reason: DiagnosticAlertSkipReason, eventID: String) {
+        let ref = DiagnosticEventRef.make(identifier: eventID)
+        Diagnostics.record(
+            .alertSkipped(kind: kind, reason: reason, eventRef: ref),
+            throttleKey: "alert.\(kind.rawValue).\(reason.rawValue).\(ref)",
+            minInterval: 3600
+        )
     }
 
     func close() {

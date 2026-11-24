@@ -51,13 +51,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         notificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
                 self.hasNotificationPermission = granted
-                if let error = error {
-                    // Only log if it's not a simple "not allowed" error
-                    // This is expected during development or if user hasn't granted permission
-                    print("Notification permission: \(granted ? "granted" : "denied") - \(error.localizedDescription)")
-                } else if !granted {
-                    print("Notification permission denied by user")
-                }
+                Diagnostics.record(.notificationPermission(granted: granted, errorCode: (error as NSError?)?.code))
                 completion(granted)
             }
         }
@@ -103,6 +97,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             let requests = events.compactMap {
                 self.makeNotificationRequest(for: $0, minutesBefore: minutesBefore, now: now)
             }
+            Diagnostics.record(.notificationsRequested(requestCount: requests.count))
 
             guard !requests.isEmpty else {
                 self.complete(.scheduled, completion: completion)
@@ -277,6 +272,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 trigger: trigger
             )
             notificationCenter.add(request)
+            Diagnostics.record(.notificationSnoozed(minutes: 5))
 
         default:
             break

@@ -81,11 +81,13 @@
 "Copy Meeting Link" = "Copiar enlace de la reunión";
 "Couldn't reach the brief service. Check your connection." = "No se pudo conectar con el servicio de resumen. Revisa tu conexión.";
 "Couldn't register %@. Another app may be using this shortcut. Try a different one." = "No se pudo registrar %@. Puede que otra app use este atajo. Prueba con otro.";
+"Couldn't save the diagnostics file." = "No se pudo guardar el archivo de diagnóstico.";
 "Couldn't save the key to your keychain." = "No se pudo guardar la clave en el llavero.";
 "Count down to meetings only" = "Cuenta atrás solo para reuniones";
 "Countdown" = "Cuenta atrás";
 "Dark" = "Oscuro";
 "Deselect all" = "Deseleccionar todo";
+"Diagnostics" = "Diagnóstico";
 "Disabled" = "Desactivado";
 "Dismiss" = "Cerrar";
 "Done" = "Listo";
@@ -94,6 +96,8 @@
 "Event filters" = "Filtros de eventos";
 "Event title" = "Título del evento";
 "Exchange" = "Exchange";
+"Export diagnostics" = "Exportar diagnóstico";
+"Export…" = "Exportar…";
 "FIRST THING TO PREPARE" = "LO PRIMERO QUE PREPARAR";
 "Finished" = "Terminada";
 "For each meeting that gets a brief, Peek sends Anthropic, using your API key: the title, how soon it starts, the names and roles of the people, your notes about them, the cleaned-up invitation text, and the summary and points from your context folder.\n\nPeek never sends email addresses, locations, meeting links, calendar names or replies. Anthropic's terms for your API account apply. You can switch back to “On this Mac” at any time." = "Para cada reunión que recibe un resumen, Peek envía a Anthropic, con tu clave API: el título, cuánto falta para que empiece, los nombres y cargos de las personas, tus notas sobre ellas, el texto de la invitación limpio, y el resumen y los puntos de tu carpeta de contexto.\n\nPeek nunca envía direcciones de correo, ubicaciones, enlaces de reunión, nombres de calendario ni respuestas. Se aplican los términos de Anthropic para tu cuenta API. Puedes volver a «En este Mac» en cualquier momento.";
@@ -191,7 +195,9 @@
 "STARTING NOW" = "EMPIEZA AHORA";
 "STARTING NOW · %@" = "EMPIEZA AHORA · %@";
 "Save" = "Guardar";
+"Saved %@ and showed it in the Finder." = "%@ guardado y mostrado en el Finder.";
 "Saved in your keychain." = "Guardada en tu llavero.";
+"Saves a file on this Mac with Peek's recent activity and crash reports, without meeting details. Nothing is sent; you decide whether to share it." = "Guarda en este Mac un archivo con la actividad reciente de Peek y los informes de fallos, sin detalles de reuniones. No se envía nada; tú decides si compartirlo.";
 "Schedule" = "Agenda";
 "Select all" = "Seleccionar todo";
 "Selected" = "Seleccionado";

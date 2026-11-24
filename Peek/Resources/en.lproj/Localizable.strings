@@ -81,11 +81,13 @@
 "Copy Meeting Link" = "Copy Meeting Link";
 "Couldn't reach the brief service. Check your connection." = "Couldn't reach the brief service. Check your connection.";
 "Couldn't register %@. Another app may be using this shortcut. Try a different one." = "Couldn't register %@. Another app may be using this shortcut. Try a different one.";
+"Couldn't save the diagnostics file." = "Couldn't save the diagnostics file.";
 "Couldn't save the key to your keychain." = "Couldn't save the key to your keychain.";
 "Count down to meetings only" = "Count down to meetings only";
 "Countdown" = "Countdown";
 "Dark" = "Dark";
 "Deselect all" = "Deselect all";
+"Diagnostics" = "Diagnostics";
 "Disabled" = "Disabled";
 "Dismiss" = "Dismiss";
 "Done" = "Done";
@@ -94,6 +96,8 @@
 "Event filters" = "Event filters";
 "Event title" = "Event title";
 "Exchange" = "Exchange";
+"Export diagnostics" = "Export diagnostics";
+"Export…" = "Export…";
 "FIRST THING TO PREPARE" = "FIRST THING TO PREPARE";
 "Finished" = "Finished";
 "For each meeting that gets a brief, Peek sends Anthropic, using your API key: the title, how soon it starts, the names and roles of the people, your notes about them, the cleaned-up invitation text, and the summary and points from your context folder.\n\nPeek never sends email addresses, locations, meeting links, calendar names or replies. Anthropic's terms for your API account apply. You can switch back to “On this Mac” at any time." = "For each meeting that gets a brief, Peek sends Anthropic, using your API key: the title, how soon it starts, the names and roles of the people, your notes about them, the cleaned-up invitation text, and the summary and points from your context folder.\n\nPeek never sends email addresses, locations, meeting links, calendar names or replies. Anthropic's terms for your API account apply. You can switch back to “On this Mac” at any time.";
@@ -191,7 +195,9 @@
 "STARTING NOW" = "STARTING NOW";
 "STARTING NOW · %@" = "STARTING NOW · %@";
 "Save" = "Save";
+"Saved %@ and showed it in the Finder." = "Saved %@ and showed it in the Finder.";
 "Saved in your keychain." = "Saved in your keychain.";
+"Saves a file on this Mac with Peek's recent activity and crash reports, without meeting details. Nothing is sent; you decide whether to share it." = "Saves a file on this Mac with Peek's recent activity and crash reports, without meeting details. Nothing is sent; you decide whether to share it.";
 "Schedule" = "Schedule";
 "Select all" = "Select all";
 "Selected" = "Selected";

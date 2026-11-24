@@ -327,6 +327,7 @@ class CalendarManager: ObservableObject {
         fetchQueue.async { [weak self] in
             guard let self = self else { return }
 
+            let refreshStarted = Date()
             // Get calendars based on user's enabled selections
             let allCalendars = self.eventStore.calendars(for: .event)
             let calendars: [EKCalendar]
@@ -380,6 +381,11 @@ class CalendarManager: ObservableObject {
             do {
                 events = try self.eventStore.events(matching: predicate)
             } catch {
+                Diagnostics.record(
+                    .calendarRefreshFailed(errorCode: (error as NSError).code),
+                    throttleKey: "calendar.refreshFailed",
+                    minInterval: 300
+                )
                 DispatchQueue.main.async {
                     self.nextEvent = nil
                     self.upcomingEvents = []
@@ -401,6 +407,17 @@ class CalendarManager: ObservableObject {
                 settings: settings,
                 maxEvents: maxEventsToShow,
                 lateGraceMinutes: Self.kLateGraceMinutes
+            )
+            // The status bar refreshes every few seconds near a meeting: log a
+            // refresh when the counts change, otherwise every ten minutes.
+            Diagnostics.record(
+                .calendarRefreshed(
+                    durationMs: Int(Date().timeIntervalSince(refreshStarted) * 1000),
+                    eventCount: events.count,
+                    calendarCount: calendars.count
+                ),
+                throttleKey: "calendar.refresh.\(events.count).\(calendars.count)",
+                minInterval: 600
             )
 
             DispatchQueue.main.async {
@@ -546,7 +563,22 @@ extension CalendarManager {
 
     func refreshContextFolderState(store: ContextFolderStore = .shared) {
         contextFolderName = store.folderName
-        contextFolderStatusMessage = Self.message(for: store.status())
+        let status = store.status()
+        contextFolderStatusMessage = Self.message(for: status)
+        Diagnostics.record(Self.diagnostic(for: status))
+    }
+
+    static func diagnostic(for status: ContextFolderStore.Status, now: Date = Date()) -> DiagnosticEvent {
+        switch status {
+        case .noFolder: return .contextFile(state: .noFolder, eventCount: 0)
+        case .folderUnavailable: return .contextFile(state: .folderUnavailable, eventCount: 0)
+        case .fileMissing: return .contextFile(state: .fileMissing, eventCount: 0)
+        case .unreadable: return .contextFile(state: .unreadable, eventCount: 0)
+        case .unsupportedVersion: return .contextFile(state: .unsupportedVersion, eventCount: 0)
+        case .ready(let count, let generatedAt):
+            let stale = generatedAt.map { now.timeIntervalSince($0) > MeetingContextFile.staleAfter } ?? false
+            return .contextFile(state: stale ? .stale : .ready, eventCount: count)
+        }
     }
 
     /// "Today at 08:52", "23 Nov 2026 at 08:52".

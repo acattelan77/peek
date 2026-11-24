@@ -213,6 +213,7 @@ final class MeetingBriefService: ObservableObject {
 
     private func finish(key: String, outcome: Result<[String], BriefError>, source: BriefSource, fingerprint: String) {
         inFlight.remove(key)
+        Diagnostics.record(.briefFinished(source: source.rawValue, outcome: Self.diagnosticOutcome(outcome)))
         switch outcome {
         case .success(let points):
             briefs[key] = MeetingBrief(points: points, source: source, generatedAt: Date(), fingerprint: fingerprint)
@@ -221,6 +222,14 @@ final class MeetingBriefService: ObservableObject {
         case .failure(let error):
             errors[key] = error.message
             lastFailure[key] = Date()
+        }
+    }
+
+    /// "success" or the error case ("network", "service(503)"); never the model's text.
+    static func diagnosticOutcome(_ outcome: Result<[String], BriefError>) -> String {
+        switch outcome {
+        case .success: return "success"
+        case .failure(let error): return String(describing: error)
         }
     }
 

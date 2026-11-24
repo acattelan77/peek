@@ -4,6 +4,29 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.13.1 - 2026-11-24
+
+### Added
+
+- PEEK-275: local diagnostics. Peek writes to the unified log under the
+  `com.peek.app` subsystem, one category each for calendar, notifications,
+  alerts, context, brief, hotkey, metrics and app: EventKit refreshes (duration,
+  counts), notification reschedules (reason, events, requests, result), each
+  start alert shown or skipped with its reason (badge only, already shown,
+  filtered), hotkey registration failures and the context file state. Lines
+  carry counts, outcomes and short opaque event references, never titles,
+  notes, attendees, locations, links or paths (ADR 0006).
+- PEEK-275: MetricKit crash, hang and energy payloads are kept in Application
+  Support for 30 days.
+- PEEK-275: Preferences > General > Diagnostics > "Export…" saves a JSON file
+  with the recent log journal, MetricKit payloads, versions, permission states
+  and settings as counts and switches, then shows it in the Finder. Nothing is
+  sent; no network, entitlement or privacy-manifest change.
+
+### Changed
+
+- Replaced the remaining `print` calls with diagnostics events.
+
 ## 1.13.0 - 2026-11-24
 
 ### Added
