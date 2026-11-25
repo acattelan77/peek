@@ -140,7 +140,7 @@ Built in `MenuBar/MenuBarView.swift` and `MenuBar/MonthCalendarView.swift`, 360p
   `mutedText` without dots, past dots muted.
 - **Next-meeting card:** `nextWash` with `nextBorder` (per `PeekTone`), 3pt rail inset 10pt,
   radius 10. Eyebrow "NEXT · IN 24 MIN" (9 bold, tone text) with the time range top right;
-  title 14 semibold; "You're about to meet **Marco**, CEO at Northwind, and 2 others"
+  title 14 semibold; "You're about to meet **Ada**, CEO at Northwind, and 2 others"
   (12.5, the name in semibold ink); Join on the right; "Brief ready: N points to prepare".
 - **Compact rows:** on `canvas`, grouped under TODAY / TOMORROW / weekday date. Time
   column 44pt (12, tabular), 8pt calendar dot, title 13 medium, one meta line 11

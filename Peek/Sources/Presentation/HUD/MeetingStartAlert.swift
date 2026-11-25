@@ -7,7 +7,7 @@ struct MeetingStartAlert: View {
     let title: String
     let startTime: String
     let detail: String
-    /// "You're about to meet Marco, CEO at Northwind" when known.
+    /// "You're about to meet Ada, CEO at Northwind" when known.
     var contextLine: String? = nil
     /// Up to three "what to prepare" points from the meeting brief.
     var briefPoints: [String] = []

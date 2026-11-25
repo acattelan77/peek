@@ -47,8 +47,8 @@ last step and is the owner's.
 2. **Owner decisions — Blocked on the owner.** App name, bundle ID (`com.peek.app`
    may be taken; the `PEEK_BUNDLE_ID` repository variable overrides it for the
    store build), price, category, privacy-label stance, privacy policy URL,
-   whether the full-screen alert should respect Focus, and the repository
-   license (there is none yet, and the repository is public).
+   and whether the full-screen alert should respect Focus. The license is
+   decided: MIT, open source (owner, 2026-11-25).
 3. **Apple-side setup — Blocked on the owner.** App Store Connect API key, App ID
    and app record, then the App Store and Developer ID secrets listed in
    `docs/APP_STORE.md` and `docs/RELEASE.md`.

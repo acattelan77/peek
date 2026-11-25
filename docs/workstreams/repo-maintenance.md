@@ -27,12 +27,13 @@ work without reconstructing state from stale documents.
 - Remove external-system specifics from living docs (`docs/APP_STORE.md`,
   architecture, agent guide).
 - Trim `.gitignore` to what applies; add secret patterns.
+- Add the MIT `LICENSE` and fictional data in fixtures and comments.
 - Build-only bump to 1.16.1 (54), required by CI because a packaging script was
   removed.
 
 ## Out of scope
 
-- App code, tests, workflows and release secrets.
+- App behavior (code changes are comments only), workflows and release secrets.
 
 ## Claimed files and subsystems
 
@@ -69,9 +70,14 @@ work without reconstructing state from stale documents.
   translation review), PEEK-277 to PEEK-281 (post-release proposals from the
   2026-11-24 gap analysis; "providers as data" moved to 281 because PEEK-276
   was used for the context formatting fix).
-- Open for the owner: a license for the public repository; real names and
-  domains that remain in a source comment and in test fixtures
-  (`MeetingContext.swift`, `MeetingContextTests.swift`), left for a code change.
+- 2026-11-25, owner: Peek is released as open source under the MIT License
+  (`LICENSE`, README section). MIT rather than GPL so App Store distribution
+  stays possible.
+- Real names and company domains in source comments and test fixtures
+  (`MeetingContext.swift`, `PeekComponents.swift`, the two HUD files,
+  `MeetingContextTests.swift`) and in docs were replaced with fictional ones
+  (Ada Lovelace, Grace Hopper, Northwind, `northwind.example`). Comments only in
+  app code; no behavior change.
 
 ## Exact next action
 

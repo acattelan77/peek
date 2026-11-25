@@ -70,7 +70,7 @@ teams in other countries.
    menu bar counts down to the call; the start alert still appears for the lunch
    if its style allows. With no meeting ahead it reads "No upcoming meetings".
 3. "Name in the menu bar: Who you're meeting" on a meeting with attendees shows
-   "8m - Marco"; hovering shows the event title.
+   "8m - Ada"; hovering shows the event title.
 4. Add Dublin, New York, Shanghai, Kolkata and Tokyo in Preferences: they appear
    under the popover header and update each minute; Tokyo shows +1 in the
    evening. Expand a meeting: its time appears in each city. Remove a city.

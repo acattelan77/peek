@@ -22,4 +22,7 @@ In short:
 Never commit calendar data, screenshots with real events, real names or email
 addresses, signing material, API keys, `build/` or `artifacts/`.
 
+By contributing, you agree that your contributions are licensed under the
+project's [MIT License](LICENSE).
+
 Security issues: see [`SECURITY.md`](SECURITY.md).

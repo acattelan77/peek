@@ -80,7 +80,7 @@ and every text/background token pair meets WCAG AA in light and dark.
 
 ## Decisions and open questions
 
-- Peek's design system is its own. It does not follow Northwind's Visual Identity.
+- Peek's design system is its own. It does not follow any company's visual identity.
 - macOS 13 gives third-party apps no Dynamic Type: SwiftUI text styles have fixed sizes
   on macOS. Fixed point sizes stay, centralized in `PeekFont`. The PEEK-108 claim was
   corrected rather than reimplemented.

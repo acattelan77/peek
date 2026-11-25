@@ -65,8 +65,8 @@ and [ADR 0006](docs/decisions/0006-local-diagnostics.md).
 
 ## Status
 
-Peek is feature-complete for its first public release and in pre-release
-validation. Distribution will be through the Mac App Store and a Developer ID
+Peek is open source (MIT), feature-complete for its first public release and in
+pre-release validation. Distribution will be through the Mac App Store and a Developer ID
 signed, notarized DMG; neither is published yet. What is done, what is waiting
 for checks on a Mac and what is missing is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -187,3 +187,9 @@ the calendar owner's permission. The contract is in
 * [Release (Developer ID DMG)](docs/RELEASE.md) and [Mac App Store](docs/APP_STORE.md)
 * [Decision records](docs/decisions/README.md)
 * [Agent and contributor guide](AGENTS.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+
+## License
+
+Peek is open source under the [MIT License](LICENSE). You may use, modify and
+redistribute it, including in commercial and App Store builds, as long as the
+copyright notice and license text are kept.

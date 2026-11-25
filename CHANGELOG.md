@@ -18,6 +18,9 @@ noted under the version it belongs to.
   `docs/MAC_CHECKS.md` collects every pending check on a Mac, `AGENTS.md` is
   rewritten as the entry point, and finished workstreams moved to
   `docs/workstreams/archive/`. The design handoff moved to `design/handoff-v1/`.
+- Peek is open source under the MIT License (`LICENSE`).
+- Test fixtures, code comments and docs use fictional people and companies
+  instead of real ones.
 
 ### Fixed
 
@@ -274,7 +277,7 @@ noted under the version it belongs to.
 
 ### Added
 
-- PEEK-211: "You're about to meet Marco, CEO at Northwind" in the next-event row,
+- PEEK-211: "You're about to meet Ada, CEO at Northwind" in the next-event row,
   the heads-up card and the full-screen alert. Attendees are matched with Contacts
   for role and company when the user turns it on in Preferences (the permission is
   asked only then); otherwise the company email domain is shown.

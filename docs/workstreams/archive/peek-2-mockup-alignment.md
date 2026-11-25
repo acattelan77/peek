@@ -19,7 +19,7 @@ event rows, meeting page, full-screen alert and Preferences.
 - Meeting page in the popover, replacing in-place row expansion.
 - Full-screen alert layout.
 - Preferences tabs by purpose, reusing the existing settings.
-- Attendee display names derived from email addresses; headline "Marco, CEO at
+- Attendee display names derived from email addresses; headline "Ada, CEO at
   Northwind, and 2 others".
 - New copy in en, it, de, fr, es.
 

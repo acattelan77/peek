@@ -632,7 +632,7 @@ struct PeekAvatar: View {
             .accessibilityHidden(true)
     }
 
-    /// "Ada Lovelace" → "MT", "Marco" → "M", "l.ferri@example.com" → "L".
+    /// "Ada Lovelace" → "AL", "Ada" → "A", "l.ferri@example.com" → "L".
     static func initials(for name: String) -> String {
         let words = name.split(whereSeparator: { $0 == " " || $0 == "." || $0 == "@" })
         let source = name.contains("@") ? Array(words.prefix(1)) : Array(words.prefix(2))

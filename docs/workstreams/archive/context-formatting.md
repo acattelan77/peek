@@ -17,7 +17,7 @@ bullets shown twice.
 The file is valid and nothing is truncated. `the writer script` (notes vault,
 read only) maps the day log's labelled fields as follows:
 
-- `Proposed goal:` → `headline` ("uscire con il dato per Marco…"). Peek
+- `Proposed goal:` → `headline` ("uscire con il dato per Ada…"). Peek
   used any file headline as the page title.
 - `Ultima volta:` (absent here) + `Aperto con loro:` → `summary` ("report di una
   pagina sull’EPT…"). The value after the label starts in lower case, so with

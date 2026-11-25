@@ -238,7 +238,7 @@ the product page but is easier to challenge in review. If you pick it, remove
   > meetings with a link or with people in them.
   >
   > Know who you're meeting. With your permission, Peek matches attendees with
-  > your Contacts to show their role and company: "You're about to meet Marco,
+  > your Contacts to show their role and company: "You're about to meet Ada,
   > CEO of Northwind." It can also read meeting notes that another app of
   > yours writes into a folder you choose.
   >
@@ -279,7 +279,7 @@ one to ten per localization. Plan five at 2880×1800, captured on a demo
 account with fictional calendars and people (never real meetings or contacts),
 light appearance first, with a short caption bar above each:
 
-1. Menu bar with the "8m - Marco" countdown and the open popover: "Your next
+1. Menu bar with the "8m - Ada" countdown and the open popover: "Your next
    meeting, always in sight."
 2. Expanded meeting page with attendees, roles and the Join button: "Know who
    you're meeting."

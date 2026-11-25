@@ -19,7 +19,7 @@ struct StartingNowHUD: View {
     let calendarColor: Color?
     /// Provider label such as "Zoom"; when non-nil a Join button is shown.
     let joinProviderLabel: String?
-    /// "You're about to meet Marco, CEO at Northwind" when known.
+    /// "You're about to meet Ada, CEO at Northwind" when known.
     var contextLine: String? = nil
     /// "2 to prepare: Confirm the renewal position" on the 2-minute card (PEEK-263).
     var prepLine: String? = nil

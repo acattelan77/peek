@@ -44,7 +44,7 @@ protocol ContactLookup {
 /// A display-ready person in the meeting-context card.
 struct MeetingPerson: Equatable {
     let name: String
-    /// Short name for the headline ("Marco"), falling back to `name`.
+    /// Short name for the headline ("Ada"), falling back to `name`.
     let shortName: String
     let role: String?
     let company: String?
@@ -203,8 +203,8 @@ enum MeetingContextBuilder {
         return known + unknown
     }
 
-    /// "You're about to meet Marco, CEO at Northwind", "… Marco and Anna",
-    /// "… Marco and 3 others". Nil when there is nobody to meet.
+    /// "You're about to meet Ada, CEO at Northwind", "… Ada and Anna",
+    /// "… Ada and 3 others". Nil when there is nobody to meet.
     static func headline(for people: [MeetingPerson]) -> String? {
         guard let lead = people.first else { return nil }
         switch people.count {

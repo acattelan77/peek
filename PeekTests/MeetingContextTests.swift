@@ -102,24 +102,24 @@ final class MeetingContextBuilderTests: XCTestCase {
         func card(forEmail email: String) -> ContactCard? { cards[email] }
     }
 
-    private let marco = ContactCard(givenName: "Marco", fullName: "Ada Lovelace", jobTitle: "CEO", organization: "Northwind")
+    private let ada = ContactCard(givenName: "Ada", fullName: "Ada Lovelace", jobTitle: "CEO", organization: "Northwind")
 
     func testHeadlineForOnePersonFromContacts() {
         let attendees = [
             AttendeeInput(name: "Me", email: "me@example.org", isCurrentUser: true),
-            AttendeeInput(name: nil, email: "MARCO@northwind.example", isOrganizer: true)
+            AttendeeInput(name: nil, email: "ADA@northwind.example", isOrganizer: true)
         ]
         let context = MeetingContextBuilder.make(
             attendees: attendees,
             notes: nil,
-            contacts: FakeContacts(cards: ["marco@northwind.example": marco]),
+            contacts: FakeContacts(cards: ["ada@northwind.example": ada]),
             external: nil
         )
 
         XCTAssertEqual(context.people.count, 1)
         XCTAssertEqual(context.people.first?.name, "Ada Lovelace")
         XCTAssertEqual(context.people.first?.descriptor, "CEO at Northwind")
-        XCTAssertEqual(context.headline, "You're about to meet Marco, CEO at Northwind")
+        XCTAssertEqual(context.headline, "You're about to meet Ada, CEO at Northwind")
     }
 
     func testWithoutContactsTheEmailDomainIsUsed() {
@@ -145,19 +145,19 @@ final class MeetingContextBuilderTests: XCTestCase {
     func testSeveralPeopleKnownFirstAndDeduplicated() {
         let attendees = [
             AttendeeInput(name: "Anna Rossi", email: "anna@example.org"),
-            AttendeeInput(name: "Marco", email: "marco@northwind.example"),
-            AttendeeInput(name: "Marco", email: "mailto:marco@northwind.example"),
+            AttendeeInput(name: "Ada", email: "ada@northwind.example"),
+            AttendeeInput(name: "Ada", email: "mailto:ada@northwind.example"),
             AttendeeInput(name: "Paolo Bianchi", email: "paolo@example.org")
         ]
         let context = MeetingContextBuilder.make(
             attendees: attendees,
             notes: nil,
-            contacts: FakeContacts(cards: ["marco@northwind.example": marco]),
+            contacts: FakeContacts(cards: ["ada@northwind.example": ada]),
             external: nil
         )
 
-        XCTAssertEqual(context.people.map(\.shortName), ["Marco", "Anna", "Paolo"])
-        XCTAssertEqual(context.headline, "You're about to meet Marco, CEO at Northwind, and 2 others")
+        XCTAssertEqual(context.people.map(\.shortName), ["Ada", "Anna", "Paolo"])
+        XCTAssertEqual(context.headline, "You're about to meet Ada, CEO at Northwind, and 2 others")
     }
 
     func testSeveralPeopleWithoutRoleUseTheShortForm() {
@@ -211,13 +211,13 @@ final class MeetingContextBuilderTests: XCTestCase {
             headline: "Renewal call with Northwind",
             summary: "They want a two-year deal.",
             bullets: ["Bring the usage report"],
-            people: [MeetingContextFile.Person(email: "marco@northwind.example", name: nil, role: "Founder", company: nil, note: "Prefers short calls")],
+            people: [MeetingContextFile.Person(email: "ada@northwind.example", name: nil, role: "Founder", company: nil, note: "Prefers short calls")],
             links: []
         )
         let context = MeetingContextBuilder.make(
-            attendees: [AttendeeInput(name: "Marco", email: "marco@northwind.example")],
+            attendees: [AttendeeInput(name: "Ada", email: "ada@northwind.example")],
             notes: nil,
-            contacts: FakeContacts(cards: ["marco@northwind.example": marco]),
+            contacts: FakeContacts(cards: ["ada@northwind.example": ada]),
             external: entry
         )
 
@@ -244,9 +244,9 @@ final class MeetingContextFileTests: XCTestCase {
     func testDecodesVersionOneAndIgnoresUnknownFields() throws {
         let file = try decode("""
         {"schemaVersion": 1, "generatedAt": "2026-11-23T08:00:00+01:00", "writer": "system-42",
-         "events": [{"id": "ABC:123", "headline": " Meet Marco ", "summary": "Renewal",
+         "events": [{"id": "ABC:123", "headline": " Meet Ada ", "summary": "Renewal",
                      "bullets": ["One", "", "Two"],
-                     "people": [{"email": "marco@northwind.example", "role": "CEO", "extra": true}],
+                     "people": [{"email": "ada@northwind.example", "role": "CEO", "extra": true}],
                      "links": [{"title": "Deck", "url": "https://example.com/deck"},
                                {"title": "Local", "url": "file:///etc/passwd"},
                                {"url": "zoommtg://zoom.us/join"}],
@@ -255,7 +255,7 @@ final class MeetingContextFileTests: XCTestCase {
 
         XCTAssertNotNil(file.generatedAt)
         let entry = try XCTUnwrap(file.entry(forEventID: "ABC:123", start: nil))
-        XCTAssertEqual(entry.headline, "Meet Marco")
+        XCTAssertEqual(entry.headline, "Meet Ada")
         XCTAssertEqual(entry.bullets, ["One", "Two"])
         XCTAssertEqual(entry.people.first?.role, "CEO")
         XCTAssertEqual(entry.links.map(\.url.absoluteString), ["https://example.com/deck"])
@@ -323,8 +323,8 @@ final class ContextDayTests: XCTestCase {
 
     private let sample = """
     {"schemaVersion": 1, "generatedAt": "2026-11-25T08:52:00+01:00",
-     "day": {"date": "2026-11-25", "headline": "Square call with Marco moved to today",
-             "priorities": [{"text": "Talking points for Marco", "done": false},
+     "day": {"date": "2026-11-25", "headline": "Square call with Ada moved to today",
+             "priorities": [{"text": "Talking points for Ada", "done": false},
                             {"text": "Ask which price was sent", "done": true},
                             {"text": "Approve the objectives"}],
              "links": [{"title": "Day log", "url": "obsidian://open?vault=Notes&file=today"}]},
@@ -334,8 +334,8 @@ final class ContextDayTests: XCTestCase {
     func testDayIsDecoded() throws {
         let file = try decode(sample)
         let day = try XCTUnwrap(file.day)
-        XCTAssertEqual(day.headline, "Square call with Marco moved to today")
-        XCTAssertEqual(day.priorities.map(\.text), ["Talking points for Marco", "Ask which price was sent", "Approve the objectives"])
+        XCTAssertEqual(day.headline, "Square call with Ada moved to today")
+        XCTAssertEqual(day.priorities.map(\.text), ["Talking points for Ada", "Ask which price was sent", "Approve the objectives"])
         XCTAssertEqual(day.priorities.map(\.done), [false, true, false])
         XCTAssertEqual(day.links.map(\.title), ["Day log"])
         XCTAssertEqual(day.links.first?.url.scheme, "obsidian")
@@ -631,7 +631,7 @@ final class ContextFileFormattingTests: XCTestCase {
     private let json = """
     {"schemaVersion": 1,
      "events": [{"id": "jane",
-                 "headline": "uscire con il dato per Marco verificato.",
+                 "headline": "uscire con il dato per Ada verificato.",
                  "summary": "report di una pagina sull’EPT. iPhone resta minuscolo solo come prima parola.",
                  "bullets": ["farti spiegare metodo e perimetro.", "Chiedere falsi positivi.", "iOS build da verificare.",
                              "Uno", "Due", "Tre", "Sette"],
@@ -646,7 +646,7 @@ final class ContextFileFormattingTests: XCTestCase {
 
     func testProseFieldsStartWithACapitalLetter() throws {
         let entry = try entry()
-        XCTAssertEqual(entry.headline, "Uscire con il dato per Marco verificato.")
+        XCTAssertEqual(entry.headline, "Uscire con il dato per Ada verificato.")
         XCTAssertEqual(entry.summary, "Report di una pagina sull’EPT. iPhone resta minuscolo solo come prima parola.")
         XCTAssertEqual(Array(entry.bullets.prefix(3)), ["Farti spiegare metodo e perimetro.", "Chiedere falsi positivi.", "iOS build da verificare."])
         XCTAssertEqual(entry.people.first?.note, "Riporta a Grace")
@@ -676,7 +676,7 @@ final class ContextFileFormattingTests: XCTestCase {
             external: try entry()
         )
         XCTAssertTrue(fromFile.headlineIsFromContextFile)
-        XCTAssertEqual(fromFile.contextFileHeadline, "Uscire con il dato per Marco verificato.")
+        XCTAssertEqual(fromFile.contextFileHeadline, "Uscire con il dato per Ada verificato.")
         XCTAssertNil(fromFile.ownHeadline)
 
         let own = MeetingContextBuilder.make(
@@ -693,7 +693,7 @@ final class ContextFileFormattingTests: XCTestCase {
 
     func testContextDoesNotRepeatTheBulletsShownUnderWhatToPrepare() throws {
         let context = MeetingContextBuilder.make(attendees: [], notes: nil, contacts: nil, external: try entry())
-        let input = BriefInput(title: "Jane : Alessandro", start: Date(), context: context)
+        let input = BriefInput(title: "Jane : Ada", start: Date(), context: context)
         let brief = try XCTUnwrap(BriefPolicy.contextFolderBrief(for: input, generatedAt: Date()))
 
         // The brief takes the first five bullets; only the sixth is left for Context.
