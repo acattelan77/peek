@@ -20,6 +20,7 @@ There are no third-party dependencies and no package manager.
 bash scripts/check-version.sh
 bash scripts/check-design-tokens.sh
 python3 scripts/check-localization.py
+python3 scripts/check-personal-data.py
 
 xcodebuild -scheme Peek -configuration Debug -derivedDataPath ./build \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
@@ -40,6 +41,7 @@ another language.
 | `bump-version.sh <level>` | Raise the version (`major`, `minor`, `patch`, `build`, or `X.Y.Z`) | Locally |
 | `check-design-tokens.sh` | No hardcoded colors, fonts, spacing, radii or sizes outside the design system | CI, Linux |
 | `check-localization.py` | Every string is in all five tables with matching format specifiers, and no table has unused keys | CI, Linux |
+| `check-personal-data.py [--commits <base>]` | No email addresses outside example domains, home-directory paths, signing material, build outputs or terms on the hashed denylist, in tracked files and, with `--commits`, in new commits' authors and messages | CI, locally, Linux |
 | `check-app-bundle.sh <app> [--distribution]` | A built app carries the privacy manifest, usage descriptions, export-compliance key and entitlements | CI, release scripts |
 | `build-unsigned.sh [--install]` | Ad-hoc signed Release app with working entitlements; `--install` copies it to `/Applications` | Mac |
 | `create-dmg.sh` | Ad-hoc signed Release app in `artifacts/Peek-Installer.dmg` | Mac |

@@ -13,6 +13,7 @@
 - [ ] `bash scripts/check-version.sh`
 - [ ] `bash scripts/check-design-tokens.sh`
 - [ ] `python3 scripts/check-localization.py`
+- [ ] `python3 scripts/check-personal-data.py --commits origin/main`
 - [ ] `git diff --check`
 - [ ] Build and tests (`build-and-test` in CI, or locally)
 
@@ -26,4 +27,6 @@
 - [ ] `docs/ROADMAP.md` item states
 - [ ] Workstream file updated (archived on merge)
 - [ ] ADR added or amended, when a contract, persistence, privacy or cross-layer rule changes
-- [ ] No real personal data, secrets, build outputs or artifacts committed
+- [ ] No real people, emails, company names, machine names or home paths in code,
+      fixtures, docs, screenshots or commit messages; commits use a noreply email
+- [ ] No secrets, signing material, build outputs or artifacts committed
