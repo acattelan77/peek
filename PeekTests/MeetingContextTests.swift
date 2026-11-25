@@ -623,3 +623,81 @@ final class DayNeverReachesBriefTests: XCTestCase {
         }
     }
 }
+
+/// A context file whose fields are labelled values copied from notes, as
+/// Northwind Notes writes them: a lower-case goal as `headline`, an "open with them"
+/// fragment as `summary`, and the open "to prepare" boxes as `bullets`.
+final class ContextFileFormattingTests: XCTestCase {
+    private let json = """
+    {"schemaVersion": 1,
+     "events": [{"id": "jane",
+                 "headline": "uscire con il dato per Marco verificato.",
+                 "summary": "report di una pagina sull’EPT. iPhone resta minuscolo solo come prima parola.",
+                 "bullets": ["farti spiegare metodo e perimetro.", "Chiedere falsi positivi.", "iOS build da verificare.",
+                             "Uno", "Due", "Tre", "Sette"],
+                 "people": [{"email": "jane@northwind.example", "name": "jane doe", "note": "riporta a Grace"}]}],
+     "day": {"date": "2026-11-25", "headline": "giornata piena", "priorities": [{"text": "block/Square"}]}}
+    """
+
+    private func entry() throws -> MeetingContextFile.Entry {
+        let file = try MeetingContextFile.decode(Data(json.utf8))
+        return try XCTUnwrap(file.entry(forEventID: "jane", start: nil))
+    }
+
+    func testProseFieldsStartWithACapitalLetter() throws {
+        let entry = try entry()
+        XCTAssertEqual(entry.headline, "Uscire con il dato per Marco verificato.")
+        XCTAssertEqual(entry.summary, "Report di una pagina sull’EPT. iPhone resta minuscolo solo come prima parola.")
+        XCTAssertEqual(Array(entry.bullets.prefix(3)), ["Farti spiegare metodo e perimetro.", "Chiedere falsi positivi.", "iOS build da verificare."])
+        XCTAssertEqual(entry.people.first?.note, "Riporta a Grace")
+        // Names are data, not sentences: left as written.
+        XCTAssertEqual(entry.people.first?.name, "jane doe")
+
+        let day = try XCTUnwrap(try MeetingContextFile.decode(Data(json.utf8)).day)
+        XCTAssertEqual(day.headline, "Giornata piena")
+        XCTAssertEqual(day.priorities.first?.text, "Block/Square")
+    }
+
+    func testSentenceStart() {
+        XCTAssertEqual(MeetingContextFile.sentenceStart("report"), "Report")
+        XCTAssertEqual(MeetingContextFile.sentenceStart("Report"), "Report")
+        XCTAssertEqual(MeetingContextFile.sentenceStart("eBay call"), "eBay call")
+        XCTAssertEqual(MeetingContextFile.sentenceStart("block/Square"), "Block/Square")
+        XCTAssertEqual(MeetingContextFile.sentenceStart("è tardi"), "È tardi")
+        XCTAssertEqual(MeetingContextFile.sentenceStart("16:35 call"), "16:35 call")
+        XCTAssertEqual(MeetingContextFile.sentenceStart(""), "")
+    }
+
+    func testHeadlineFromTheFileIsMarkedSoThePageKeepsTheEventTitle() throws {
+        let fromFile = MeetingContextBuilder.make(
+            attendees: [AttendeeInput(name: "Jane", email: "jane@northwind.example")],
+            notes: nil,
+            contacts: nil,
+            external: try entry()
+        )
+        XCTAssertTrue(fromFile.headlineIsFromContextFile)
+        XCTAssertEqual(fromFile.contextFileHeadline, "Uscire con il dato per Marco verificato.")
+        XCTAssertNil(fromFile.ownHeadline)
+
+        let own = MeetingContextBuilder.make(
+            attendees: [AttendeeInput(name: "Jane", email: "jane@northwind.example")],
+            notes: nil,
+            contacts: nil,
+            external: nil
+        )
+        XCTAssertFalse(own.headlineIsFromContextFile)
+        XCTAssertNil(own.contextFileHeadline)
+        XCTAssertEqual(own.ownHeadline, own.headline)
+        XCTAssertEqual(own.headline, "You're about to meet Jane, from northwind.example")
+    }
+
+    func testContextDoesNotRepeatTheBulletsShownUnderWhatToPrepare() throws {
+        let context = MeetingContextBuilder.make(attendees: [], notes: nil, contacts: nil, external: try entry())
+        let input = BriefInput(title: "Jane : Alessandro", start: Date(), context: context)
+        let brief = try XCTUnwrap(BriefPolicy.contextFolderBrief(for: input, generatedAt: Date()))
+
+        // The brief takes the first five bullets; only the sixth is left for Context.
+        XCTAssertEqual(context.contextBullets(excludingBriefPoints: brief.points), ["Tre"])
+        XCTAssertEqual(context.contextBullets(excludingBriefPoints: []), context.bullets)
+    }
+}

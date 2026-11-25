@@ -95,3 +95,15 @@ The change is additive, so `schemaVersion` stays `1`.
   the day block; meetings keep their context with a quiet "Context from <date>"
   line, and Preferences shows when the file was last generated. A file without
   `generatedAt` counts as fresh.
+
+## Amendment 2026-11-25: how Peek shows writer text (PEEK-276)
+
+No contract change. Peek now shows an `events[].headline` from the file at the
+top of the meeting page's Context section, not as the page title, which stays
+the event title. The full-screen start alert also keeps the event title as its
+headline; the 2-minute card still shows the file headline as its context line. Peek
+upper-cases the first letter of `headline`, `summary`, `bullets`,
+`people[].note`, `day.headline` and `day.priorities[].text` when it is a
+lower-case letter and the first word has no other capital ("iPhone" stays).
+Names, roles, companies and link titles are left as written. The Context
+section leaves out bullets already listed under "What to prepare".

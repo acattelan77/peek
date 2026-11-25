@@ -73,6 +73,11 @@ struct MeetingPerson: Equatable {
 /// so the rules are testable without EventKit, Contacts or files.
 struct MeetingContext: Equatable {
     let headline: String?
+    /// True when `headline` came from the context file rather than from the
+    /// people Peek found. A writer's headline can be a long sentence (Northwind Notes
+    /// sends the proposed goal), so the meeting page keeps the event title as its
+    /// title and shows this line at the top of Context instead.
+    var headlineIsFromContextFile: Bool = false
     let people: [MeetingPerson]
     let agenda: String?
     /// Context written by another app into the user's context folder (PEEK-213).
@@ -91,6 +96,27 @@ struct MeetingContext: Equatable {
 
     var hasExternalContext: Bool {
         summary != nil || !bullets.isEmpty || !links.isEmpty
+    }
+
+    /// The headline the meeting page shows in its Context section: only one
+    /// the context file wrote. Peek's own "You're about to meet…" stays the title.
+    var contextFileHeadline: String? {
+        headlineIsFromContextFile ? headline : nil
+    }
+
+    /// Peek's own "You're about to meet…" headline; nil when the headline came
+    /// from the context file. The meeting page and the full-screen start alert
+    /// use it as their title and otherwise show the event title (PEEK-276).
+    var ownHeadline: String? {
+        headlineIsFromContextFile ? nil : headline
+    }
+
+    /// The context bullets the Context section still has to show: those not
+    /// already listed under "What to prepare". A brief from the context folder
+    /// is made of these same bullets, and showing them twice read as an error.
+    func contextBullets(excludingBriefPoints points: [String]) -> [String] {
+        let shown = Set(points)
+        return bullets.filter { !shown.contains($0) }
     }
 }
 
@@ -127,6 +153,7 @@ enum MeetingContextBuilder {
         let bullets = external?.bullets ?? []
         return MeetingContext(
             headline: external?.headline ?? headline(for: people),
+            headlineIsFromContextFile: external?.headline != nil,
             people: people,
             agenda: InvitationTextCleaner.clean(notes),
             summary: external?.summary,

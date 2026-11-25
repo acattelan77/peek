@@ -986,7 +986,7 @@ struct MeetingPage: View {
                     } else {
                         peopleSection(context: context, detail: detail)
                         briefCard
-                        externalContextSection(context)
+                        externalContextSection(context, briefPoints: event.isAllDay ? [] : briefService.brief(for: event)?.points ?? [])
                         timeZonesSection
                         notesSection(context.agenda ?? detail.notes)
                         sourcesRow(context)
@@ -1037,14 +1037,17 @@ struct MeetingPage: View {
 
     private func summary(_ context: MeetingContext) -> some View {
         let title = EventPresentation.title(event)
+        // Peek's own "You're about to meet…" is the page title, with the event
+        // title below it. A headline from the context file goes to Context.
+        let ownHeadline = context.ownHeadline
         var subtitleParts: [String] = []
-        if context.headline != nil { subtitleParts.append(title) }
+        if ownHeadline != nil { subtitleParts.append(title) }
         if let meetingURL {
             subtitleParts.append(MeetingProvider.label(for: meetingURL))
         } else if let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
             subtitleParts.append(location)
         }
-        if context.headline != nil, context.people.count > 1 {
+        if ownHeadline != nil, context.people.count > 1 {
             subtitleParts.append(context.people.count == 2
                 ? NSLocalizedString("1 other person", comment: "Meeting page: one more attendee")
                 : String(format: NSLocalizedString("%d other people", comment: "Meeting page: more attendees"), context.people.count - 1))
@@ -1065,7 +1068,7 @@ struct MeetingPage: View {
                 .font(PeekFont.label)
                 .tracking(PeekFont.labelTracking)
                 .foregroundColor(tone.text)
-            Text(context.headline ?? title)
+            Text(ownHeadline ?? title)
                 .font(PeekFont.meetingTitle)
                 .foregroundColor(PeekColor.ink)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1255,17 +1258,25 @@ struct MeetingPage: View {
     // MARK: Context, time zones, notes
 
     @ViewBuilder
-    private func externalContextSection(_ context: MeetingContext) -> some View {
-        if context.hasExternalContext {
+    private func externalContextSection(_ context: MeetingContext, briefPoints: [String]) -> some View {
+        // Bullets already listed under "What to prepare" are not repeated here.
+        let bullets = context.contextBullets(excludingBriefPoints: briefPoints)
+        if context.contextFileHeadline != nil || context.summary != nil || !bullets.isEmpty || !context.links.isEmpty {
             section(NSLocalizedString("Context", comment: "Expanded event section: context from the context folder")) {
                 VStack(alignment: .leading, spacing: PeekSpacing.xs) {
+                    if let headline = context.contextFileHeadline {
+                        Text(headline)
+                            .font(PeekFont.bodyEmphasis)
+                            .foregroundColor(PeekColor.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     if let summary = context.summary {
                         Text(summary)
                             .font(PeekFont.bodyMeta)
                             .foregroundColor(PeekColor.bodyText)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    ForEach(Array(context.bullets.enumerated()), id: \.offset) { _, bullet in
+                    ForEach(Array(bullets.enumerated()), id: \.offset) { _, bullet in
                         HStack(alignment: .firstTextBaseline, spacing: PeekSpacing.iconGap) {
                             Text(verbatim: "•")
                                 .font(PeekFont.bodyMeta)
