@@ -100,7 +100,8 @@ The change is additive, so `schemaVersion` stays `1`.
 
 No contract change. Peek now shows an `events[].headline` from the file at the
 top of the meeting page's Context section, not as the page title, which stays
-the event title; the card and the start alert still use it as before. Peek
+the event title. The full-screen start alert also keeps the event title as its
+headline; the 2-minute card still shows the file headline as its context line. Peek
 upper-cases the first letter of `headline`, `summary`, `bullets`,
 `people[].note`, `day.headline` and `day.priorities[].text` when it is a
 lower-case letter and the first word has no other capital ("iPhone" stays).

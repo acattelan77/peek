@@ -1039,7 +1039,7 @@ struct MeetingPage: View {
         let title = EventPresentation.title(event)
         // Peek's own "You're about to meet…" is the page title, with the event
         // title below it. A headline from the context file goes to Context.
-        let ownHeadline = context.headlineIsFromContextFile ? nil : context.headline
+        let ownHeadline = context.ownHeadline
         var subtitleParts: [String] = []
         if ownHeadline != nil { subtitleParts.append(title) }
         if let meetingURL {

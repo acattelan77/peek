@@ -36,8 +36,7 @@ read only) maps the day log's labelled fields as follows:
 ## Out of scope
 
 - The 42 script. Never written from this repo.
-- The start alert and the 2-minute card still use the file headline as their
-  context line (unchanged).
+- The 2-minute card still shows the file headline as its context line.
 
 ## Claimed files and subsystems
 
@@ -66,11 +65,13 @@ read only) maps the day log's labelled fields as follows:
 3. Bullets under "What to prepare" do not appear again under Context.
 4. A meeting without a file headline still shows "You're about to meet…" as
    the title.
+5. The full-screen start alert for the Jane-style meeting shows the event
+   title as its headline.
 
 ## Decisions and open questions
 
-- Should the start alert also keep the event title as its headline when the
-  file headline is a long goal sentence? Not changed here.
+- 2026-11-25, owner: the full-screen start alert also shows the event title
+  instead of the goal sentence (done in this PR).
 
 ## Exact next action
 

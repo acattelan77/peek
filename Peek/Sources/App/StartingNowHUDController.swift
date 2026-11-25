@@ -181,7 +181,9 @@ final class StartingNowHUDController {
             title: event.title ?? NSLocalizedString("Untitled Event", comment: "Fallback event title"),
             startTime: DateFormatter.localizedString(from: event.startDate, dateStyle: .none, timeStyle: .short),
             detail: detailParts.joined(separator: " · "),
-            contextLine: MeetingContextProvider.context(for: event).headline,
+            // A headline from the context file can be a long goal sentence:
+            // the alert then keeps the event title as its headline (PEEK-276).
+            contextLine: MeetingContextProvider.context(for: event).ownHeadline,
             briefPoints: Array((MeetingBriefService.shared.brief(for: event)?.points ?? []).prefix(MeetingBrief.heroPointLimit)),
             joinProviderLabel: providerLabel,
             appearanceMode: appearanceMode,

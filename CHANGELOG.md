@@ -14,7 +14,9 @@ This project follows Keep a Changelog conventions. Versions are released from `m
   Context section. Context text from the file (headline, summary, bullets,
   people notes, day headline and priorities) starts with a capital letter, so a
   value copied from a labelled note no longer reads as a fragment. Context no
-  longer repeats the bullets already shown under "What to prepare".
+  longer repeats the bullets already shown under "What to prepare". The
+  full-screen start alert also keeps the event title as its headline when the
+  headline comes from the context file.
 
 ## 1.16.0 - 2026-11-24
 

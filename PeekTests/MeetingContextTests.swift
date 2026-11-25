@@ -677,6 +677,7 @@ final class ContextFileFormattingTests: XCTestCase {
         )
         XCTAssertTrue(fromFile.headlineIsFromContextFile)
         XCTAssertEqual(fromFile.contextFileHeadline, "Uscire con il dato per Marco verificato.")
+        XCTAssertNil(fromFile.ownHeadline)
 
         let own = MeetingContextBuilder.make(
             attendees: [AttendeeInput(name: "Jane", email: "jane@northwind.example")],
@@ -686,6 +687,7 @@ final class ContextFileFormattingTests: XCTestCase {
         )
         XCTAssertFalse(own.headlineIsFromContextFile)
         XCTAssertNil(own.contextFileHeadline)
+        XCTAssertEqual(own.ownHeadline, own.headline)
         XCTAssertEqual(own.headline, "You're about to meet Jane, from northwind.example")
     }
 

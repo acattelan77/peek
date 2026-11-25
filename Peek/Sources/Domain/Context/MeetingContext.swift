@@ -104,6 +104,13 @@ struct MeetingContext: Equatable {
         headlineIsFromContextFile ? headline : nil
     }
 
+    /// Peek's own "You're about to meet…" headline; nil when the headline came
+    /// from the context file. The meeting page and the full-screen start alert
+    /// use it as their title and otherwise show the event title (PEEK-276).
+    var ownHeadline: String? {
+        headlineIsFromContextFile ? nil : headline
+    }
+
     /// The context bullets the Context section still has to show: those not
     /// already listed under "What to prepare". A brief from the context folder
     /// is made of these same bullets, and showing them twice read as an error.
