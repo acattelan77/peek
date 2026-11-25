@@ -18,7 +18,7 @@ fixture with a consumer email domain) can end with the marker
 
 Usage:
   python3 scripts/check-personal-data.py               # tracked files
-  python3 scripts/check-personal-data.py --commits BASE  # also BASE..HEAD metadata
+  python3 scripts/check-personal-data.py --commits BASE [--head SHA]  # also BASE..SHA metadata
 """
 
 from __future__ import annotations
@@ -144,9 +144,9 @@ def scan_tree(hashes: set[str], problems: list[str]) -> None:
         scan_text(path, data.decode("utf-8", errors="replace"), hashes, problems)
 
 
-def scan_commits(base: str, hashes: set[str], problems: list[str]) -> None:
+def scan_commits(base: str, head: str, hashes: set[str], problems: list[str]) -> None:
     fmt = "%H%x1f%an%x1f%ae%x1f%cn%x1f%ce%x1f%B%x1e"
-    out = subprocess.run(["git", "log", f"--format={fmt}", f"{base}..HEAD"], cwd=ROOT,
+    out = subprocess.run(["git", "log", f"--format={fmt}", f"{base}..{head}"], cwd=ROOT,
                          check=True, capture_output=True, text=True).stdout
     for record in out.split("\x1e"):
         record = record.strip("\n")
@@ -166,13 +166,16 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--commits", metavar="BASE",
                         help="also check author, committer and message of BASE..HEAD")
+    parser.add_argument("--head", default="HEAD",
+                        help="last commit to check with --commits (in CI, the pull request head,"
+                             " not GitHub's temporary merge commit)")
     args = parser.parse_args()
 
     hashes = load_hashes()
     problems: list[str] = []
     scan_tree(hashes, problems)
     if args.commits:
-        scan_commits(args.commits, hashes, problems)
+        scan_commits(args.commits, args.head, hashes, problems)
 
     if problems:
         print("Personal-data check failed. The repository is public; use fictional")
