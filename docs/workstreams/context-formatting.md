@@ -49,13 +49,14 @@ read only) maps the day log's labelled fields as follows:
 
 - [x] Diagnosis against the live day log on the main Mac
 - [x] Fix and tests
-- [ ] CI green
+- [x] CI green
 - [ ] Owner checks on the Mac
 
 ## Validation
 
 - Linux: `bash scripts/check-version.sh`, `git diff --check`.
-- Build and tests run in CI (`build-and-test`, macos-latest), not locally.
+- Build and tests ran in CI (`build-and-test`, macos-latest), not locally:
+  green on 96a643a, https://github.com/acattelan77/peek/actions/runs/45587195215.
 
 ## Owner checks on the Mac
 
