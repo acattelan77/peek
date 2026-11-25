@@ -1,10 +1,10 @@
 # Workstream: App Store readiness
 
 - Roadmap ID: PEEK-251, PEEK-252, PEEK-253, PEEK-254
-- Status: In review
+- Status: Blocked (on the owner: Apple-side setup and secrets in `docs/APP_STORE.md`; code merged in PR 16)
 - Owner: Claude Code (cloud session)
 - Branch/worktree: `claude/project-thread-yp9eyy`
-- Last updated: 2026-11-24
+- Last updated: 2026-11-25
 
 ## Objective
 

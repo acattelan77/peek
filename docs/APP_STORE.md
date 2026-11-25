@@ -1,6 +1,6 @@
 # Mac App Store readiness
 
-Last updated: 2026-11-24. Workstream: `docs/workstreams/app-store-readiness.md`.
+Last updated: 2026-11-25. Workstream: `docs/workstreams/app-store-readiness.md`.
 
 Peek ships two ways (owner decision, 2026-11-23): the Mac App Store and a
 Developer ID-signed, notarized DMG. Both come from the same source and the same
@@ -46,7 +46,8 @@ Connect. Submitting for App Review stays last and is the owner's step.
   channels) or set the repository variable `PEEK_BUNDLE_ID` for the App Store
   workflow only. Changing it moves Peek to a new sandbox container, so
   preferences, the context-folder choice and the keychain API key start fresh.
-  The LaunchAgent in the notes app calls the app by path, so it is not affected.
+  External tools that run `Peek --export` call the app by path, so they are
+  not affected.
 * **Price and availability.** Free, paid, or free with a later paid tier.
   This also decides whether you need the Paid Apps agreement and tax and
   banking forms in App Store Connect.
@@ -170,8 +171,8 @@ the same change that sets up App Store and Developer ID provisioning, then
 check on TestFlight that a reminder arrives during a Focus with Peek allowed
 to send time-sensitive notifications.
 
-One thing to verify on TestFlight: the Northwind Notes LaunchAgent runs
-`/Applications/Peek.app/Contents/MacOS/Peek --export …`. A sandboxed App Store
+One thing to verify on TestFlight: external tools (for example a LaunchAgent)
+run `/Applications/Peek.app/Contents/MacOS/Peek --export …`. A sandboxed App Store
 binary run that way keeps its sandbox and calendar grant, so this should work
 unchanged, but it has only been tested with the DMG build.
 
@@ -305,7 +306,7 @@ accepted.
    * Contacts opt-in and attendee roles;
    * pick the context folder, quit, relaunch: the folder is still read
      (security-scoped bookmark), a brief from the file appears;
-   * the Northwind Notes LaunchAgent still produces `_calendar.md` with the
+   * any external tool that runs `--export` still gets its JSON from the
      TestFlight build;
    * on-device brief on macOS 26, Claude brief with your key and the consent
      screen;

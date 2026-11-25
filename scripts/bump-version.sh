@@ -53,4 +53,4 @@ mv "$temporary_file" "$CONFIG_FILE"
 trap - EXIT
 
 echo "Bumped Peek from $current_version ($current_build) to $new_version ($new_build)."
-echo "Update CHANGELOG.md and docs/HANDOFF.md before handing off."
+echo "Update CHANGELOG.md and docs/ROADMAP.md before handing off."

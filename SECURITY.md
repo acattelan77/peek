@@ -2,25 +2,45 @@
 
 ## Supported version
 
-Security fixes target the latest release on `main`.
+Security fixes target the latest version on `main`.
 
 ## Reporting
 
-Report vulnerabilities privately to the repository owner. Do not include real calendar content, meeting credentials, tokens, or signing material in an issue.
+Report vulnerabilities privately to the repository owner, not in a public
+issue. Do not include real calendar content, meeting credentials, API keys
+or signing material.
 
-## Security model
+## Security and privacy model
 
-- Calendar data is read locally through EventKit.
-- Meeting links must use HTTPS and match the explicit trusted-domain allowlist.
-- The app makes no network requests and includes no telemetry.
-- The sandbox calendar entitlement is the only personal-information entitlement;
-  notification authorization is requested through the system notification API.
-- The optional headless calendar export is local-only and writes calendar content
-  only to stdout. Treat its JSON as sensitive: do not log it, commit it, or send
-  it to third parties without the calendar owner's authorization.
-- Settings import/export is not a feature of the current app.
+* **Calendar data stays local.** Events are read through EventKit with the
+  user's Full Access grant. Peek has no account, backend, analytics or
+  telemetry.
+* **One optional network connection.** When the user picks "Claude" as the
+  brief engine and accepts the consent screen, Peek sends the fields listed
+  there for one meeting to `https://api.anthropic.com` with the user's own API
+  key. The key is kept in the keychain. Briefs are off by default; the on-device
+  engine (Apple Foundation Models) sends nothing. See ADR 0005.
+* **Optional Contacts.** Contacts access is requested only when the user turns
+  on "Show who you're meeting", and lookups stay on the Mac.
+* **Read-only context folder.** Peek reads `peek-context.json` from a folder the
+  user picks, through a read-only, app-scoped security bookmark, and never
+  writes there. Context links are limited to an allowlist (`https`, `obsidian`)
+  and opened only on click (ADR 0004).
+* **Meeting links.** Join links must use HTTPS and match the trusted provider
+  patterns, with length limits on the input text.
+* **Diagnostics.** Logs, the local journal and the diagnostics export carry
+  counts, outcomes and opaque references, never titles, notes, attendees,
+  locations, links or paths. Nothing is uploaded (ADR 0006).
+* **Calendar export.** The headless `--export` command writes calendar content
+  only to stdout. Treat its JSON as personal data.
+* **Sandbox.** The app is sandboxed. Entitlements: calendars, address book,
+  outgoing network (Claude brief only), user-selected read-only files and
+  app-scoped bookmarks. The privacy manifest is
+  `Peek/Resources/PrivacyInfo.xcprivacy`.
 
-Public distribution must use Developer ID signing and Apple notarization. The
-release script verifies strict signing, entitlements, stapling, Gatekeeper, and
-DMG integrity, but a real signed/notarized release still needs credentials and
-clean-account validation. Local ad-hoc builds are not production artifacts.
+## Distribution
+
+Public builds are Developer ID signed and notarized (DMG) or distributed through
+the Mac App Store. `scripts/release.sh` fails closed unless strict signing,
+entitlements, stapling, Gatekeeper and DMG checks pass. Ad-hoc builds, including
+the test installer, are not production artifacts.

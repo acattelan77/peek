@@ -20,8 +20,7 @@ release_relevant_files=$(git diff --name-only "$BASE_REF"...HEAD -- \
     Peek.xcodeproj \
     Configuration \
     scripts/build-unsigned.sh \
-    scripts/create-dmg.sh \
-    scripts/create-simple-dmg.sh)
+    scripts/create-dmg.sh)
 
 if [ -z "$release_relevant_files" ]; then
     echo "No release-relevant app changes; no version bump required."
@@ -44,7 +43,7 @@ fi
 
 if [ "$current_build" -le "$base_build" ]; then
     echo "Release-relevant files changed, but build $current_build is not greater than base build $base_build."
-    echo "Run scripts/bump-version.sh with the appropriate bump and update the changelog and handoff."
+    echo "Run scripts/bump-version.sh with the appropriate bump and update the changelog."
     exit 1
 fi
 

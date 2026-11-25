@@ -1,133 +1,213 @@
 # Roadmap
 
-Roadmap items are ordered by product risk and architectural leverage. Dates are intentionally omitted until a release owner assigns them.
+This is the single place for Peek's current state, priorities and what is
+missing. Versions are in `CHANGELOG.md`; the physical checks are in
+`docs/MAC_CHECKS.md`; who is working on what is in `docs/workstreams/`.
 
-## Delivery protocol
+## States
 
-Every actionable item has a stable ID and a state. `Ready` means an agent may claim it by creating an active file in `docs/workstreams/`; `Active` means the workstream file names its owner and branch; `Blocked` must include the blocking condition; `Done` means the change is integrated and validated. `docs/HANDOFF.md` is the concise integrated-state record and takes precedence over stale workstream notes.
+| State | Meaning |
+| --- | --- |
+| `Ready` | Scoped; an agent may claim it with a workstream file |
+| `Active` | A top-level workstream file names its owner and branch |
+| `Blocked` | Cannot proceed; the line says on what and on whom |
+| `Shipped` | Merged to `main` with CI green; the owner's checks on a Mac are pending in `docs/MAC_CHECKS.md` |
+| `Done` | Shipped and validated, including any physical check |
+| `Deferred` | Agreed, but not before the first public release |
+| `Dropped` | Removed or superseded; kept for traceability |
 
-Before starting an item, follow `AGENTS.md`, confirm that no active workstream claims the same files or subsystem, and copy `docs/workstreams/TEMPLATE.md`. When pausing or finishing, update the workstream and handoff in the same change.
+IDs are stable and never reused. New items take the next free number in their
+range.
 
-## Now — audit remediation plan
+## Current state
 
-- **PEEK-AUD-01 — Done:** EventKit store-change refresh delivery is confined to the main thread, with regression coverage that posts the change notification from a background queue. The existing calendar UI and PEEK-111 export contract remain unchanged. Physical Calendar-change UI validation remains part of PEEK-AUD-07.
-- **PEEK-AUD-02 — Done:** The critical-event status-item pulse honors the system Reduce Motion preference, with focused policy coverage. Physical accessibility validation remains part of PEEK-AUD-07.
-- **PEEK-AUD-03 — Done:** Notification scheduling reports authorization and scheduling results through a testable seam, verifies expected pending requests, surfaces generic recoverable feedback in Preferences, and retries failed passes after 60 seconds without logging calendar content.
-- **PEEK-AUD-04 — Done:** The release script fails closed unless strict app signature, expected entitlements, notarization stapling, Gatekeeper assessment, DMG integrity, and mounted-DMG contents checks pass. A real signed/notarized run still requires release credentials and tag authority.
-- **PEEK-AUD-05 — Done:** README, development, project-status, and security documentation now reflect the current version, single `macos-latest` CI runner, removed settings import/export, protected PEEK-111 export boundary, and release evidence limitations.
-- **PEEK-AUD-06 — Done:** The Starting now HUD deduplication history prunes expired events and has a deterministic 256-entry bound, with focused duplicate, expiry, and long-session coverage.
-- **PEEK-AUD-07 — Blocked:** Complete physical release validation on real macOS 13 hardware and representative notched/external displays, including Full Access transitions, notification delivery, VoiceOver, Increased Contrast, and Reduce Motion. Computer Use timed out again on 2026-08-14 before interaction (error `-10005`); suitable hardware and user-authorized permission/UI checks remain required.
+Last reviewed 2026-11-25, with `main` at 1.16.1.
 
-## Now — reliability and release readiness
+The app is feature-complete for its first public release: phases 1 to 4 of the
+Peek 2.0 plan, the Peek 2.0 mockup alignment, App Store packaging and the
+pre-release robustness work are all on `main`. Nothing has been published: there
+is no App Store build and no notarized DMG yet, because the Apple-side setup and
+signing secrets are still missing. The owner uses the ad-hoc test installer
+built from `main`.
 
-- **PEEK-101 — Done:** Add notch-safe adaptive compact mode for crowded menu bars. Peek should proactively fall back to its icon before macOS hides the status item, restore text when space returns, and avoid rapid mode switching. Provide `Automatic`, `Always show icon`, and `Always show text` preferences, with `Automatic` as the default.
-- **PEEK-102 — Done:** Add fake EventKit and notification schedulers for authorization, refresh, and reminder integration tests.
-- **PEEK-103 — Done:** Add UI coverage for first launch, denied calendar access, empty state, event list, and preferences.
-- **PEEK-104 — Done:** Make the global hotkey update without restarting and surface registration conflicts. Live re-registration through a testable `GlobalHotkeyCoordinator`; API-reported registration failures shown in Preferences. Cross-app conflicts that Carbon does not report remain undetectable (documented limitation).
-- **PEEK-105 — Done (superseded):** Added visible success/error feedback for settings import and export. The import/export feature was later removed in 1.3.6 to simplify Preferences.
-- **PEEK-106 — Done (partial):** Validate macOS 13 behavior. The CI-hosted `macos-13` runner was removed because GitHub is retiring it and jobs hung queued indefinitely; validation on real macOS 13 hardware is still outstanding.
-- **PEEK-107 — Done:** Establish Developer ID signing, notarization, Sparkle or another update policy, and a release workflow.
-- **PEEK-108 — Done:** Complete VoiceOver labels, focus order, and keyboard activation. Type uses fixed, centralized roles (macOS has no Dynamic Type for third-party apps; corrected 2026-11-23).
-- **PEEK-109 — Done:** Fix automatic menu-bar space policy so a crowded menu bar (including macOS having hidden Peek's item entirely) collapses Peek to its clickable icon; restore text when space returns.
-- **PEEK-110 — Done:** Event detail expansion: events in the popover are now bordered cards (the next event keeps its urgency color coding) that expand in place to show notes, attendees with response status and the organizer, and conference provider identity. Attachments are omitted because macOS EventKit does not expose `EKAttachment` (iOS-only).
-- **Design refresh — Done:** Adopt the Claude Design "calm glance" system via a shared token layer applied across the popover, Preferences, new onboarding flow, and "Starting now" HUD; re-render the app icon (handoff §6). Follow-up: visual QA on a running build. Fixed alongside: accessory-app popover activation so the popover stays open and controls render active.
-- **Design system v2 — In review:** Semantic color roles with Increased Contrast variants, WCAG AA contrast fixes, full token adoption on every surface, promoted shared components, CI token lint and contrast tests (1.6.0, `docs/workstreams/design-system-v2.md`). Awaits owner visual QA on a Mac.
+What stands between `main` and a public release is, in order: the owner's checks
+on a Mac, the owner's product decisions, Apple-side setup and signing, and the
+first TestFlight round. See "Release path" below.
 
-## Now — Peek 2.0 phase 1: never miss a meeting
+## Release path
 
-Plan: "Peek: piano di sviluppo verso l'App Store" (phase 0 mockups approved 2026-11-23). Workstream: `docs/workstreams/phase-1-never-miss-a-meeting.md`. All four items ship in 1.7.0 and await owner checks on a Mac.
+The first public release ships on the Mac App Store and as a Developer ID
+signed, notarized DMG (owner decision, 2026-11-23). App Store submission is the
+last step and is the owner's.
 
-- **PEEK-201 — In review:** Compact read-only month calendar above the event list, with a day agenda; can be hidden in Preferences.
-- **PEEK-202 — In review:** Broader meeting-link detection (Zoom variants, Teams personal, Meet lookup, GoTo, Slack, Chime, Jitsi, FaceTime, RingCentral) and Join in the Zoom or Teams app when installed. Export JSON v1 join classification frozen.
-- **PEEK-203 — In review:** Start alert choice (off, heads-up card, full screen over all Spaces and full-screen apps), with full screen limited by default to events with a join link or attendees. Focus status is not read yet.
-- **PEEK-204 — In review:** Italian, German, French and Spanish localization with a CI table check.
+1. **Checks on a Mac — Blocked on the owner.** Every `Shipped` item below has its
+   checks in `docs/MAC_CHECKS.md`. PEEK-AUD-07 (clean account, macOS 13 hardware,
+   notched and external displays, VoiceOver, Increased Contrast, Reduce Motion)
+   also needs hardware that is not available yet.
+2. **Owner decisions — Blocked on the owner.** App name, bundle ID (`com.peek.app`
+   may be taken; the `PEEK_BUNDLE_ID` repository variable overrides it for the
+   store build), price, category, privacy-label stance, privacy policy URL,
+   whether the full-screen alert should respect Focus, and the repository
+   license (there is none yet, and the repository is public).
+3. **Apple-side setup — Blocked on the owner.** App Store Connect API key, App ID
+   and app record, then the App Store and Developer ID secrets listed in
+   `docs/APP_STORE.md` and `docs/RELEASE.md`.
+4. **Signing-dependent work — Blocked on step 3.**
+   * **PEEK-255 — Blocked:** add the time-sensitive notification entitlement
+     with App Store and Developer ID provisioning, so PEEK-272's time-sensitive
+     reminders break through Focus. Check on TestFlight.
+   * **PEEK-253 — Shipped:** first "App Store" workflow run with Upload off; an
+     agent fixes what it reports; then a run with Upload on for TestFlight.
+   * Verify on TestFlight that the sandboxed App Store binary still serves
+     `--export` to an external consumer, and that the Claude API key saved by
+     the DMG build is found or can be entered again.
+5. **PEEK-256 — Blocked on a native reader:** native review of the German,
+   French and Spanish translations (the Italian copy follows the mockups).
+6. **TestFlight round and submission — owner.** Follow "TestFlight plan" in
+   `docs/APP_STORE.md`, then submit for review.
 
-## Now — Peek 2.0 phase 2: meeting context
+## Shipped, awaiting checks on a Mac
 
-Workstream: `docs/workstreams/phase-2-meeting-context.md`. Ships in 1.8.0, stacked on phase 1.
+All merged to `main` between 1.6.0 and 1.16.1. Checks in `docs/MAC_CHECKS.md`.
 
-- **PEEK-211 — In review:** Attendees matched with Contacts (opt-in) for the "You're about to meet" headline and attendee roles; email-domain fallback.
-- **PEEK-212 — In review:** Invitation boilerplate removed from notes.
-- **PEEK-213 — In review:** Read-only meeting-context file in a user-chosen folder (ADR 0004, proposed); the Northwind Notes writer is not built yet.
-- **PEEK-214 — Deferred:** Google Calendar direct access, after 2.0.
+**Design**
 
-## Now — Peek 2.1 phase 3: meeting brief
+* **Design system v2 — Shipped (1.6.0):** semantic color roles with Increased
+  Contrast variants, WCAG AA fixes, tokens on every surface, CI token lint and
+  contrast tests.
+* **PEEK-241 — Shipped (1.11.0):** popover, meeting page, full-screen alert and
+  Preferences follow the approved Peek 2.0 mockup, light and dark; the footer
+  keeps its icon buttons (owner decision, 2026-11-24).
+* **PEEK-242 — Shipped (1.12.0):** five menu-bar states, the alert ladder, the
+  2-minute heads-up card, badge-only calendars.
 
-Workstream: `docs/workstreams/phase-3-ai-brief.md`. Ships in 1.9.0, stacked on phase 2. Decisions on data and consent in ADR 0005. App Store submission stays at the very end (owner, 2026-11-23).
+**Never miss a meeting (phase 1, 1.7.0)**
 
-- **PEEK-221 — In review:** On-device brief with Apple's Foundation Models (macOS 26 with Apple Intelligence); unavailable states explained in Preferences.
-- **PEEK-222 — In review:** Optional brief by Claude with the user's own Anthropic API key, kept in the keychain (owner choice, 2026-11-23).
-- **PEEK-223 — In review:** Consent screen listing exactly the fields sent; versioned so a change asks again. Off by default; keyword exclusions.
-- **PEEK-224 — In review:** Briefs prepared 15 minutes before, cached for three days and invalidated when the event changes; a brief in the context file wins and calls no model. Fixture tests with fictional meetings.
+* **PEEK-201 — Shipped:** compact read-only month calendar with a day agenda.
+* **PEEK-202 — Shipped:** broader join-link detection; Join opens the Zoom or
+  Teams app. Export v1 classification frozen.
+* **PEEK-203 — Shipped:** start alert choice: off, card, or full screen over all
+  Spaces (by default only for meetings with a link or attendees).
+* **PEEK-204 — Shipped:** Italian, German, French and Spanish, with a CI table
+  check. Native review is PEEK-256.
 
-## Now — Peek 2.1 phase 4: join, countdown and time zones
+**Meeting context (phase 2, 1.8.0)**
 
-Workstream: `docs/workstreams/phase-4-glance-and-time-zones.md`. Ships in 1.10.0, stacked on phase 3. Added before the App Store release at the owner's request (2026-11-23); natural-language event creation stays after 2.0.
+* **PEEK-211 — Shipped:** attendees matched with Contacts (opt-in), email-domain
+  fallback.
+* **PEEK-212 — Shipped:** invitation boilerplate removed from notes.
+* **PEEK-213 — Shipped:** read-only meeting-context file in a user-chosen folder
+  (ADR 0004).
 
-- **PEEK-231 — In review:** Global "Join next meeting" shortcut (⌃⌥J by default, can be turned off). Opens the meeting about to start, the one you are late for, or the next within 30 minutes; otherwise shows the popover.
-- **PEEK-232 — In review:** Menu-bar countdown can follow only meetings with a join link and name the person you are meeting ("8m - Marco"). Declined events keep following the existing filter.
-- **PEEK-233 — In review:** World clocks under the popover header (up to six cities) and the meeting's time in those cities in the expanded row.
+**Meeting brief (phase 3, 1.9.0; ADR 0005)**
 
-## Now — align the app with the Peek 2.0 mockups
+* **PEEK-221 — Shipped:** on-device brief with Apple Foundation Models (macOS 26).
+* **PEEK-222 — Shipped:** optional Claude brief with the user's API key in the
+  keychain.
+* **PEEK-223 — Shipped:** versioned consent screen listing the fields sent; off by
+  default; keyword exclusions.
+* **PEEK-224 — Shipped:** briefs prepared 15 minutes before, cached three days,
+  invalidated on change; a brief in the context file wins and calls no model.
 
-Workstream: `docs/workstreams/peek-2-mockup-alignment.md`. Ships in 1.11.0.
+**Join, countdown and time zones (phase 4, 1.10.0)**
 
-- **PEEK-241 — In review:** Popover, meeting page, full-screen alert and Preferences follow the approved "Peek 2.0 mockup" canvas, light and dark. Footer keeps its icon buttons (owner decision 2026-11-24). Attendee names replace email addresses.
-- **PEEK-242 — In review:** Menu-bar states (calm, soon and now pills, in progress, icon only) and the Preferences alert ladder with a 2-minute heads-up card and badge-only calendars, as in the Peek 2.0 mockup (owner request 2026-11-24).
+* **PEEK-231 — Shipped:** global "Join next meeting" shortcut (⌃⌥J).
+* **PEEK-232 — Shipped:** countdown to meetings only; name the person in the menu
+  bar.
+* **PEEK-233 — Shipped:** up to six world clocks and the meeting's time in them.
 
-## Now — App Store readiness
+**Day priorities and links from the context file (1.13.0)**
 
-Workstream: `docs/workstreams/app-store-readiness.md`. Owner guide: `docs/APP_STORE.md`. Submission stays last and is the owner's.
+* **PEEK-261 — Shipped:** optional `day` object; today's priorities above the next
+  meeting.
+* **PEEK-262 — Shipped:** `obsidian://` joins `https://` on the context-link
+  allowlist; opened only on click.
+* **PEEK-263 — Shipped:** prep count and first point in the notification and the
+  2-minute card.
+* **PEEK-264 — Shipped:** context older than 36 hours hides the day block and is
+  dated on the meeting page.
 
-- **PEEK-251 — In review:** Privacy manifest and export-compliance key, checked in CI.
-- **PEEK-252 — In review:** Sandbox entitlements reviewed; bundle check script.
-- **PEEK-253 — In review:** App Store archive, export and TestFlight upload (manual workflow, cloud-managed signing) next to the Developer ID DMG; waits on the owner's App Store Connect API key.
-- **PEEK-254 — In review:** Apple-side steps, secrets, metadata, privacy answers, screenshots and TestFlight plan.
+**Pre-release robustness (1.13.1 to 1.16.1)**
 
-## Now — day priorities and Obsidian links from the context file
+* **PEEK-275 — Shipped (1.13.1):** local diagnostics without meeting content,
+  MetricKit, "Export diagnostics" (ADR 0006).
+* **PEEK-271 — Shipped (1.14.0):** wake, time-zone, clock and day changes
+  reschedule everything; absolute notification instants; late-start alerts.
+* **PEEK-272 — Shipped (1.14.0):** 60-notification cap, one per recurring
+  occurrence, cross-calendar dedupe, time-sensitive flag (entitlement is
+  PEEK-255).
+* **PEEK-273 — Shipped (1.15.0):** mute or hide an event or a series; Ignore on the
+  2-minute card; restore list in Preferences.
+* **PEEK-274 — Shipped (1.16.0):** discreet mode (manual, ⌃⌥D, automatic on display
+  mirroring). Zoom, Meet and Teams screen sharing cannot be detected: no public
+  API.
+* **PEEK-276 — Shipped (1.16.1):** meeting page formatting with a context-file
+  headline; card buttons stay on one line.
 
-Workstream: `docs/workstreams/day-priorities-obsidian-links.md`. Ships in 1.13.0. Owner spec 2026-11-24; contract in ADR 0004 (amendment).
+**App Store readiness (1.12.5; workstream `app-store-readiness.md`)**
 
-- **PEEK-261 — In review:** Optional `day` object in the context file; the popover shows today's priorities, headline and links above the next meeting. Preferences > Briefs switch, on by default.
-- **PEEK-262 — In review:** `obsidian://` joins `https://` on a fixed link allowlist for meeting and day links; opened only on click.
-- **PEEK-263 — In review:** Prep count and first point in the lead-time notification and the 2-minute card.
-- **PEEK-264 — In review:** Context older than 36 hours hides the day block, adds "Context from <date>" on the meeting page, and Preferences shows when the file was generated.
+* **PEEK-251 — Shipped:** privacy manifest and export-compliance key, checked in CI.
+* **PEEK-252 — Shipped:** sandbox entitlements reviewed; bundle check script.
+* **PEEK-253 — Shipped:** App Store archive, export and TestFlight upload workflow;
+  never run yet (step 4 of the release path).
+* **PEEK-254 — Shipped:** owner guide in `docs/APP_STORE.md`.
 
-## Now — pre-release robustness
+## Done
 
-Plan: owner-approved 2026-11-24 (four PRs, in order). Diagnostics first so the others can be checked with its logs.
+Integrated and validated by tests; their remaining physical checks are folded
+into PEEK-AUD-07.
 
-- **PEEK-275 — In review:** Local diagnostics: `os.Logger` per category with no meeting content, a 14-day journal, MetricKit payloads kept 30 days, and "Export diagnostics" in Preferences > General. No network (ADR 0006). Workstream: `docs/workstreams/local-diagnostics.md`. Ships in 1.13.1.
-- **PEEK-271 — In review:** Wake, time zone, clock and day changes refresh events, reschedule every notification and re-evaluate the card and start alert; notifications are pinned to an absolute instant; snoozes run on the wall clock; a meeting that started up to 5 minutes before a wake gets a "started N min ago" alert.
-- **PEEK-272 — In review:** At most 60 lead-time notifications, nearest first, with 4 left for snoozes; one notification per recurring occurrence; the same meeting on two calendars shows and notifies once; meetings with a link or attendees are time-sensitive (entitlement pending, see `docs/APP_STORE.md`).
-- **PEEK-273 — In review:** Per-event control: mute alerts or hide one event or a whole recurring series from the popover and the meeting page, "Ignore" on the 2-minute card, a restore list in Preferences > Alerts. Export and context file untouched. Workstream: `docs/workstreams/per-event-control.md`. Ships in 1.15.0.
-- **PEEK-274 — In review:** Discreet mode while sharing the screen: manual (popover footer, global shortcut) and automatic on display mirroring. Hides briefs, day priorities, people, notes and context; the full-screen alert degrades to the card. Zoom/Meet/Teams detection not shipped: no public API (see `docs/workstreams/screen-share-discretion.md`). Focus status deferred.
-- **PEEK-276 — In review:** Meeting page with a Northwind Notes context file: event title stays the page title, the file's headline opens Context, context prose starts with a capital letter, and Context does not repeat the "What to prepare" bullets; the full-screen start alert keeps the event title. Workstream: `docs/workstreams/context-formatting.md`. Ships in 1.16.1.
+* **PEEK-101** notch-safe compact menu bar · **PEEK-102** fake EventKit and
+  notification schedulers · **PEEK-103** UI coverage for first launch, denied
+  access, empty state and Preferences · **PEEK-104** live hotkey re-registration
+  · **PEEK-106** macOS 13 (partial: CI runner retired, hardware check in
+  PEEK-AUD-07) · **PEEK-107** Developer ID release workflow (never run with real
+  secrets) · **PEEK-108** VoiceOver labels, focus order, keyboard activation ·
+  **PEEK-109** crowded-menu-bar icon fallback · **PEEK-110** event detail
+  expansion (later replaced by the meeting page in PEEK-241) · **PEEK-111**
+  headless calendar export (ADR 0003) · design refresh 1.3.x and app icon.
+* **PEEK-AUD-01..06** audit remediation: EventKit refresh on the main thread,
+  Reduce Motion pulse, notification scheduling feedback and retry, fail-closed
+  release verification, documentation, bounded HUD history.
+* **PEEK-AUD-07 — Blocked:** physical release validation; see step 1 above and
+  `docs/workstreams/physical-release-validation.md`.
 
-## Next — calendar usefulness
+**Dropped:** PEEK-105 settings import/export feedback (the feature was removed
+in 1.3.6).
 
-- **PEEK-111 — Done:** Headless local EventKit calendar export CLI for external local-cache renderers. `Peek --export --from <signed-days> --to <signed-days> --json` emits only versioned JSON on stdout, honors Peek's persisted calendar selection, never writes Northwind Notes files, and exits non-zero without existing Full Access or on an EventKit error.
-- Conflict and overlap warnings.
-- Multiple time-zone display: moved to PEEK-233.
-- Quick event creation with explicit confirmation and calendar selection.
-- Better Calendar deep linking when the OS exposes a stable event destination.
-- Travel-time and leave-now reminders.
+## After the first release
 
-## Later — focused integrations
+* **PEEK-214 — Deferred:** Google Calendar direct access.
+* **PEEK-277 — Deferred:** keyboard shortcuts inside the popover (join, snooze,
+  mute from the list).
+* **PEEK-278 — Deferred:** App Intents and Shortcuts actions (next meeting, join,
+  discreet mode).
+* **PEEK-279 — Deferred:** quick event creation with explicit confirmation and
+  calendar choice; scope to be decided by the owner.
+* **PEEK-280 — Deferred:** energy audit of timers and refreshes with MetricKit
+  data.
+* **PEEK-281 — Deferred:** meeting providers as data instead of code, so new
+  providers need no code change.
+* Conflict and overlap warnings.
+* Travel-time and "leave now" reminders.
+* Calendar deep links, when macOS exposes a stable event destination.
+* Focus status for the full-screen alert, if the owner decides it (release path,
+  step 2).
+* Email-attendee and decline actions with explicit permission boundaries.
+* Optional Slack, Teams and task-manager integrations behind independent
+  adapters.
+* User-defined event color rules.
 
-- Focus mode integration.
-- Email-attendee and decline actions with explicit permission boundaries.
-- Optional Slack, Teams, and task-manager integrations behind independent adapters.
-- User-defined event color rules and themes.
-- Local-only analytics summaries; no telemetry without a separate privacy decision.
+## Out of scope
 
-## Explicitly out of scope
-
-- Cloud accounts or a Peek backend.
-- Advertising or behavioral telemetry.
-- Replacing macOS Calendar as the source of truth.
-- Broad AI features without a concrete local-first use case and privacy design.
+* Cloud accounts or a Peek backend.
+* Advertising or behavioral telemetry.
+* Replacing macOS Calendar as the source of truth.
+* AI features without a concrete use case, a local-first default and an
+  explicit consent design like ADR 0005.
 
 ## Definition of release-ready
 
-A release candidate must pass the test suite, a signed Release build, the manual checklist in `RELEASE.md`, accessibility smoke testing, and notarization validation on a clean macOS account.
+A release candidate passes CI, a signed Release build, every check in
+`docs/MAC_CHECKS.md`, the manual checklist in `docs/RELEASE.md`, and
+notarization (DMG) or TestFlight (App Store) validation on a clean macOS account.

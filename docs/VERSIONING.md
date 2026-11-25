@@ -31,10 +31,10 @@ The explicit version form sets the marketing version and increments the build nu
 ## Required accompanying changes
 
 - Update `CHANGELOG.md`.
-- Update `docs/HANDOFF.md` if the integrated version changes.
+- Update `docs/ROADMAP.md` for items whose state changes.
 - Include the version in release notes and artifacts.
 - Run `scripts/check-version.sh`, build, and tests before handoff.
 
-CI runs `scripts/check-version-bump.sh` against the base commit. If app code, resources, packaging, or Xcode configuration changed, the build number must be higher than the base. The first commit that introduces centralized versioning is accepted as the baseline.
+CI runs `scripts/check-version-bump.sh` against the base commit. If anything under `Peek/`, `Peek.xcodeproj/` or `Configuration/`, or a local packaging script (`build-unsigned.sh`, `create-dmg.sh`) changed, the build number must be higher than the base. The first commit that introduces centralized versioning is accepted as the baseline.
 
 The app displays `Version <marketing> (<build>)` from its compiled bundle metadata in Preferences.

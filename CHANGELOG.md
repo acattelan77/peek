@@ -1,10 +1,23 @@
 # Changelog
 
 This project follows Keep a Changelog conventions. Versions are released from `main`.
+The version and build live in `Configuration/Version.xcconfig`; a build-only bump is
+noted under the version it belongs to.
 
 ## Unreleased
 
 ## 1.16.1 - 2026-11-25
+
+### Repository (build 54, no app change)
+
+- Removed `scripts/create-simple-dmg.sh`, a duplicate of `scripts/create-dmg.sh`
+  without its error handling, and `scripts/generate-icon-master.swift`, which
+  rendered the 1.3.2 icon and would overwrite the current master artwork.
+- Documentation consolidated: `docs/ROADMAP.md` is the single current-state and
+  priority record (replacing `docs/HANDOFF.md` and `docs/PROJECT_STATUS.md`),
+  `docs/MAC_CHECKS.md` collects every pending check on a Mac, `AGENTS.md` is
+  rewritten as the entry point, and finished workstreams moved to
+  `docs/workstreams/archive/`. The design handoff moved to `design/handoff-v1/`.
 
 ### Fixed
 
@@ -216,7 +229,7 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 ### Fixed
 
 - Attendees whose calendar entry carries only an email address are shown by name
-  ("grace.hopper@…" becomes "Grace Hopper") in the popover, the alert, the
+  ("ada.lovelace@…" becomes "Ada Lovelace") in the popover, the alert, the
   menu-bar name and the brief input. Addresses that do not look like a name
   ("info@…", "j2@…") are still shown as they are.
 

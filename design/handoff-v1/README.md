@@ -1,5 +1,9 @@
 # Handoff: Peek Design System
 
+> Historical reference (July 2026, implemented in 1.3.0). Superseded for layout by the
+> Peek 2.0 mockup canvas and for color values by `docs/DESIGN_SYSTEM.md` (1.6.0 contrast
+> fixes). Keep it for tokens and the original rationale; do not implement from it.
+
 ## Overview
 Peek is a lightweight macOS **menu-bar calendar companion**. It surfaces the next upcoming
 event, escalates visual urgency as a meeting approaches, and offers one-click join for common

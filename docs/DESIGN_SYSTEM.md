@@ -8,7 +8,7 @@ Peek's design system is its own ("calm glance"). It is not derived from any othe
   disagrees with the older handoff on layout, the canvas wins, except for the deliberate
   deviations listed in "Deviations from the Peek 2.0 mockup" below.
 - **Visual reference (tokens, older screens):** the Claude Design handoff in
-  `design_handoff_peek_design_system/` (tokens, onboarding, HUD, icon). Where this document and the handoff disagree on a
+  `design/handoff-v1/` (tokens, onboarding, HUD, icon). Where this document and the handoff disagree on a
   **color value**, this document and the code win: several handoff hues failed WCAG AA
   and were adjusted in 1.6.0 (see "Accessibility deviations from the handoff").
 - **Source of truth in code:** `Peek/Sources/Presentation/DesignSystem/`.

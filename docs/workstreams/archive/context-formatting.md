@@ -12,7 +12,7 @@ The meeting page reads cleanly with the context file Northwind Notes writes: no
 lower-case fragment as the title, no Context paragraph that looks cut off, no
 bullets shown twice.
 
-## Diagnosis (2026-11-25, Jane Doe 10:45)
+## Diagnosis (2026-11-25, a reported meeting)
 
 The file is valid and nothing is truncated. `the writer script` (notes vault,
 read only) maps the day log's labelled fields as follows:
@@ -64,13 +64,13 @@ read only) maps the day log's labelled fields as follows:
 
 ## Owner checks on the Mac
 
-1. Open the Jane-style meeting with a context-file headline: the title is the
+1. Open the reported meeting with a context-file headline: the title is the
    event title, Context starts with the goal sentence in bold, capitalized.
 2. The Context paragraph starts with a capital letter.
 3. Bullets under "What to prepare" do not appear again under Context.
 4. A meeting without a file headline still shows "You're about to meet…" as
    the title.
-5. The full-screen start alert for the Jane-style meeting shows the event
+5. The full-screen start alert for the reported meeting shows the event
    title as its headline.
 6. On the 2-minute and "Starting now" cards, "Join Google Meet" stays on one
    line.

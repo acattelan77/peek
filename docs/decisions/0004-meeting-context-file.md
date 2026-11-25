@@ -1,11 +1,12 @@
 # ADR 0004: Meeting-context file contract
 
-- Status: Proposed (PEEK-213)
+- Status: Accepted (2026-11-25; implemented in 1.8.0, amended in 1.13.0 and
+  1.16.1, and read in production by an external writer since 2026-11-24)
 - Date: 2026-11-23
 
 ## Context
 
-Peek's meeting-context card ("You're about to meet Marco, CEO at Northwind")
+Peek's meeting-context card ("You're about to meet Ada, CEO at Example Corp")
 needs context that only another local system has, such as Northwind Notes's notes
 about people and projects. PEEK-111 already exports Peek's agenda to such a
 system. The reverse direction must work in the sandboxed App Store build, keep
@@ -25,12 +26,12 @@ read-only security bookmark and reads one file in it:
     {
       "id": "<the PEEK-111 export id>",
       "startAt": "2026-11-24T10:00:00+01:00",
-      "headline": "Renewal call with Northwind",
+      "headline": "Renewal call with Example Corp",
       "summary": "Short paragraph shown under Context.",
       "bullets": ["Up to six points to prepare"],
       "people": [
-        {"email": "marco@northwind.example", "name": "Ada Lovelace",
-         "role": "CEO", "company": "Northwind", "note": "Prefers short calls"}
+        {"email": "ada@example.com", "name": "Ada Lovelace",
+         "role": "CEO", "company": "Example Corp", "note": "Prefers short calls"}
       ],
       "links": [{"title": "Account notes", "url": "https://example.com/notes"}]
     }

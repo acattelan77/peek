@@ -1,91 +1,139 @@
 # Peek
 
-Peek is a lightweight macOS menu bar calendar companion. It shows your upcoming events from the macOS Calendar app, highlights urgency as meeting time approaches, and provides one-click join links for common meeting providers.
+Peek is a macOS menu-bar companion for the Calendar app. It does not replace
+your calendar: it reads the calendars you already have in macOS Calendar and
+makes sure you never miss a meeting and arrive prepared for it.
 
-Current development version: **1.5.5 (build 34)**.
+The current version is in [`Configuration/Version.xcconfig`](Configuration/Version.xcconfig);
+what changed in each version is in [`CHANGELOG.md`](CHANGELOG.md).
 
-## About This Repo
+## What it does
 
-This repository contains the macOS app source, resources, tests, build scripts, and documentation needed to build and distribute Peek. Local build outputs are written to `build/` and `artifacts/` and are ignored.
+**Never miss a meeting**
 
-## Features
+* The menu bar shows the next meeting and changes as it approaches: the title and
+  start time, an amber pill with a countdown from 10 minutes, a red pulsing
+  "Join now" pill under 2 minutes, and the time left while a meeting is running.
+  It falls back to an icon when the menu bar is crowded or behind the notch.
+* An alert ladder you set per moment: a notification at your lead time, a
+  heads-up card 2 minutes before, and at the start either a card or a full-screen
+  alert over every Space and full-screen app. Snooze, Ignore and Join are on the
+  alert itself. Calendars can be set to badge only.
+* Join links are detected for Zoom, Google Meet, Microsoft Teams, Webex, GoTo,
+  Slack huddles, Amazon Chime, Jitsi, FaceTime, RingCentral and others, and open
+  in the Zoom or Teams app when it is installed. A global shortcut (⌃⌥J) joins
+  the meeting that is about to start.
+* Alerts stay correct after sleep, travel across time zones, clock changes and
+  midnight. The same meeting on two calendars alerts once.
+* Any event, or a whole recurring series, can be muted or hidden.
 
-- Quick event overview from the menu bar
-- Automatic notch-safe menu-bar switching, with explicit icon-only and text overrides
-- Visual meeting urgency cues
-- Orange when 2 to 10 minutes away
-- Red with pulsing when less than 2 minutes away
-- Join buttons for common meeting links (Zoom, Google Meet, Teams, Webex, GoToMeeting, Whereby, Discord)
-- Expandable event details: title, date, time, location, calendar, notes, attendees, and conference provider
-- Calendar selection with saved preferences
-- Smart auto refresh (every minute normally, every 5 seconds when a meeting is close)
-- Dark mode support
+**Arrive prepared**
+
+* A popover with a compact month calendar, today's and upcoming meetings, and a
+  page per meeting: who you are meeting, what to prepare, cleaned invitation
+  notes (join boilerplate and dial-in numbers removed), and the meeting time in
+  your world clocks.
+* "You're about to meet…": attendees are matched with Contacts, if you allow it,
+  for name, role and company.
+* An optional meeting brief of three to five points, prepared 15 minutes before.
+  It is written on the Mac with Apple Intelligence (macOS 26) or, after an
+  explicit consent screen, by Claude with your own Anthropic API key. Off by
+  default.
+* An optional context folder: another local tool you use can write a
+  `peek-context.json` file with notes, points to prepare, people and links per
+  meeting, plus the day's priorities. Peek reads it and never writes to it. The
+  format is in [ADR 0004](docs/decisions/0004-meeting-context-file.md).
+* Discreet mode (⌃⌥D, or automatic while a display is mirrored) hides briefs,
+  people, notes and context while you share your screen.
+
+**For other tools**
+
+* A headless command exports your selected calendars as versioned JSON, for
+  local scripts that need your agenda (see [Calendar export](#calendar-export)).
+
+Peek is available in English, Italian, German, French and Spanish, and follows
+the language set in macOS.
+
+## Privacy
+
+Calendar data stays on the Mac. Peek has no account, no backend and no
+telemetry. The only network connection is the optional Claude brief, which sends
+the fields listed on its consent screen to the Anthropic API with the user's own
+key. Diagnostics are local and never contain meeting content. Details are in
+[`SECURITY.md`](SECURITY.md), [ADR 0005](docs/decisions/0005-meeting-brief-data-and-consent.md)
+and [ADR 0006](docs/decisions/0006-local-diagnostics.md).
+
+## Status
+
+Peek is feature-complete for its first public release and in pre-release
+validation. Distribution will be through the Mac App Store and a Developer ID
+signed, notarized DMG; neither is published yet. What is done, what is waiting
+for checks on a Mac and what is missing is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Requirements
 
-- macOS 13.0 or later
-- Xcode 15.0 or later
-- Calendar access permission
+* macOS 13 or later. The on-device brief needs macOS 26 with Apple Intelligence.
+* Calendar Full Access. Contacts and notifications are optional.
+* To build: Xcode 26 or later (the project uses the macOS 26 SDK; newer
+  frameworks are weak-linked so the app still runs on macOS 13).
 
-## Install and Run
-
-### Option 1: Xcode
-
-1. Open `Peek.xcodeproj` in Xcode
-2. Build and run (Cmd+R)
-3. Grant calendar access when prompted
-
-### Option 2: Scripts
-
-These scripts live in `scripts/`:
-
-- Build unsigned app: `./scripts/build-unsigned.sh`
-- Build and create DMG: `./scripts/create-dmg.sh`
-- Build and create simple DMG: `./scripts/create-simple-dmg.sh`
-
-Optional install: `./scripts/build-unsigned.sh --install` (requires sudo to copy into `/Applications`). DMGs are created in `artifacts/`.
-
-### Option 3: CLI
+## Build and run
 
 ```bash
-# Build
-xcodebuild -scheme "Peek" -configuration Debug -derivedDataPath ./build \
+# Build without signing
+xcodebuild -scheme Peek -configuration Debug -derivedDataPath ./build \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
 
-# Test
-xcodebuild -scheme "Peek" -destination "platform=macOS" -derivedDataPath ./build \
+# Run the tests
+xcodebuild -scheme Peek -destination "platform=macOS" -derivedDataPath ./build \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" test
 ```
 
-## Usage
+Or open `Peek.xcodeproj` in Xcode and run the `Peek` scheme. For an app you can
+keep in `/Applications`, `./scripts/build-unsigned.sh --install` builds an
+ad-hoc signed Release app, and `./scripts/create-dmg.sh` wraps it in a DMG.
+Every push to `main` also produces an ad-hoc signed test DMG as the
+`Peek-test-installer` artifact of the "Test installer" workflow. It is not
+notarized: on first launch, allow it in System Settings > Privacy & Security.
 
-- Click the menu bar item to open the popup
-- Click "Calendars..." to choose which calendars to monitor
-- Your selection is saved and restored on restart
+More in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
-### First Launch Behavior
+## Using Peek
 
-On first launch (before selecting calendars), Peek shows events from all available calendars.
+* Click the menu-bar item, or press ⌘⇧C anywhere, to open the popover.
+* ↑ and ↓ move between meetings, Return opens a meeting's page, Esc goes back or
+  closes.
+* Right-click a meeting to mute its alerts or hide it.
+* ⌘-drag the menu-bar item to move it.
+* Preferences has four tabs: Alerts, Briefs, Calendars and General.
 
-## Headless calendar export
+On first launch Peek shows events from every calendar until you choose some.
 
-Peek can export the currently selected local calendars as versioned JSON without
-opening its menu bar UI. It does not request Calendar permission: grant Peek
-**Full Access** first in System Settings > Privacy & Security > Calendars.
+### Troubleshooting
+
+* "No Calendar Access": enable Peek in System Settings > Privacy & Security >
+  Calendars with Full Access, then reopen Peek.
+* No events: check the calendar selection and filters in Preferences > Calendars.
+* A shortcut does nothing: another app may own it. Choose another one in
+  Preferences. macOS does not tell Peek when a shortcut is taken by another app.
+* Something misbehaves: Preferences > General > Diagnostics > Export… saves a
+  local report without meeting content that you can attach to an issue.
+
+## Calendar export
+
+Peek can export the selected calendars as JSON without opening its UI. It never
+asks for Calendar permission in this mode, so grant Full Access first.
 
 ```zsh
 /Applications/Peek.app/Contents/MacOS/Peek --export --from -3 --to 14 --json
 ```
 
-`--from` and `--to` are signed local-day offsets. The range begins at local
-midnight on `from` and ends exclusively at local midnight after `to`. Stdout is
-JSON only; errors go to stderr and return a non-zero exit status. This is an
-export interface only: Peek neither reads nor writes any external cache or
-vault.
-
-The output can contain personal data. Do not commit it, write it to logs, or
-share it without the calendar owner's permission. Example output uses fictional
-data:
+`--from` and `--to` are signed day offsets from today, in local time; the window
+ends at midnight after `--to`. Stdout carries only JSON (schema version 1);
+errors go to stderr with a non-zero exit status, and no partial JSON is written.
+The output contains personal data: do not commit it, log it or share it without
+the calendar owner's permission. The contract is in
+[ADR 0003](docs/decisions/0003-calendar-export-cli.md). Example with fictional data:
 
 ```json
 {
@@ -115,72 +163,27 @@ data:
 }
 ```
 
-## Keyboard Shortcuts
+## Repository map
 
-- Esc: close the popup
-- Up/Down: move between events
-- Cmd+Shift+C: toggle Peek from anywhere
-- Cmd+Drag: reposition the menu bar item
+| Path | What it holds |
+| --- | --- |
+| `Peek/Sources` | The app, in five layers: App, Application, Domain, Infrastructure, Presentation ([architecture](docs/ARCHITECTURE.md)) |
+| `Peek/Resources` | Info.plist, entitlements, privacy manifest, assets, localizations |
+| `PeekTests` | Unit and integration tests, with fakes for EventKit and notifications |
+| `Configuration/Version.xcconfig` | The only place the version lives |
+| `scripts` | Build, packaging, release and CI check scripts |
+| `.github/workflows` | CI, test installer, Developer ID release, App Store upload |
+| `design` | Brand master artwork and the original design handoff |
+| `docs` | Roadmap, architecture, development, design system, release, App Store, decisions |
 
-## How It Works
+## Documentation
 
-- EventKit for calendar access
-- NSStatusItem for the menu bar UI
-- SwiftUI for the popup UI
-- Carbon for global hotkey registration
-
-## Project Structure
-
-- `Peek/Sources/App`: application lifecycle and composition root
-- `Peek/Sources/Application`: observable state and use-case coordination
-- `Peek/Sources/Domain`: event, meeting-link, urgency, and preference policies
-- `Peek/Sources/Infrastructure`: EventKit, notification, and persistence adapters
-- `Peek/Sources/Presentation`: SwiftUI/AppKit views and user-facing formatting
-- `Peek/Resources`: asset catalogs, localization, entitlements, and Info.plist
-- `Configuration/Version.xcconfig`: canonical marketing version and build number
-- `Peek.xcodeproj`: Xcode project
-- `PeekTests/`: unit tests
-- `docs/`: architecture, product, design, development, and release documentation
-- `design/brand`: source brand artwork
-- `scripts/`: build and DMG helpers
-- `build/`: local Xcode derived data/output (ignored)
-- `artifacts/`: local build outputs (ignored)
-
-## Docs
-
-- [Project status](docs/PROJECT_STATUS.md)
-- [Current handoff](docs/HANDOFF.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Development](docs/DEVELOPMENT.md)
-- [Versioning](docs/VERSIONING.md)
-- [Design system](docs/DESIGN_SYSTEM.md)
-- [Release process](docs/RELEASE.md)
-- [Security policy](SECURITY.md)
-- [Contributing](CONTRIBUTING.md)
-
-## Troubleshooting
-
-If the menu bar shows "No Calendar Access":
-
-1. Open System Settings > Privacy and Security > Calendars
-2. Make sure Peek is enabled
-3. Restart the app
-
-If no events appear:
-
-- Verify you have events in Calendar
-- Check calendar selection in the app
-
-If the global hotkey does not work:
-
-- Check if another app uses Cmd+Shift+C
-- Restart the app
-
-## Contributing
-
-Issues and pull requests are welcome. If you plan to make larger changes, open an issue first so we can align on scope.
-
-## Security
-
-See the **Security Posture** section in `docs/PROJECT_STATUS.md`.
+* [Roadmap and current state](docs/ROADMAP.md)
+* [Checks on a Mac](docs/MAC_CHECKS.md)
+* [Architecture](docs/ARCHITECTURE.md)
+* [Development](docs/DEVELOPMENT.md)
+* [Design system](docs/DESIGN_SYSTEM.md)
+* [Versioning](docs/VERSIONING.md)
+* [Release (Developer ID DMG)](docs/RELEASE.md) and [Mac App Store](docs/APP_STORE.md)
+* [Decision records](docs/decisions/README.md)
+* [Agent and contributor guide](AGENTS.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)

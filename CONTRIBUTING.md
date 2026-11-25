@@ -1,20 +1,25 @@
 # Contributing
 
-Small, focused changes are preferred. For architectural or product-scope changes, open an issue or discussion before implementation.
+Small, focused changes are preferred. For an architectural or product-scope
+change, open an issue first so the scope can be agreed.
 
-1. Read `AGENTS.md`, `docs/HANDOFF.md`, `docs/ROADMAP.md`, and `docs/ARCHITECTURE.md`.
-2. Check `docs/workstreams/` for active ownership, then create a branch or worktree from `main`.
-3. Copy `docs/workstreams/TEMPLATE.md`, mark it `Active`, and name the roadmap ID, owner, branch, and claimed files.
-4. Add tests for behavior changes.
-5. Run the version check, unsigned build, and complete test suite.
-6. Update the workstream, handoff, roadmap, changelog, and decision records affected by the change.
+Humans and agents follow the same process, described in [`AGENTS.md`](AGENTS.md):
+where each fact lives, how to claim work, the invariants that must not break,
+the checks to run, and how to version and hand off. Build and test details are
+in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
-## Parallel work
+In short:
 
-Use one branch and preferably one Git worktree per agent. Split work by subsystem and avoid editing another active workstream's claimed files. Do not overwrite or discard unrelated changes in a shared worktree. Integration should be sequential, with validation rerun after each merge.
+1. Check `docs/ROADMAP.md` and the top-level files in `docs/workstreams/`.
+2. Branch from `main` and claim the work with a copy of
+   `docs/workstreams/TEMPLATE.md`.
+3. Add tests for behavior changes; localize every new string; use design tokens.
+4. Run the checks, the unsigned build and the test suite.
+5. Bump the version when `docs/VERSIONING.md` requires it and add a
+   `CHANGELOG.md` entry.
+6. Open a pull request and fill in its template.
 
-## Versioning
+Never commit calendar data, screenshots with real events, real names or email
+addresses, signing material, API keys, `build/` or `artifacts/`.
 
-`Configuration/Version.xcconfig` is the only version source of truth. Follow `docs/VERSIONING.md`: bump the build for every distributable change and bump the semantic version for user-visible behavior, compatibility, or breaking changes. Run `./scripts/check-version.sh` before handoff.
-
-Do not commit calendar data, screenshots containing private events, signing credentials, `build/`, or `artifacts/`.
+Security issues: see [`SECURITY.md`](SECURITY.md).

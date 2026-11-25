@@ -1,7 +1,7 @@
 # Workstream: <name>
 
 - Roadmap ID: <PEEK-000 or N/A>
-- Status: Ready
+- Status: Active
 - Owner: Unassigned
 - Branch/worktree: Not created
 - Last updated: YYYY-MM-DD
