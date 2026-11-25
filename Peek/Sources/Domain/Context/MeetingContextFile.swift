@@ -218,11 +218,12 @@ struct MeetingContextFile: Equatable {
     }
 
     /// Upper-cases the first character when it is a lower-case letter, in the
-    /// user's locale. Leaves "iPhone", "eBay" and other words with an upper-case
-    /// letter after the first one unchanged.
+    /// user's locale. Leaves "iPhone", "eBay" and other words whose leading
+    /// letters hold another upper-case one unchanged; "block/Square" still
+    /// becomes "Block/Square".
     static func sentenceStart(_ value: String) -> String {
         guard let first = value.first, first.isLowercase else { return value }
-        let firstWord = value.prefix { !$0.isWhitespace }
+        let firstWord = value.prefix { $0.isLetter }
         if firstWord.dropFirst().contains(where: \.isUppercase) { return value }
         return String(first).uppercased(with: .current) + value.dropFirst()
     }

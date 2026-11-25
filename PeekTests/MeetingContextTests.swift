@@ -662,6 +662,7 @@ final class ContextFileFormattingTests: XCTestCase {
         XCTAssertEqual(MeetingContextFile.sentenceStart("report"), "Report")
         XCTAssertEqual(MeetingContextFile.sentenceStart("Report"), "Report")
         XCTAssertEqual(MeetingContextFile.sentenceStart("eBay call"), "eBay call")
+        XCTAssertEqual(MeetingContextFile.sentenceStart("block/Square"), "Block/Square")
         XCTAssertEqual(MeetingContextFile.sentenceStart("è tardi"), "È tardi")
         XCTAssertEqual(MeetingContextFile.sentenceStart("16:35 call"), "16:35 call")
         XCTAssertEqual(MeetingContextFile.sentenceStart(""), "")
