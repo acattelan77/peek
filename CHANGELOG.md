@@ -4,6 +4,18 @@ This project follows Keep a Changelog conventions. Versions are released from `m
 
 ## Unreleased
 
+## 1.16.1 - 2026-11-25
+
+### Fixed
+
+- PEEK-276: the meeting page no longer looks cut off with a Northwind Notes context
+  file. The page title stays the event title when the headline comes from the
+  context file; that headline (Northwind Notes sends the proposed goal) now opens the
+  Context section. Context text from the file (headline, summary, bullets,
+  people notes, day headline and priorities) starts with a capital letter, so a
+  value copied from a labelled note no longer reads as a fragment. Context no
+  longer repeats the bullets already shown under "What to prepare".
+
 ## 1.16.0 - 2026-11-24
 
 ### Added

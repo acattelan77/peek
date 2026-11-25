@@ -1,0 +1,77 @@
+# Workstream: context formatting on the meeting page
+
+- Roadmap ID: PEEK-276
+- Status: In review
+- Owner: Claude Code (cloud session)
+- Branch/worktree: `claude/project-thread-286nmm`
+- Last updated: 2026-11-25
+
+## Objective
+
+The meeting page reads cleanly with the context file Northwind Notes writes: no
+lower-case fragment as the title, no Context paragraph that looks cut off, no
+bullets shown twice.
+
+## Diagnosis (2026-11-25, Jane Doe 10:45)
+
+The file is valid and nothing is truncated. `the writer script` (notes vault,
+read only) maps the day log's labelled fields as follows:
+
+- `Proposed goal:` → `headline` ("uscire con il dato per Marco…"). Peek
+  used any file headline as the page title.
+- `Ultima volta:` (absent here) + `Aperto con loro:` → `summary` ("report di una
+  pagina sull’EPT…"). The value after the label starts in lower case, so with
+  the label gone it read as the tail of a sentence.
+- Unticked `To prepare` boxes → `bullets`. Peek showed them in the "What to
+  prepare" card (a context-folder brief is built from them) and again under
+  Context.
+
+## Scope
+
+- Page title stays the event title when the headline came from the file; the
+  file headline opens the Context section.
+- Prose fields from the file start with a capital letter (decoder).
+- Context omits bullets already in the brief card.
+
+## Out of scope
+
+- The 42 script. Never written from this repo.
+- The start alert and the 2-minute card still use the file headline as their
+  context line (unchanged).
+
+## Claimed files and subsystems
+
+- `Peek/Sources/Domain/Context/MeetingContextFile.swift`
+- `Peek/Sources/Domain/Context/MeetingContext.swift`
+- `MeetingPage` summary and Context section in `Peek/Sources/Presentation/MenuBar/MenuBarView.swift`
+- `PeekTests/MeetingContextTests.swift` (`ContextFileFormattingTests`)
+
+## Progress
+
+- [x] Diagnosis against the live day log on the main Mac
+- [x] Fix and tests
+- [ ] CI green
+- [ ] Owner checks on the Mac
+
+## Validation
+
+- Linux: `bash scripts/check-version.sh`, `git diff --check`.
+- Build and tests run in CI (`build-and-test`, macos-latest), not locally.
+
+## Owner checks on the Mac
+
+1. Open the Jane-style meeting with a context-file headline: the title is the
+   event title, Context starts with the goal sentence in bold, capitalized.
+2. The Context paragraph starts with a capital letter.
+3. Bullets under "What to prepare" do not appear again under Context.
+4. A meeting without a file headline still shows "You're about to meet…" as
+   the title.
+
+## Decisions and open questions
+
+- Should the start alert also keep the event title as its headline when the
+  file headline is a long goal sentence? Not changed here.
+
+## Exact next action
+
+Wait for CI on the PR, then the owner's Mac checks and merge word.

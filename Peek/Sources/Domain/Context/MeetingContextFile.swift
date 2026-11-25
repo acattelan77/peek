@@ -154,16 +154,16 @@ struct MeetingContextFile: Equatable {
         return Entry(
             id: id,
             startAt: raw.startAt.flatMap(parseDate),
-            headline: clipped(raw.headline, Limits.maxHeadline),
-            summary: clipped(raw.summary, Limits.maxSummary),
-            bullets: (raw.bullets ?? []).compactMap { clipped($0, Limits.maxBullet) }.prefix(Limits.maxBullets).map { $0 },
+            headline: prose(raw.headline, Limits.maxHeadline),
+            summary: prose(raw.summary, Limits.maxSummary),
+            bullets: (raw.bullets ?? []).compactMap { prose($0, Limits.maxBullet) }.prefix(Limits.maxBullets).map { $0 },
             people: (raw.people ?? []).prefix(Limits.maxPeople).map {
                 Person(
                     email: clipped($0.email, Limits.maxPersonField),
                     name: clipped($0.name, Limits.maxPersonField),
                     role: clipped($0.role, Limits.maxPersonField),
                     company: clipped($0.company, Limits.maxPersonField),
-                    note: clipped($0.note, Limits.maxSummary)
+                    note: prose($0.note, Limits.maxSummary)
                 )
             },
             links: (raw.links ?? []).compactMap(link(from:)).prefix(Limits.maxLinks).map { $0 }
@@ -176,11 +176,11 @@ struct MeetingContextFile: Equatable {
             year: date.year,
             month: date.month,
             dayOfMonth: date.day,
-            headline: clipped(raw.headline, Limits.maxDayHeadline),
+            headline: prose(raw.headline, Limits.maxDayHeadline),
             priorities: (raw.priorities ?? [])
                 .compactMap { $0.value }
                 .compactMap { item -> Day.Priority? in
-                    guard let text = clipped(item.text, Limits.maxDayPriority) else { return nil }
+                    guard let text = prose(item.text, Limits.maxDayPriority) else { return nil }
                     return Day.Priority(text: text, done: item.done ?? false)
                 }
                 .prefix(Limits.maxDayPriorities)
@@ -208,6 +208,23 @@ struct MeetingContextFile: Equatable {
         let components = DateComponents(calendar: calendar, year: year, month: month, day: day)
         guard components.isValidDate else { return nil }
         return (year, month, day)
+    }
+
+    /// Clipped text shown as a sentence. Writers often copy the value of a
+    /// labelled field ("Open with them: report on…"), which starts in lower
+    /// case once the label is gone and then reads as if it were cut off.
+    private static func prose(_ value: String?, _ limit: Int) -> String? {
+        clipped(value, limit).map(sentenceStart)
+    }
+
+    /// Upper-cases the first character when it is a lower-case letter, in the
+    /// user's locale. Leaves "iPhone", "eBay" and other words with an upper-case
+    /// letter after the first one unchanged.
+    static func sentenceStart(_ value: String) -> String {
+        guard let first = value.first, first.isLowercase else { return value }
+        let firstWord = value.prefix { !$0.isWhitespace }
+        if firstWord.dropFirst().contains(where: \.isUppercase) { return value }
+        return String(first).uppercased(with: .current) + value.dropFirst()
     }
 
     private static func clipped(_ value: String?, _ limit: Int) -> String? {
