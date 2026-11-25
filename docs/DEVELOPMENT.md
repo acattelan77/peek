@@ -58,6 +58,10 @@ Local outputs go to `build/` and `artifacts/`, which are ignored.
 | `release.yml` | `v*` tag, or manual | Developer ID signed, notarized DMG and a GitHub Release. Secrets are not configured yet. |
 | `app-store.yml` | Manual only | App Store package and optional TestFlight upload. Secrets are not configured yet. |
 
+The repository was recreated on 2026-11-25 with a cleaned history. CI rejects
+any branch that still contains the old history, so work from an older clone must
+be re-applied on a fresh clone.
+
 All jobs run on `macos-latest`. GitHub's hosted `macos-13` runner was retired,
 so macOS 13 compatibility needs real hardware (PEEK-AUD-07).
 

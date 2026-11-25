@@ -16,6 +16,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Reject branches based on the pre-2026-11-25 history
+        # The repository was recreated with a cleaned history on 2026-11-25.
+        # A branch from an older clone would bring the removed data back.
+        run: |
+          if git cat-file -e eff827e87253a0b6b10f20775385c9f3e287cbdb^{commit} 2>/dev/null; then
+            echo "This branch contains the old repository history. Clone the repository again and re-apply your changes." >&2
+            exit 1
+          fi
+
       - name: Validate version metadata
         run: ./scripts/check-version.sh
 
