@@ -32,6 +32,10 @@ read only) maps the day log's labelled fields as follows:
   file headline opens the Context section.
 - Prose fields from the file start with a capital letter (decoder).
 - Context omits bullets already in the brief card.
+- Owner feedback 2026-11-25: on the "Starting now" card the Join button label
+  wrapped to two lines. Card buttons now never wrap; if they do not fit on one
+  row, Join keeps the first row and Snooze/Ignore move below
+  (`Peek/Sources/Presentation/HUD/StartingNowHUD.swift`).
 
 ## Out of scope
 
@@ -49,7 +53,7 @@ read only) maps the day log's labelled fields as follows:
 
 - [x] Diagnosis against the live day log on the main Mac
 - [x] Fix and tests
-- [x] CI green
+- [ ] CI green after the card button fix
 - [ ] Owner checks on the Mac
 
 ## Validation
@@ -68,6 +72,8 @@ read only) maps the day log's labelled fields as follows:
    the title.
 5. The full-screen start alert for the Jane-style meeting shows the event
    title as its headline.
+6. On the 2-minute and "Starting now" cards, "Join Google Meet" stays on one
+   line.
 
 ## Decisions and open questions
 

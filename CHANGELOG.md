@@ -17,6 +17,9 @@ This project follows Keep a Changelog conventions. Versions are released from `m
   longer repeats the bullets already shown under "What to prepare". The
   full-screen start alert also keeps the event title as its headline when the
   headline comes from the context file.
+- PEEK-276: the 2-minute and "Starting now" cards keep "Join Google Meet",
+  "Snooze 5 min" and "Ignore" on one line each. When they do not fit side by
+  side, Join stays on the first row and the other buttons move below it.
 
 ## 1.16.0 - 2026-11-24
 

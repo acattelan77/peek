@@ -138,56 +138,87 @@ struct StartingNowHUD: View {
         }
     }
 
+    /// Button labels never wrap (PEEK-276). When Join, Snooze and Ignore do not
+    /// fit on one line, Join keeps the first row and the others move below.
     private var actionRow: some View {
-        HStack(spacing: PeekMetrics.headerGap) {
-            if let joinProviderLabel {
-                Button(action: onJoin) {
-                    HStack(spacing: PeekSpacing.iconGap) {
-                        Image(systemName: "video.fill")
-                            .font(PeekIcon.meta)
-                            .accessibilityHidden(true)
-                        Text(String(
-                            format: NSLocalizedString("Join %@", comment: "HUD join button with provider"),
-                            joinProviderLabel
-                        ))
-                    }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: PeekMetrics.headerGap) {
+                joinButton
+                secondaryButtons
+                Spacer(minLength: 0)
+                closeButton
+            }
+            VStack(alignment: .leading, spacing: PeekSpacing.sm) {
+                HStack(spacing: PeekMetrics.headerGap) {
+                    joinButton
+                    Spacer(minLength: 0)
+                    closeButton
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .accessibilityLabel(Text(String(
-                    format: NSLocalizedString("Join %@", comment: "HUD join button with provider"),
-                    joinProviderLabel
-                )))
-            }
-
-            if let onSnooze {
-                Button(action: onSnooze) {
-                    Text(NSLocalizedString("Snooze 5 min", comment: "HUD snooze button"))
+                HStack(spacing: PeekMetrics.headerGap) {
+                    secondaryButtons
                 }
-                .buttonStyle(SecondaryFillButtonStyle())
             }
-
-            if let onIgnore {
-                Button(action: onIgnore) {
-                    Text(NSLocalizedString("Ignore", comment: "Alert button: skip this meeting's remaining alerts"))
-                }
-                .buttonStyle(SecondaryFillButtonStyle())
-                .help(NSLocalizedString("No more alerts for this meeting", comment: "Help for the Ignore alert button"))
-            }
-
-            Spacer()
-
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(PeekIcon.dismiss)
-                    .foregroundColor(PeekColor.secondaryText)
-                    .frame(width: PeekMetrics.hudDismissButton, height: PeekMetrics.hudDismissButton)
-                    .background(PeekColor.fill)
-                    .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help(NSLocalizedString("Dismiss", comment: "HUD dismiss help"))
-            .accessibilityLabel(Text(NSLocalizedString("Dismiss", comment: "HUD dismiss help")))
         }
+    }
+
+    @ViewBuilder
+    private var joinButton: some View {
+        if let joinProviderLabel {
+            Button(action: onJoin) {
+                HStack(spacing: PeekSpacing.iconGap) {
+                    Image(systemName: "video.fill")
+                        .font(PeekIcon.meta)
+                        .accessibilityHidden(true)
+                    Text(String(
+                        format: NSLocalizedString("Join %@", comment: "HUD join button with provider"),
+                        joinProviderLabel
+                    ))
+                    .lineLimit(1)
+                }
+                .fixedSize()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .accessibilityLabel(Text(String(
+                format: NSLocalizedString("Join %@", comment: "HUD join button with provider"),
+                joinProviderLabel
+            )))
+        }
+    }
+
+    @ViewBuilder
+    private var secondaryButtons: some View {
+        if let onSnooze {
+            Button(action: onSnooze) {
+                Text(NSLocalizedString("Snooze 5 min", comment: "HUD snooze button"))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .buttonStyle(SecondaryFillButtonStyle())
+        }
+
+        if let onIgnore {
+            Button(action: onIgnore) {
+                Text(NSLocalizedString("Ignore", comment: "Alert button: skip this meeting's remaining alerts"))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .buttonStyle(SecondaryFillButtonStyle())
+            .help(NSLocalizedString("No more alerts for this meeting", comment: "Help for the Ignore alert button"))
+        }
+    }
+
+    private var closeButton: some View {
+        Button(action: onClose) {
+            Image(systemName: "xmark")
+                .font(PeekIcon.dismiss)
+                .foregroundColor(PeekColor.secondaryText)
+                .frame(width: PeekMetrics.hudDismissButton, height: PeekMetrics.hudDismissButton)
+                .background(PeekColor.fill)
+                .clipShape(RoundedRectangle(cornerRadius: PeekRadius.button, style: .continuous))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(NSLocalizedString("Dismiss", comment: "HUD dismiss help"))
+        .accessibilityLabel(Text(NSLocalizedString("Dismiss", comment: "HUD dismiss help")))
     }
 }
