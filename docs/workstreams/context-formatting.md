@@ -53,7 +53,7 @@ read only) maps the day log's labelled fields as follows:
 
 - [x] Diagnosis against the live day log on the main Mac
 - [x] Fix and tests
-- [ ] CI green after the card button fix
+- [x] CI green after the card button fix (d6f841b, https://github.com/acattelan77/peek/actions/runs/45588658477)
 - [ ] Owner checks on the Mac
 
 ## Validation
