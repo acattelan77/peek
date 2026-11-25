@@ -6,6 +6,14 @@ noted under the version it belongs to.
 
 ## Unreleased
 
+### Repository (no app change)
+
+- CI rejects personal data: `scripts/check-personal-data.py` fails on email
+  addresses outside example domains, home-directory paths, signing material,
+  build outputs and terms on a hashed denylist, in tracked files and in new
+  commits' authors and messages. `AGENTS.md` and the pull-request template say
+  how to comply.
+
 ## 1.16.1 - 2026-11-25
 
 ### Repository (build 54, no app change)

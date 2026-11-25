@@ -84,8 +84,14 @@ when you need the reasoning behind a past change.
   layouts). Keep such knowledge out of code, tests and living docs.
 * **Sandbox.** Peek is sandboxed for the App Store. New entitlements need a
   reason in `docs/APP_STORE.md` and a change to `scripts/check-app-bundle.sh`.
-* **No real personal data** in fixtures, docs, screenshots or examples. The
-  repository is public; use fictional names and `example.com`.
+* **No real personal data** in code, fixtures, docs, screenshots, examples,
+  commit messages or commit metadata. The repository is public; use fictional
+  names, `example.com` addresses and generic paths (`~/`, `/Users/you`). Commit
+  with a noreply email. Never commit signing material, built apps or local
+  files. `scripts/check-personal-data.py` enforces this in CI; a fixture that
+  looks real on purpose ends its line with `personal-data: fictional`. Never
+  write a denylisted term in clear to make the check pass: add its hash to
+  `scripts/personal-data-denylist.sha256` instead.
 
 ## Build and test
 
@@ -93,6 +99,7 @@ when you need the reasoning behind a past change.
 bash scripts/check-version.sh
 bash scripts/check-design-tokens.sh
 python3 scripts/check-localization.py
+python3 scripts/check-personal-data.py
 xcodebuild -scheme Peek -configuration Debug -derivedDataPath ./build \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
 xcodebuild -scheme Peek -destination "platform=macOS" -derivedDataPath ./build \
@@ -108,7 +115,7 @@ same checks plus `scripts/check-version-bump.sh` and `scripts/check-app-bundle.s
 
 Cloud sessions have no `xcodebuild`, macOS SDK, EventKit or running app.
 
-1. Run what works on Linux: the three check scripts above, `git diff --check`,
+1. Run what works on Linux: the four check scripts above, `git diff --check`,
    `bash -n`, and Python `plistlib`/`json` on touched files.
 2. CI is the build and test gate. Push the branch and open a draft pull request
    with the REST API (GraphQL is not available):

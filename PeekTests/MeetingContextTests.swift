@@ -132,7 +132,7 @@ final class MeetingContextBuilderTests: XCTestCase {
 
     func testPersonalMailDomainsAndRoomsAreNotShown() {
         let attendees = [
-            AttendeeInput(name: "Luca", email: "luca@gmail.com"),
+            AttendeeInput(name: "Luca", email: "luca@gmail.com"), // personal-data: fictional
             AttendeeInput(name: "Room 4", email: "room4@resource.calendar.google.com", isPerson: false)
         ]
         let context = MeetingContextBuilder.make(attendees: attendees, notes: nil, contacts: nil, external: nil)
@@ -231,7 +231,7 @@ final class MeetingContextBuilderTests: XCTestCase {
 
     func testCompanyDomain() {
         XCTAssertEqual(MeetingContextBuilder.companyDomain(fromEmail: "a@northwind.example"), "northwind.example")
-        XCTAssertNil(MeetingContextBuilder.companyDomain(fromEmail: "a@icloud.com"))
+        XCTAssertNil(MeetingContextBuilder.companyDomain(fromEmail: "a@icloud.com")) // personal-data: fictional
         XCTAssertNil(MeetingContextBuilder.companyDomain(fromEmail: "a@localhost"))
     }
 }

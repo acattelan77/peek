@@ -1,7 +1,7 @@
 # Workstream: Repository cleanup and documentation
 
 - Roadmap ID: N/A (maintenance)
-- Status: In review
+- Status: Done (merged into the recreated repository, 2026-11-25)
 - Owner: Claude Code (cloud session)
 - Branch/worktree: `claude/project-thread-sk0n5e`
 - Last updated: 2026-11-25
