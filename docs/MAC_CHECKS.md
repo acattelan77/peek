@@ -167,6 +167,26 @@ been recorded as passed yet.
 - [ ] The full-screen start alert shows the event title as its headline.
 - [ ] On the 2-minute and Starting now cards, "Join Google Meet" stays on one line.
 
+## PEEK-282: multi-monitor popover stability (target 1.16.2)
+
+- [x] On the contributor's local 1.16.2 candidate, open/close the popover on
+      the previously problematic external display; no recurring jump or
+      unexpected resizing was observed in the later recordings.
+- [x] Keep the popover open during countdown updates: the status item remains
+      live and the popup stays visually stable in the contributor's checks.
+      Countdown minute rounding is consistent with the popup after the final fix.
+- [x] Close and reopen the popover: a fresh anchor is acquired; the countdown
+      remains live (rather than being suspended until closing).
+- [ ] Explicitly test changing the connected-display arrangement while the
+      popover is open; verify no stranded anchor and correct next opening.
+- [ ] Confirm alert/urgency transitions, notched/crowded menu bar, and a signed
+      candidate on the maintainer's target hardware.
+
+Contributor validation was performed on a MacBook with external displays,
+using temporary calendar events and an ad-hoc local build on 2026-11-26.
+These checks do not replace release validation on signed builds or other
+hardware configurations.
+
 ## PEEK-AUD-07: release validation (needs hardware and a clean account)
 
 Run on a signed candidate (TestFlight or notarized DMG), ideally on a fresh macOS

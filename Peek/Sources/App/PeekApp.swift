@@ -75,6 +75,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var collapsedWhileHidden = false
     private var outsideClickEventMonitor: Any?
     private var isPopoverPresentationPending = false
+    // Lock only the status item width during presentation; keep the countdown live.
+    private var lockedStatusItemWidth: CGFloat?
     private let popoverAnchorController = PopoverAnchorController()
     private let hudController = StartingNowHUDController()
     private var refreshWorkItem: DispatchWorkItem?
@@ -459,6 +461,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             outsideClickEventMonitor = nil
         }
         isPopoverPresentationPending = false
+        unlockStatusItemWidth()
         popoverAnchorController.detach()
 
         calendarManager.stopObservingChanges()
@@ -629,6 +632,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 popover.performClose(nil)
             } else {
                 popoverAnchorController.detach()
+                unlockStatusItemWidth()
+                updateMenuBar()
             }
         } else {
             // As an accessory (LSUIElement) app, Peek is not activated by a status-item
@@ -638,6 +643,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // status items, so wait for the next layout pass before capturing the
             // button's position as the popover anchor.
             isPopoverPresentationPending = true
+            lockStatusItemWidth(for: button)
             NSApp.activate(ignoringOtherApps: true)
             DispatchQueue.main.async { [weak self, weak button, clickDerivedButtonFrame] in
                 guard let self = self, let button = button else { return }
@@ -660,6 +666,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             relativeTo: button,
             clickDerivedButtonFrame: clickDerivedButtonFrame
         ) else {
+            unlockStatusItemWidth()
+            updateMenuBar()
             return
         }
         popover.contentViewController?.view.window?.makeKey()
@@ -824,7 +832,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return hasJoinLink || !(event.attendees ?? []).isEmpty
     }
 
+    private func lockStatusItemWidth(for button: NSStatusBarButton) {
+        guard lockedStatusItemWidth == nil else { return }
+        button.layoutSubtreeIfNeeded()
+        let width = button.bounds.width
+        guard PopoverPresentationPolicy.canLockStatusItemWidth(width) else { return }
+        lockedStatusItemWidth = width
+        statusItem.length = width
+    }
+
+    private func unlockStatusItemWidth() {
+        guard lockedStatusItemWidth != nil else { return }
+        lockedStatusItemWidth = nil
+        statusItem.length = NSStatusItem.variableLength
+    }
+
     private func applyStatusBarContent(button: NSStatusBarButton, content: StatusBarContent) {
+        // Always render fresh countdown text or pill. While the popover is
+        // anchored, NSStatusItem.length is fixed so rendering cannot resize it.
         let filled = content.phase.isFilled && calendarManager.urgencyColorsEnabled
         let metrics = statusItemMetrics(
             button: button,
@@ -1047,6 +1072,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate: NSWindowDelegate, NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         popoverAnchorController.detach()
+        unlockStatusItemWidth()
+        // Refresh any status-bar title or urgency change deferred while the popover was open.
+        updateMenuBar()
     }
 
     func windowWillClose(_ notification: Notification) {

@@ -60,3 +60,43 @@ final class StatusBarSpacePolicyTests: XCTestCase {
         XCTAssertEqual(autoPolicy.presentation, .text)
     }
 }
+
+/// Regression coverage for secondary-screen popover anchoring.
+final class PopoverMultiDisplayRegressionTests: XCTestCase {
+    func testStatusItemWidthCanBeLockedOnlyAfterLayout() {
+        XCTAssertTrue(PopoverPresentationPolicy.canLockStatusItemWidth(38))
+        XCTAssertTrue(PopoverPresentationPolicy.canLockStatusItemWidth(273))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(0))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(-1))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(.infinity))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(.nan))
+    }
+
+    func testVisiblePopoverKeepsOpeningAnchorAcrossSameAndDifferentScreenDrift() {
+        let initial = NSRect(x: -150, y: 1050, width: 38, height: 24)
+        let sameDisplayDrift = NSRect(x: -225, y: 1050, width: 38, height: 24)
+        let otherDisplay = NSRect(x: 1300, y: 1050, width: 38, height: 24)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: sameDisplayDrift, popoverIsShown: true), initial)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: otherDisplay, popoverIsShown: true), initial)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: sameDisplayDrift, popoverIsShown: false), sameDisplayDrift)
+    }
+
+    func testAnchorRefreshCannotCrossToDifferentDisplay() {
+        let leftScreen = NSRect(x: -1920, y: 0, width: 1920, height: 1080)
+        let leftStatusButton = NSRect(x: -150, y: 1050, width: 38, height: 24)
+        let primaryStatusButton = NSRect(x: 1300, y: 1050, width: 38, height: 24)
+        XCTAssertTrue(PopoverPresentationPolicy.shouldAcceptAnchorRefresh(
+            candidate: leftStatusButton, presentationScreenFrame: leftScreen))
+        XCTAssertFalse(PopoverPresentationPolicy.shouldAcceptAnchorRefresh(
+            candidate: primaryStatusButton, presentationScreenFrame: leftScreen))
+    }
+
+    func testAnchorRefreshAllowsFallbackWhenNoScreenWasCaptured() {
+        let button = NSRect(x: 150, y: 800, width: 40, height: 24)
+        XCTAssertTrue(PopoverPresentationPolicy.shouldAcceptAnchorRefresh(
+            candidate: button, presentationScreenFrame: nil))
+    }
+}

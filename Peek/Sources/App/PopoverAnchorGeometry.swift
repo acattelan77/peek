@@ -25,3 +25,30 @@ struct PopoverAnchorGeometry {
         )
     }
 }
+
+/// Pure decisions for keeping a menu-bar popover stable during presentation.
+/// Kept independent of NSScreen/NSPopover so display geometry is unit-testable.
+enum PopoverPresentationPolicy {
+    /// Never pin a status item to an unusable width (e.g. before layout).
+    static func canLockStatusItemWidth(_ width: CGFloat) -> Bool {
+        width.isFinite && width > 0
+    }
+
+    /// An open popover stays at the anchor captured on presentation,
+    /// including when the status button drifts within the same monitor.
+    static func anchorFrame(
+        initial: NSRect,
+        candidate: NSRect,
+        popoverIsShown: Bool
+    ) -> NSRect {
+        popoverIsShown ? initial : candidate
+    }
+
+    static func shouldAcceptAnchorRefresh(
+        candidate: NSRect,
+        presentationScreenFrame: NSRect?
+    ) -> Bool {
+        guard let screen = presentationScreenFrame else { return true }
+        return screen.contains(NSPoint(x: candidate.midX, y: candidate.midY))
+    }
+}

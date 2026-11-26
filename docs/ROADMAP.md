@@ -66,6 +66,16 @@ last step and is the owner's.
 6. **TestFlight round and submission — owner.** Follow "TestFlight plan" in
    `docs/APP_STORE.md`, then submit for review.
 
+## In progress — pending review
+
+* **PEEK-282 — Active (target 1.16.2):** stabilize the popover's opening
+  anchor on multi-display setups while keeping the menu-bar countdown live;
+  align countdown minute rounding with the popover. Local XCTest suite and
+  Release build passed; contributor's physical checks passed on the reported
+  external-display setup. Further display-arrangement checks, maintainer
+  review and PR CI verification remain open.
+  Workstream: `docs/workstreams/multimonitor-popover.md`.
+
 ## Shipped, awaiting checks on a Mac
 
 All merged to `main` between 1.6.0 and 1.16.1. Checks in `docs/MAC_CHECKS.md`.

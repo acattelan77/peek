@@ -14,6 +14,18 @@ noted under the version it belongs to.
   commits' authors and messages. `AGENTS.md` and the pull-request template say
   how to comply.
 
+## 1.16.2 - 2026-11-26
+
+### Fixed
+
+- Keep the menu-bar popover anchored to the position and display captured when
+  it opens, even while its menu-bar countdown continues to update. Avoid jumps,
+  unnecessary repositioning and repeated popover presentation on multi-monitor
+  setups; allow fresh anchoring on the next opening.
+- Keep the countdown in the menu bar and the popover consistent by sharing
+  rounded-up minute calculations; add regression tests for fractional minutes
+  and time-boundary behavior.
+
 ## 1.16.1 - 2026-11-25
 
 ### Repository (build 54, no app change)

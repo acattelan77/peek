@@ -15,6 +15,7 @@ final class PopoverAnchorController {
     private var anchorWindow: NSPanel?
     private var anchorView: NSView?
     private var lastAnchorScreenFrame: NSRect?
+    private var presentationScreen: NSScreen?
 
     private weak var popover: NSPopover?
     private weak var button: NSStatusBarButton?
@@ -30,17 +31,33 @@ final class PopoverAnchorController {
         clickDerivedButtonFrame: NSRect?
     ) -> Bool {
         button.layoutSubtreeIfNeeded()
-        guard let screenFrame = clickDerivedButtonFrame
-            ?? Self.appKitStatusButtonScreenFrame(button: button)
-        else {
-            return false
+        let appKitFrame = Self.appKitStatusButtonScreenFrame(button: button)
+        // The click geometry identifies the display the user actually clicked.
+        // During activation, AppKit may briefly report a status item on another display.
+        let clickScreen: NSScreen? = clickDerivedButtonFrame.flatMap { _ in
+            NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) }
+        }
+        let liveOnClickScreen = appKitFrame.flatMap { frame -> NSRect? in
+            guard let clickScreen,
+                  clickScreen.frame.contains(NSPoint(x: frame.midX, y: frame.midY)) else {
+                return nil
+            }
+            return frame
+        }
+        let screenFrame = liveOnClickScreen ?? clickDerivedButtonFrame ?? appKitFrame
+        guard let screenFrame else { return false }
+        presentationScreen = NSScreen.screens.first {
+            $0.frame.contains(NSPoint(x: screenFrame.midX, y: screenFrame.midY))
         }
 
         let anchorView = prepareAnchorWindow(buttonScreenFrame: screenFrame)
         popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
         self.popover = popover
         self.button = button
-        startTracking()
+        // Keep the opening anchor fixed while the popover is visible.
+        // In particular, status-item layout can move when live countdown text
+        // or urgency-pill imagery changes; following that movement causes jumps.
+        // No periodic tracking is needed during this presentation.
         return true
     }
 
@@ -50,27 +67,32 @@ final class PopoverAnchorController {
         guard
             let popover, popover.isShown,
             let button,
-            let anchorWindow,
-            let anchorView
+            let anchorWindow
         else {
             stopTracking()
             return
         }
 
         button.layoutSubtreeIfNeeded()
-        guard
-            let screenFrame = Self.appKitStatusButtonScreenFrame(button: button),
-            screenFrame != lastAnchorScreenFrame
-        else {
+        guard let screenFrame = Self.appKitStatusButtonScreenFrame(button: button),
+              let initialFrame = lastAnchorScreenFrame else {
             return
         }
 
-        lastAnchorScreenFrame = screenFrame
+        // While visible the original anchor is authoritative, even when the
+        // status item moves within the *same* display. Anchoring again here
+        // caused the remaining ~75pt popover jump during countdown updates.
+        let selectedFrame = PopoverPresentationPolicy.anchorFrame(
+            initial: initialFrame,
+            candidate: screenFrame,
+            popoverIsShown: popover.isShown
+        )
+        guard selectedFrame != initialFrame else { return }
+        lastAnchorScreenFrame = selectedFrame
         anchorWindow.setFrame(
-            PopoverAnchorGeometry.anchorWindowFrame(for: screenFrame),
+            PopoverAnchorGeometry.anchorWindowFrame(for: selectedFrame),
             display: false
         )
-        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
     }
 
     /// Stops tracking and tears down the anchor window.
@@ -79,6 +101,7 @@ final class PopoverAnchorController {
         tearDownAnchorWindow()
         popover = nil
         button = nil
+        presentationScreen = nil
     }
 
     // MARK: - Tracking

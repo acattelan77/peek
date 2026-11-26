@@ -33,18 +33,21 @@ struct EventTimeFormatter {
         compactDateFormatter.string(from: date)
     }
 
-    static func timeUntilComponents(target: Date, now: Date) -> TimeUntilComponents {
-        let interval = max(0, target.timeIntervalSince(now))
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
+    /// Minutes remaining, rounded up while time remains; zero at or after start.
+    /// Shared by the menu-bar label and the popover so they cannot disagree
+    /// by one minute solely because of fractional seconds.
+    static func roundedUpMinutes(until target: Date, now: Date) -> Int {
+        let seconds = max(0, target.timeIntervalSince(now))
+        return Int((seconds / 60).rounded(.up))
+    }
 
-        if hours > 0 {
-            return .hoursMinutes(hours, minutes)
-        }
-        if minutes > 0 {
-            return .minutes(minutes)
-        }
-        return .now
+    static func timeUntilComponents(target: Date, now: Date) -> TimeUntilComponents {
+        let totalMinutes = roundedUpMinutes(until: target, now: now)
+        if totalMinutes == 0 { return .now }
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        if hours > 0 { return .hoursMinutes(hours, minutes) }
+        return .minutes(minutes)
     }
 
     /// Compact countdown in the design voice: "in 12 min", "in 3 hr", "starting now".
