@@ -89,7 +89,46 @@ struct MenuBarView: View {
             .sorted { $0.startDate < $1.startDate }
     }
 
+    private var page: PopoverPage {
+        PopoverPagePolicy.page(showingSettings: showingPreferences, hasMeeting: detailEvent != nil)
+    }
+
     var body: some View {
+        Group {
+            if page == .settings {
+                // PEEK-285: settings replace the calendar as the popover's only page.
+                PreferencesView(calendarManager: calendarManager, onDone: finishSettings)
+            } else {
+                calendarPage
+            }
+        }
+        .preferredColorScheme(preferredColorScheme)
+        .onAppear {
+            // The popover always opens on the calendar.
+            showingPreferences = false
+            reloadEventDays()
+            reloadTodayEvents()
+            if let existingMonitor = eventMonitor {
+                NSEvent.removeMonitor(existingMonitor)
+            }
+            eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                self.handleKeyPress(event)
+            }
+        }
+        .onDisappear {
+            if showingPreferences {
+                // Closed with a click outside, Escape or the menu-bar item: keep the changes.
+                calendarManager.savePreferences()
+                showingPreferences = false
+            }
+            if let monitor = eventMonitor {
+                NSEvent.removeMonitor(monitor)
+                eventMonitor = nil
+            }
+        }
+    }
+
+    private var calendarPage: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let detailEvent {
                 MeetingPage(
@@ -135,26 +174,6 @@ struct MenuBarView: View {
         .frame(width: PeekMetrics.popoverWidth)
         .background(PeekColor.surface)
         .fixedSize(horizontal: false, vertical: true)
-        .preferredColorScheme(preferredColorScheme)
-        .sheet(isPresented: $showingPreferences) {
-            PreferencesView(calendarManager: calendarManager)
-        }
-        .onAppear {
-            reloadEventDays()
-            reloadTodayEvents()
-            if let existingMonitor = eventMonitor {
-                NSEvent.removeMonitor(existingMonitor)
-            }
-            eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                self.handleKeyPress(event)
-            }
-        }
-        .onDisappear {
-            if let monitor = eventMonitor {
-                NSEvent.removeMonitor(monitor)
-                eventMonitor = nil
-            }
-        }
         .onChange(of: calendarManager.upcomingEvents.count) { newCount in
             if selectedEventIndex >= newCount {
                 selectedEventIndex = max(0, newCount - 1)
@@ -491,7 +510,7 @@ struct MenuBarView: View {
     // MARK: - Key handling
 
     private func handleKeyPress(_ event: NSEvent) -> NSEvent? {
-        if showingPreferences || NSApp.keyWindow?.attachedSheet != nil {
+        if !PopoverPagePolicy.calendarHandlesKeys(on: page) || NSApp.keyWindow?.attachedSheet != nil {
             return event
         }
 
@@ -534,6 +553,12 @@ struct MenuBarView: View {
 
     private func closeDetail() {
         detailEvent = nil
+    }
+
+    /// Done on the settings page: the changes are saved, then the popover closes.
+    private func finishSettings() {
+        showingPreferences = false
+        closePopover?()
     }
 
     private func performRefresh() {

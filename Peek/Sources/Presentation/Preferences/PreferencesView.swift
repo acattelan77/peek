@@ -5,17 +5,20 @@ import Foundation
 
 struct PreferencesView: View {
     @ObservedObject var calendarManager: CalendarManager
-    @Environment(\.dismiss) var dismiss
     @State private var launchAtLogin: Bool
     @State private var selectedTab = 0
     private let launchAtLoginController: any LaunchAtLoginControlling
+    /// Called after Done saves the changes; the popover closes (PEEK-285).
+    private let onDone: () -> Void
 
     init(
         calendarManager: CalendarManager,
-        launchAtLoginController: any LaunchAtLoginControlling = SystemLaunchAtLoginController()
+        launchAtLoginController: any LaunchAtLoginControlling = SystemLaunchAtLoginController(),
+        onDone: @escaping () -> Void = {}
     ) {
         self.calendarManager = calendarManager
         self.launchAtLoginController = launchAtLoginController
+        self.onDone = onDone
         _launchAtLogin = State(initialValue: launchAtLoginController.currentValue)
     }
 
@@ -95,7 +98,7 @@ struct PreferencesView: View {
 
             Button(NSLocalizedString("Done", comment: "Done button")) {
                 calendarManager.savePreferences()
-                dismiss()
+                onDone()
             }
             .buttonStyle(PrimaryButtonStyle())
         }

@@ -17,6 +17,15 @@ file grows past about 300 lines, move the oldest minor versions there.
   commits' authors and messages. `AGENTS.md` and the pull-request template say
   how to comply.
 
+## 1.16.5 - 2026-11-26
+
+### Changed
+
+- PEEK-285: the gear button opens Settings as the popover's only page, anchored
+  to the menu-bar item, instead of a sheet over the still-open calendar. Done
+  saves and closes the popover; closing it any other way also keeps the changes,
+  and the next click opens the calendar.
+
 ## 1.16.4 - 2026-11-26
 
 ### Fixed

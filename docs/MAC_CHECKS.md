@@ -207,6 +207,15 @@ hardware configurations.
 - [ ] After a local test run, `ls ~/Library/Preferences | grep com.peek.app.tests`
       prints nothing new.
 
+## PEEK-285: settings as the popover's only page (1.16.5)
+
+- [ ] The gear button replaces the calendar with Settings in the same popover,
+      with its arrow still on the menu-bar item; no calendar shows behind it.
+- [ ] Done closes the popover; the next click opens the calendar. A change made
+      before closing with a click outside or Escape is kept.
+- [ ] Pickers, the shortcut recorder and the context-folder chooser in Settings
+      still work, and the popover does not close while they are open.
+
 ## PEEK-AUD-07: release validation (needs hardware and a clean account)
 
 Run on a signed candidate (TestFlight or notarized DMG), ideally on a fresh macOS

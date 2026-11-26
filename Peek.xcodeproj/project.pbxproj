@@ -56,6 +56,8 @@
 		1A0000740000000000000001 /* AppBehaviorSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000760000000000000001 /* AppBehaviorSupport.swift */; };
 		7D0274000000000000000002 /* DiscreetMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0274000000000000000001 /* DiscreetMode.swift */; };
 		7D0274000000000000000004 /* DiscreetModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0274000000000000000003 /* DiscreetModeTests.swift */; };
+		7F0285000000000000000002 /* PopoverPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0285000000000000000001 /* PopoverPage.swift */; };
+		7F0285000000000000000004 /* PopoverPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0285000000000000000003 /* PopoverPageTests.swift */; };
 		6A0000200000000000000002 /* MeetingContextProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000200000000000000001 /* MeetingContextProvider.swift */; };
 		6A0000320000000000000002 /* MeetingBriefService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000320000000000000001 /* MeetingBriefService.swift */; };
 		6A0000310000000000000002 /* BriefEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0000310000000000000001 /* BriefEngine.swift */; };
@@ -165,6 +167,8 @@
 		1A0000760000000000000001 /* AppBehaviorSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBehaviorSupport.swift; sourceTree = "<group>"; };
 		7D0274000000000000000001 /* DiscreetMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscreetMode.swift; sourceTree = "<group>"; };
 		7D0274000000000000000003 /* DiscreetModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscreetModeTests.swift; sourceTree = "<group>"; };
+		7F0285000000000000000001 /* PopoverPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverPage.swift; sourceTree = "<group>"; };
+		7F0285000000000000000003 /* PopoverPageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverPageTests.swift; sourceTree = "<group>"; };
 		6A0000200000000000000001 /* MeetingContextProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingContextProvider.swift; sourceTree = "<group>"; };
 		6A0000320000000000000001 /* MeetingBriefService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingBriefService.swift; sourceTree = "<group>"; };
 		6A0000310000000000000001 /* BriefEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefEngine.swift; sourceTree = "<group>"; };
@@ -385,6 +389,7 @@
 				6A0000390000000000000001 /* GlanceAndTimeZonesTests.swift */,
 				7B0000030000000000000001 /* AlertTimingTests.swift */,
 				7D0274000000000000000003 /* DiscreetModeTests.swift */,
+				7F0285000000000000000003 /* PopoverPageTests.swift */,
 				6A0000080000000000000001 /* LocalizationTests.swift */,
 				6A0000050000000000000001 /* StartAlertPolicyTests.swift */,
 				6A0000030000000000000001 /* MonthGridTests.swift */,
@@ -430,6 +435,7 @@
 				7B0000010000000000000001 /* AlertTiming.swift */,
 				6A0000200000000000000001 /* MeetingContextProvider.swift */,
 				7D0274000000000000000001 /* DiscreetMode.swift */,
+				7F0285000000000000000001 /* PopoverPage.swift */,
 				2C0000110000000000000001 /* AppVersion.swift */,
 				2B0000170000000000000001 /* StatusBarSpacePolicy.swift */,
 				2B0000440000000000000001 /* StatusBarSpaceMetrics.swift */,
@@ -837,6 +843,7 @@
 				6A0000300000000000000002 /* MeetingBrief.swift in Sources */,
 				6A0000200000000000000002 /* MeetingContextProvider.swift in Sources */,
 				7D0274000000000000000002 /* DiscreetMode.swift in Sources */,
+				7F0285000000000000000002 /* PopoverPage.swift in Sources */,
 				6A0000100000000000000002 /* InvitationTextCleaner.swift in Sources */,
 				6A0000110000000000000002 /* MeetingContext.swift in Sources */,
 				6A0000120000000000000002 /* MeetingContextFile.swift in Sources */,
@@ -876,6 +883,7 @@
 				6A0000390000000000000002 /* GlanceAndTimeZonesTests.swift in Sources */,
 				7B0000030000000000000002 /* AlertTimingTests.swift in Sources */,
 				7D0274000000000000000004 /* DiscreetModeTests.swift in Sources */,
+				7F0285000000000000000004 /* PopoverPageTests.swift in Sources */,
 				6A0000360000000000000002 /* MeetingBriefTests.swift in Sources */,
 				6A0000220000000000000002 /* MeetingContextTests.swift in Sources */,
 				9D027500000000000000000C /* DiagnosticsTests.swift in Sources */,

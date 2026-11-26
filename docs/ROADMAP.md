@@ -21,7 +21,7 @@ range.
 
 ## Current state
 
-Last updated 2026-11-26, with `main` at 1.16.4 (last full review 2026-11-25).
+Last updated 2026-11-26, with `main` at 1.16.5 (last full review 2026-11-25).
 
 The app is feature-complete for its first public release: phases 1 to 4 of the
 Peek 2.0 plan, the Peek 2.0 mockup alignment, App Store packaging and the
@@ -68,7 +68,7 @@ last step and is the owner's.
 
 ## Shipped, awaiting checks on a Mac
 
-All merged to `main` between 1.6.0 and 1.16.2. Checks in `docs/MAC_CHECKS.md`.
+All merged to `main` between 1.6.0 and 1.16.5. Checks in `docs/MAC_CHECKS.md`.
 
 **Design**
 
@@ -152,6 +152,8 @@ All merged to `main` between 1.6.0 and 1.16.2. Checks in `docs/MAC_CHECKS.md`.
 * **PEEK-284 — Shipped (1.16.4):** the launch line reaches the persistent log
   (`log show` found nothing because routine events are info level); tests no
   longer leave `com.peek.app.tests.*` preference files behind.
+* **PEEK-285 — Shipped (1.16.5):** Settings replace the calendar in the popover,
+  anchored to the menu-bar item, instead of opening as a sheet over it.
 
 **App Store readiness (1.12.5; workstream `app-store-readiness.md`)**
 
