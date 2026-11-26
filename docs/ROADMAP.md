@@ -146,6 +146,9 @@ All merged to `main` between 1.6.0 and 1.16.2. Checks in `docs/MAC_CHECKS.md`.
 * **PEEK-282 — Shipped (1.16.2):** the popover keeps the anchor and display it
   opened on while the menu-bar countdown stays live; menu bar and popover round
   minutes the same way. Contributed by an outside collaborator (PR 2).
+* **PEEK-284 — Shipped (1.16.3):** the launch line reaches the persistent log
+  (`log show` found nothing because routine events are info level); tests no
+  longer leave `com.peek.app.tests.*` preference files behind.
 
 **App Store readiness (1.12.5; workstream `app-store-readiness.md`)**
 

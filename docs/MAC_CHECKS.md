@@ -195,6 +195,14 @@ using temporary calendar events and an ad-hoc local build on 2026-11-26.
 These checks do not replace release validation on signed builds or other
 hardware configurations.
 
+## PEEK-284: persistent launch line and test cleanup (1.16.3)
+
+- [ ] Quit and reopen Peek, then
+      `log show --last 5m --predicate 'subsystem == "com.peek.app"'` shows one
+      `launched version=… build=…` line.
+- [ ] After a local test run, `ls ~/Library/Preferences | grep com.peek.app.tests`
+      prints nothing new.
+
 ## PEEK-AUD-07: release validation (needs hardware and a clean account)
 
 Run on a signed candidate (TestFlight or notarized DMG), ideally on a fresh macOS

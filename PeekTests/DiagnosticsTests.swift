@@ -78,6 +78,8 @@ final class DiagnosticsTests: XCTestCase {
         XCTAssertEqual(DiagnosticEvent.notificationsScheduled(result: "failed").level, .error)
         XCTAssertEqual(DiagnosticEvent.contextFile(state: .unreadable, eventCount: 0).level, .error)
         XCTAssertEqual(DiagnosticEvent.calendarAccess(granted: true, errorCode: nil).level, .info)
+        // The launch line must reach the persistent log, which drops info lines.
+        XCTAssertEqual(DiagnosticEvent.appLaunched(version: "1.0", build: "1", system: "15.0").level, .notice)
     }
 
     func testContextStatusMapsToStateWithoutPayload() {
