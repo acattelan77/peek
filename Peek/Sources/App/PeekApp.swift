@@ -155,7 +155,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         )
 
-        popover.contentViewController = NSHostingController(rootView: menuBarView)
+        let hostingController = NSHostingController(rootView: menuBarView)
+        // The popover follows its page's size: the 360-pt calendar or the wider
+        // settings page that replaces it (PEEK-285). Size only; the anchor is untouched.
+        hostingController.sizingOptions = .preferredContentSize
+        popover.contentViewController = hostingController
 
         // Observe changes to enabled calendars and refresh when changed
         calendarManager.$enabledCalendarIDs
