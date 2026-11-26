@@ -167,7 +167,7 @@ been recorded as passed yet.
 - [ ] The full-screen start alert shows the event title as its headline.
 - [ ] On the 2-minute and Starting now cards, "Join Google Meet" stays on one line.
 
-## PEEK-282: multi-monitor popover stability (target 1.16.2)
+## PEEK-282: multi-monitor popover stability (1.16.2)
 
 - [x] On the contributor's local 1.16.2 candidate, open/close the popover on
       the previously problematic external display; no recurring jump or
@@ -181,6 +181,14 @@ been recorded as passed yet.
       popover is open; verify no stranded anchor and correct next opening.
 - [ ] Confirm alert/urgency transitions, notched/crowded menu bar, and a signed
       candidate on the maintainer's target hardware.
+- [ ] With the popover open, let the menu-bar label grow (entering the red
+      "soon" pill, or the next meeting's title replacing a short countdown):
+      the item keeps its opening width, so the label may be clipped until the
+      popover closes. Decide whether that is acceptable.
+- [ ] With the popover open, make a menu-bar item to Peek's right change width
+      (for example one that shows and hides text): the popover keeps its opening
+      position by design and no longer follows the icon. Decide whether that is
+      acceptable.
 
 Contributor validation was performed on a MacBook with external displays,
 using temporary calendar events and an ad-hoc local build on 2026-11-26.

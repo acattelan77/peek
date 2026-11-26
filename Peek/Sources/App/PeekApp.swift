@@ -623,7 +623,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if popover.isShown || isPopoverPresentationPending {
             isPopoverPresentationPending = false
-            popoverAnchorController.stopTracking()
             if let monitor = outsideClickEventMonitor {
                 NSEvent.removeMonitor(monitor)
                 outsideClickEventMonitor = nil

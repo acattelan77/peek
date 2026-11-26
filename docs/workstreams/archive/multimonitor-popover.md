@@ -1,7 +1,7 @@
 # Workstream: Multi-monitor popover stability
 
 - Roadmap ID: PEEK-282 (proposed; confirm with maintainer)
-- Status: Active — PR #2 in Draft pending branch update and CI
+- Status: Complete (merged in PR 2, 2026-11-26)
 - Owner: External contributor
 - Branch/worktree: `fix/multimonitor-popover`
 - Last updated: 2026-11-26
