@@ -1,7 +1,7 @@
 # Workstream: Menu-bar click opens the popover
 
 - Roadmap ID: PEEK-283
-- Status: Active (pull request open, waiting for the owner's review)
+- Status: Done (merged in PR 4; Mac checks pending in `docs/MAC_CHECKS.md`)
 - Owner: Claude Code
 - Branch/worktree: `claude/project-thread-mqoead`
 - Last updated: 2026-11-26
@@ -44,12 +44,13 @@ PEEK-282 jump.
       reproduced it with a debugger.
 - [x] Fix: never change `statusItem.length` on presentation. The anchor window
       already keeps an open popover still, so the lock was redundant.
-- [ ] CI green; owner verifies with the test installer.
+- [x] CI green: https://github.com/acattelan77/peek/actions/runs/45896047207
+- [ ] Owner verifies with the test installer (`docs/MAC_CHECKS.md`).
 
 ## Validation
 
 - Linux: the four check scripts, `git diff --check`.
-- Build and tests: CI (see the pull request).
+- Build and tests: CI, https://github.com/acattelan77/peek/actions/runs/45896047207 (not run locally).
 
 ## Decisions and open questions
 
