@@ -1,7 +1,7 @@
 # Workstream: settings as the popover's only page
 
 - Roadmap ID: PEEK-285
-- Status: In review
+- Status: Complete
 - Owner: Claude Code
 - Branch/worktree: `claude/project-thread-4mi65g`
 - Last updated: 2026-11-26
@@ -42,7 +42,8 @@ item, instead of a sheet over the still-open calendar.
 ## Validation
 
 - Linux checks: version, design tokens, localization, personal data,
-  `git diff --check`. Build and tests run in CI only.
+  `git diff --check`. Build and 299 tests passed in CI only:
+  https://github.com/acattelan77/peek/actions/runs/45899643763 (PR 6).
 
 ## Decisions and open questions
 
