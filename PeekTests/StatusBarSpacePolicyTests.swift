@@ -63,13 +63,19 @@ final class StatusBarSpacePolicyTests: XCTestCase {
 
 /// Regression coverage for secondary-screen popover anchoring.
 final class PopoverMultiDisplayRegressionTests: XCTestCase {
-    func testStatusItemWidthCanBeLockedOnlyAfterLayout() {
-        XCTAssertTrue(PopoverPresentationPolicy.canLockStatusItemWidth(38))
-        XCTAssertTrue(PopoverPresentationPolicy.canLockStatusItemWidth(273))
-        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(0))
-        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(-1))
-        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(.infinity))
-        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(.nan))
+    /// PEEK-283: the status item is no longer pinned to its opening width
+    /// (resizing it on click swallowed the click on recent macOS), so the
+    /// open popover must keep its anchor while the item grows or shrinks.
+    func testVisiblePopoverKeepsOpeningAnchorWhileStatusItemResizes() {
+        let initial = NSRect(x: 1200, y: 1050, width: 38, height: 24)
+        let grown = NSRect(x: 1110, y: 1050, width: 128, height: 24)
+        let shrunk = NSRect(x: 1215, y: 1050, width: 23, height: 24)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: grown, popoverIsShown: true), initial)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: shrunk, popoverIsShown: true), initial)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: grown, popoverIsShown: false), grown)
     }
 
     func testVisiblePopoverKeepsOpeningAnchorAcrossSameAndDifferentScreenDrift() {
