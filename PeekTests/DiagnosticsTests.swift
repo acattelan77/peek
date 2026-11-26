@@ -82,6 +82,16 @@ final class DiagnosticsTests: XCTestCase {
         XCTAssertEqual(DiagnosticEvent.appLaunched(version: "1.0", build: "1", system: "15.0").level, .notice)
     }
 
+    /// PEEK-286: a failed pass says why, with only the system error's domain and code.
+    func testNotificationFailureLineCarriesReasonAndCodeOnly() {
+        let added = DiagnosticEvent.notificationsFailed(reason: "add", failedCount: 2, errorDomain: "UNErrorDomain", errorCode: 1)
+        XCTAssertEqual(added.message, "failed reason=add count=2 domain=UNErrorDomain code=1")
+        XCTAssertEqual(added.level, .error)
+        XCTAssertEqual(added.category, .notifications)
+        let missing = DiagnosticEvent.notificationsFailed(reason: "missing", failedCount: 3, errorDomain: nil, errorCode: nil)
+        XCTAssertEqual(missing.message, "failed reason=missing count=3")
+    }
+
     func testContextStatusMapsToStateWithoutPayload() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         XCTAssertEqual(

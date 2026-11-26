@@ -66,6 +66,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastDiscreetState = false
     private var updateTimer: Timer?
     private var notificationManager: (any NotificationScheduling)!
+    private let notificationScheduleQueue = CoalescingSerialQueue()
     private var pulseTimer: Timer?
     private var isPulsing = false
     private var spacePolicy: StatusBarSpacePolicy!
@@ -986,14 +987,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         notificationRetryWorkItem?.cancel()
         notificationRetryWorkItem = nil
 
-        let eventsToSchedule = alertableUpcomingEvents()
-        Diagnostics.record(.notificationsRescheduled(reason: reason, eventCount: eventsToSchedule.count))
+        // PEEK-286: one pass at a time. Overlapping passes removed each other's
+        // new reminders and reported a false failure. A burst becomes the
+        // running pass plus one follow-up that reads the latest events.
+        notificationScheduleQueue.submit { [weak self] done in
+            guard let self, self.calendarManager.notificationsEnabled else {
+                done()
+                return
+            }
+            let eventsToSchedule = self.alertableUpcomingEvents()
+            Diagnostics.record(.notificationsRescheduled(reason: reason, eventCount: eventsToSchedule.count))
 
-        notificationManager.scheduleNotifications(
-            for: eventsToSchedule,
-            timing: calendarManager.notificationTiming
-        ) { [weak self] result in
-            self?.handleNotificationSchedulingResult(result)
+            self.notificationManager.scheduleNotifications(
+                for: eventsToSchedule,
+                timing: self.calendarManager.notificationTiming
+            ) { [weak self] result in
+                // A newer pass is waiting: this result is out of date, and the
+                // newer pass reports its own.
+                if let self, !self.notificationScheduleQueue.hasWaitingJob {
+                    self.handleNotificationSchedulingResult(result)
+                }
+                done()
+            }
         }
     }
 

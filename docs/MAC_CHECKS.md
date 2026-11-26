@@ -216,6 +216,15 @@ hardware configurations.
 - [ ] Pickers, the shortcut recorder and the context-folder chooser in Settings
       still work, and the popover does not close while they are open.
 
+## PEEK-286: reminder scheduling without false failures (1.16.6)
+
+- [ ] After quitting and reopening Peek, Settings > Alerts shows no "Some
+      reminders could not be scheduled" message, and a reminder for a test
+      event a few minutes away arrives.
+- [ ] `log show --last 10m --predicate 'subsystem == "com.peek.app"' --info`
+      shows no `scheduled result=failed`; if one appears, the `failed reason=…`
+      line next to it names the cause.
+
 ## PEEK-AUD-07: release validation (needs hardware and a clean account)
 
 Run on a signed candidate (TestFlight or notarized DMG), ideally on a fresh macOS
