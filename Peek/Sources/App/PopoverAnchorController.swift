@@ -15,6 +15,7 @@ final class PopoverAnchorController {
     private var anchorWindow: NSPanel?
     private var anchorView: NSView?
     private var lastAnchorScreenFrame: NSRect?
+    private var presentationScreen: NSScreen?
 
     private weak var popover: NSPopover?
     private weak var button: NSStatusBarButton?
@@ -30,10 +31,23 @@ final class PopoverAnchorController {
         clickDerivedButtonFrame: NSRect?
     ) -> Bool {
         button.layoutSubtreeIfNeeded()
-        guard let screenFrame = clickDerivedButtonFrame
-            ?? Self.appKitStatusButtonScreenFrame(button: button)
-        else {
-            return false
+        let appKitFrame = Self.appKitStatusButtonScreenFrame(button: button)
+        // The click geometry identifies the display the user actually clicked.
+        // During activation, AppKit may briefly report a status item on another display.
+        let clickScreen: NSScreen? = clickDerivedButtonFrame.flatMap { _ in
+            NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) }
+        }
+        let liveOnClickScreen = appKitFrame.flatMap { frame -> NSRect? in
+            guard let clickScreen,
+                  clickScreen.frame.contains(NSPoint(x: frame.midX, y: frame.midY)) else {
+                return nil
+            }
+            return frame
+        }
+        let screenFrame = liveOnClickScreen ?? clickDerivedButtonFrame ?? appKitFrame
+        guard let screenFrame else { return false }
+        presentationScreen = NSScreen.screens.first {
+            $0.frame.contains(NSPoint(x: screenFrame.midX, y: screenFrame.midY))
         }
 
         let anchorView = prepareAnchorWindow(buttonScreenFrame: screenFrame)
@@ -50,8 +64,7 @@ final class PopoverAnchorController {
         guard
             let popover, popover.isShown,
             let button,
-            let anchorWindow,
-            let anchorView
+            let anchorWindow
         else {
             stopTracking()
             return
@@ -65,12 +78,20 @@ final class PopoverAnchorController {
             return
         }
 
+        // Do not jump to the primary display while the popover is open.
+        if !PopoverPresentationPolicy.shouldAcceptAnchorRefresh(
+            candidate: screenFrame,
+            presentationScreenFrame: presentationScreen?.frame
+        ) {
+            return
+        }
         lastAnchorScreenFrame = screenFrame
         anchorWindow.setFrame(
             PopoverAnchorGeometry.anchorWindowFrame(for: screenFrame),
             display: false
         )
-        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
+        // Moving the anchor window suffices; re-showing a visible NSPopover
+        // can trigger a second placement during a live layout pass.
     }
 
     /// Stops tracking and tears down the anchor window.
@@ -79,6 +100,7 @@ final class PopoverAnchorController {
         tearDownAnchorWindow()
         popover = nil
         button = nil
+        presentationScreen = nil
     }
 
     // MARK: - Tracking

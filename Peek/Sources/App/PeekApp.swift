@@ -825,6 +825,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func applyStatusBarContent(button: NSStatusBarButton, content: StatusBarContent) {
+        // Keep the status item width stable while the popover uses its position as an anchor.
+        // A title/pill update can change the status button width and move that anchor.
+        if !PopoverPresentationPolicy.shouldRenderStatusItem(
+            popoverIsShown: popover.isShown,
+            presentationPending: isPopoverPresentationPending
+        ) {
+            return
+        }
         let filled = content.phase.isFilled && calendarManager.urgencyColorsEnabled
         let metrics = statusItemMetrics(
             button: button,
@@ -1047,6 +1055,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate: NSWindowDelegate, NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         popoverAnchorController.detach()
+        // Refresh any status-bar title or urgency change deferred while the popover was open.
+        updateMenuBar()
     }
 
     func windowWillClose(_ notification: Notification) {

@@ -14,6 +14,16 @@ noted under the version it belongs to.
   commits' authors and messages. `AGENTS.md` and the pull-request template say
   how to comply.
 
+## 1.16.2 - 2026-11-26
+
+### Fixed
+
+- Keep the menu-bar popover anchored to its opening display while it is shown,
+  avoiding jumps and size changes on multi-monitor setups when status-item
+  content changes. Resume status-item rendering after the popover closes.
+- Avoid repeatedly showing the popover just to refresh its anchor; add focused
+  regression coverage for rendering and same-display anchor decisions.
+
 ## 1.16.1 - 2026-11-25
 
 ### Repository (build 54, no app change)
