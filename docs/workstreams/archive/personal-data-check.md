@@ -1,7 +1,7 @@
 # Workstream: Personal-data check
 
 - Roadmap ID: N/A (maintenance)
-- Status: In review
+- Status: Complete (merged in PR 1, 2026-11-25)
 - Owner: Claude Code (cloud session)
 - Branch/worktree: `claude/project-thread-sk0n5e`
 - Last updated: 2026-11-25

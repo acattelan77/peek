@@ -43,12 +43,4 @@ enum PopoverPresentationPolicy {
     ) -> NSRect {
         popoverIsShown ? initial : candidate
     }
-
-    static func shouldAcceptAnchorRefresh(
-        candidate: NSRect,
-        presentationScreenFrame: NSRect?
-    ) -> Bool {
-        guard let screen = presentationScreenFrame else { return true }
-        return screen.contains(NSPoint(x: candidate.midX, y: candidate.midY))
-    }
 }

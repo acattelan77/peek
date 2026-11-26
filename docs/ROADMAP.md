@@ -21,7 +21,7 @@ range.
 
 ## Current state
 
-Last reviewed 2026-11-25, with `main` at 1.16.1.
+Last updated 2026-11-26, with `main` at 1.16.2 (last full review 2026-11-25).
 
 The app is feature-complete for its first public release: phases 1 to 4 of the
 Peek 2.0 plan, the Peek 2.0 mockup alignment, App Store packaging and the
@@ -66,19 +66,9 @@ last step and is the owner's.
 6. **TestFlight round and submission — owner.** Follow "TestFlight plan" in
    `docs/APP_STORE.md`, then submit for review.
 
-## In progress — pending review
-
-* **PEEK-282 — Active (target 1.16.2):** stabilize the popover's opening
-  anchor on multi-display setups while keeping the menu-bar countdown live;
-  align countdown minute rounding with the popover. Local XCTest suite and
-  Release build passed; contributor's physical checks passed on the reported
-  external-display setup. Further display-arrangement checks, maintainer
-  review and PR CI verification remain open.
-  Workstream: `docs/workstreams/multimonitor-popover.md`.
-
 ## Shipped, awaiting checks on a Mac
 
-All merged to `main` between 1.6.0 and 1.16.1. Checks in `docs/MAC_CHECKS.md`.
+All merged to `main` between 1.6.0 and 1.16.2. Checks in `docs/MAC_CHECKS.md`.
 
 **Design**
 
@@ -137,7 +127,7 @@ All merged to `main` between 1.6.0 and 1.16.1. Checks in `docs/MAC_CHECKS.md`.
 * **PEEK-264 — Shipped:** context older than 36 hours hides the day block and is
   dated on the meeting page.
 
-**Pre-release robustness (1.13.1 to 1.16.1)**
+**Pre-release robustness (1.13.1 to 1.16.2)**
 
 * **PEEK-275 — Shipped (1.13.1):** local diagnostics without meeting content,
   MetricKit, "Export diagnostics" (ADR 0006).
@@ -153,6 +143,9 @@ All merged to `main` between 1.6.0 and 1.16.1. Checks in `docs/MAC_CHECKS.md`.
   API.
 * **PEEK-276 — Shipped (1.16.1):** meeting page formatting with a context-file
   headline; card buttons stay on one line.
+* **PEEK-282 — Shipped (1.16.2):** the popover keeps the anchor and display it
+  opened on while the menu-bar countdown stays live; menu bar and popover round
+  minutes the same way. Contributed by an outside collaborator (PR 2).
 
 **App Store readiness (1.12.5; workstream `app-store-readiness.md`)**
 
@@ -164,26 +157,12 @@ All merged to `main` between 1.6.0 and 1.16.1. Checks in `docs/MAC_CHECKS.md`.
 
 ## Done
 
-Integrated and validated by tests; their remaining physical checks are folded
-into PEEK-AUD-07.
+Done and dropped items are listed in `docs/history/ROADMAP-done.md`; read it
+only to check whether an ID was already used. Their remaining physical checks are
+folded into PEEK-AUD-07.
 
-* **PEEK-101** notch-safe compact menu bar · **PEEK-102** fake EventKit and
-  notification schedulers · **PEEK-103** UI coverage for first launch, denied
-  access, empty state and Preferences · **PEEK-104** live hotkey re-registration
-  · **PEEK-106** macOS 13 (partial: CI runner retired, hardware check in
-  PEEK-AUD-07) · **PEEK-107** Developer ID release workflow (never run with real
-  secrets) · **PEEK-108** VoiceOver labels, focus order, keyboard activation ·
-  **PEEK-109** crowded-menu-bar icon fallback · **PEEK-110** event detail
-  expansion (later replaced by the meeting page in PEEK-241) · **PEEK-111**
-  headless calendar export (ADR 0003) · design refresh 1.3.x and app icon.
-* **PEEK-AUD-01..06** audit remediation: EventKit refresh on the main thread,
-  Reduce Motion pulse, notification scheduling feedback and retry, fail-closed
-  release verification, documentation, bounded HUD history.
 * **PEEK-AUD-07 — Blocked:** physical release validation; see step 1 above and
   `docs/workstreams/physical-release-validation.md`.
-
-**Dropped:** PEEK-105 settings import/export feedback (the feature was removed
-in 1.3.6).
 
 ## After the first release
 

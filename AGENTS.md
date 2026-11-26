@@ -14,31 +14,41 @@ becomes the calendar of record. `README.md` describes the features;
 
 ## Where the truth lives
 
-Each fact has one home. Do not copy it elsewhere; link to it.
+Each fact has one home. Do not copy it elsewhere; link to it. Read only what the
+task needs: the last column says when.
 
-| Question | Source of truth |
-| --- | --- |
-| Current version and build | `Configuration/Version.xcconfig` |
-| What shipped in each version | `CHANGELOG.md` |
-| Current state, priorities, what is missing | `docs/ROADMAP.md` |
-| Checks only the owner can do on a Mac | `docs/MAC_CHECKS.md` |
-| Who is working on what right now | `docs/workstreams/*.md` (top level only) |
-| Why something is built the way it is | `docs/decisions/` (ADRs) |
-| Layers, boundaries, contracts | `docs/ARCHITECTURE.md` |
-| Build, test, scripts, CI | `docs/DEVELOPMENT.md` |
-| Tokens, components, visual rules | `docs/DESIGN_SYSTEM.md` and `Peek/Sources/Presentation/DesignSystem/` |
-| Version bump rules | `docs/VERSIONING.md` |
-| Developer ID release | `docs/RELEASE.md` |
-| Mac App Store and owner-side Apple steps | `docs/APP_STORE.md` |
+| Question | Source of truth | Read |
+| --- | --- | --- |
+| Current state, priorities, what is missing (the project tracker) | `docs/ROADMAP.md` | Every session, "Current state" first |
+| Who is working on what right now | `docs/workstreams/*.md` (top level only) | Every session |
+| Layers, boundaries, contracts | `docs/ARCHITECTURE.md` | Before changing code |
+| What shipped recently | `CHANGELOG.md` | When you bump the version |
+| Current version and build | `Configuration/Version.xcconfig` | When you bump the version |
+| Version bump rules | `docs/VERSIONING.md` | When you bump the version |
+| Checks only the owner can do on a Mac | `docs/MAC_CHECKS.md` | When you add or close a check |
+| Why something is built the way it is | `docs/decisions/` (ADRs) | Only those covering the area you change |
+| Build, test, scripts, CI | `docs/DEVELOPMENT.md` | When the commands below are not enough |
+| Tokens, components, visual rules | `docs/DESIGN_SYSTEM.md` and `Peek/Sources/Presentation/DesignSystem/` | When you touch UI |
+| Developer ID release | `docs/RELEASE.md` | Only for release work |
+| Mac App Store and owner-side Apple steps | `docs/APP_STORE.md` | Only for App Store work |
 
-`docs/workstreams/archive/` holds frozen records of finished work. Read one only
-when you need the reasoning behind a past change.
+History stays out of these files so they remain short. Read it only when you
+need the reasoning behind a past change:
+
+* `docs/history/CHANGELOG-1.0-1.12.md`: versions before 1.13.
+* `docs/history/ROADMAP-done.md`: done and dropped roadmap items.
+* `docs/workstreams/archive/`: frozen records of finished work.
+
+Keep the live files short: when `CHANGELOG.md` passes about 300 lines, move its
+oldest minor versions to `docs/history/`; when a roadmap item reaches `Done`,
+move its line to `docs/history/ROADMAP-done.md`.
 
 ## Start of every session
 
 1. Run `git status --short --branch` and `git log --oneline -5`. Never assume the
    tree is clean or that `main` is where the docs say it is.
-2. Read `docs/ROADMAP.md` (current state first) and `docs/ARCHITECTURE.md`.
+2. Read `docs/ROADMAP.md` (current state first), and `docs/ARCHITECTURE.md`
+   if you will change code.
 3. List `docs/workstreams/` and read every top-level workstream file. Do not
    touch files an `Active` workstream claims.
 4. Read the ADRs that cover the area you are about to change.

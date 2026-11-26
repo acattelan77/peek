@@ -1,7 +1,9 @@
 import AppKit
 
-/// Owns the invisible anchor window the popover is presented from and keeps it
-/// glued to Peek's live status-item position.
+/// Owns the invisible anchor window the popover is presented from. The anchor
+/// is captured once, when the popover opens, and stays fixed while it is shown
+/// (PEEK-282): following the live status item made the popover jump when its
+/// countdown or the menu bar changed.
 ///
 /// The popover is attached to a fresh transparent anchor window on each
 /// presentation so it never reuses a stale AppKit positioning-view association.
@@ -11,18 +13,15 @@ import AppKit
 /// number (observed: exactly 2^32) that the window-list API cannot resolve,
 /// while AppKit's frame demonstrably tracks menu-bar rearrangements live.
 final class PopoverAnchorController {
-    private var anchorTimer: Timer?
     private var anchorWindow: NSPanel?
     private var anchorView: NSView?
     private var lastAnchorScreenFrame: NSRect?
-    private var presentationScreen: NSScreen?
 
     private weak var popover: NSPopover?
     private weak var button: NSStatusBarButton?
 
     /// Presents `popover` from a fresh anchor window at the status button's
-    /// current screen position and starts tracking so the anchor follows macOS
-    /// menu-bar rearrangements. Returns `false` when no usable frame exists
+    /// current screen position. Returns `false` when no usable frame exists
     /// and the popover was not shown.
     @discardableResult
     func show(
@@ -46,30 +45,22 @@ final class PopoverAnchorController {
         }
         let screenFrame = liveOnClickScreen ?? clickDerivedButtonFrame ?? appKitFrame
         guard let screenFrame else { return false }
-        presentationScreen = NSScreen.screens.first {
-            $0.frame.contains(NSPoint(x: screenFrame.midX, y: screenFrame.midY))
-        }
 
         let anchorView = prepareAnchorWindow(buttonScreenFrame: screenFrame)
         popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
         self.popover = popover
         self.button = button
-        // Keep the opening anchor fixed while the popover is visible.
-        // In particular, status-item layout can move when live countdown text
-        // or urgency-pill imagery changes; following that movement causes jumps.
-        // No periodic tracking is needed during this presentation.
         return true
     }
 
-    /// Re-anchors a visible popover when the status item has moved; stops
-    /// tracking once the popover is gone. Safe to call anytime.
+    /// Applies `PopoverPresentationPolicy.anchorFrame`: a visible popover keeps
+    /// the anchor it opened with. Safe to call anytime.
     func refreshIfNeeded() {
         guard
             let popover, popover.isShown,
             let button,
             let anchorWindow
         else {
-            stopTracking()
             return
         }
 
@@ -95,32 +86,11 @@ final class PopoverAnchorController {
         )
     }
 
-    /// Stops tracking and tears down the anchor window.
+    /// Tears down the anchor window.
     func detach() {
-        stopTracking()
         tearDownAnchorWindow()
         popover = nil
         button = nil
-        presentationScreen = nil
-    }
-
-    // MARK: - Tracking
-
-    private func startTracking() {
-        stopTracking()
-
-        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            self?.refreshIfNeeded()
-        }
-        anchorTimer = timer
-        RunLoop.main.add(timer, forMode: .common)
-    }
-
-    /// Stops anchor tracking without tearing down the anchor window; used on
-    /// the popover-close path where `popoverDidClose` performs the teardown.
-    func stopTracking() {
-        anchorTimer?.invalidate()
-        anchorTimer = nil
     }
 
     // MARK: - Anchor window
