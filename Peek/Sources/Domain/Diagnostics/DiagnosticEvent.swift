@@ -73,6 +73,9 @@ enum DiagnosticEvent: Equatable {
     case notificationsRescheduled(reason: DiagnosticRescheduleReason, eventCount: Int)
     case notificationsRequested(requestCount: Int)
     case notificationsScheduled(result: String)
+    /// Why a pass failed: `add` (the system refused requests; first error's
+    /// domain and code) or `missing` (requests absent from the pending list).
+    case notificationsFailed(reason: String, failedCount: Int, errorDomain: String?, errorCode: Int?)
     case notificationsCleared
     case notificationSnoozed(minutes: Int)
     case alertShown(kind: DiagnosticAlertKind, eventRef: String)
@@ -88,7 +91,7 @@ enum DiagnosticEvent: Equatable {
         case .appLaunched, .diagnosticsExported: return .app
         case .calendarAccess, .calendarRefreshed, .calendarRefreshFailed: return .calendar
         case .notificationPermission, .notificationsRescheduled, .notificationsRequested, .notificationsScheduled,
-             .notificationsCleared, .notificationSnoozed: return .notifications
+             .notificationsFailed, .notificationsCleared, .notificationSnoozed: return .notifications
         case .alertShown, .alertSkipped: return .alerts
         case .contextFile: return .context
         case .briefFinished: return .brief
@@ -106,7 +109,7 @@ enum DiagnosticEvent: Equatable {
             return .notice
         case .calendarAccess(let granted, _), .notificationPermission(let granted, _):
             return granted ? .info : .notice
-        case .calendarRefreshFailed, .hotkeyRegistrationFailed:
+        case .calendarRefreshFailed, .hotkeyRegistrationFailed, .notificationsFailed:
             return .error
         case .notificationsScheduled(let result):
             return result == "failed" ? .error : .info
@@ -144,6 +147,10 @@ enum DiagnosticEvent: Equatable {
             return "requests submitted=\(requestCount)"
         case let .notificationsScheduled(result):
             return "scheduled result=\(result)"
+        case let .notificationsFailed(reason, failedCount, errorDomain, errorCode):
+            return "failed reason=\(reason) count=\(failedCount)"
+                + (errorDomain.map { " domain=\($0)" } ?? "")
+                + Self.code(errorCode)
         case .notificationsCleared:
             return "cleared pending event notifications"
         case let .notificationSnoozed(minutes):

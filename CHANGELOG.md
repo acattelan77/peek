@@ -17,6 +17,17 @@ file grows past about 300 lines, move the oldest minor versions there.
   commits' authors and messages. `AGENTS.md` and the pull-request template say
   how to comply.
 
+## 1.16.6 - 2026-11-26
+
+### Fixed
+
+- PEEK-286: "Some reminders could not be scheduled" no longer appears by mistake
+  after launch. Reminder scheduling passes overlapped, and one pass removed the
+  reminders another had just added. Passes now run one at a time, and a burst
+  of requests becomes one follow-up pass with the latest events.
+- A real scheduling failure is logged with its reason, count and the system
+  error's domain and code (no meeting content).
+
 ## 1.16.5 - 2026-11-26
 
 ### Changed

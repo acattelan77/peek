@@ -113,15 +113,17 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
             let expectedIdentifiers = Set(requests.map(\.identifier))
             let resultLock = NSLock()
-            var schedulingFailed = false
+            var failedCount = 0
+            var firstError: NSError?
             let schedulingGroup = DispatchGroup()
 
             for request in requests {
                 schedulingGroup.enter()
                 self.notificationCenter.add(request) { error in
-                    if error != nil {
+                    if let error {
                         resultLock.lock()
-                        schedulingFailed = true
+                        failedCount += 1
+                        if firstError == nil { firstError = error as NSError }
                         resultLock.unlock()
                     }
                     schedulingGroup.leave()
@@ -130,19 +132,33 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
             schedulingGroup.notify(queue: .main) {
                 resultLock.lock()
-                let failed = schedulingFailed
+                let failures = failedCount
+                let error = firstError
                 resultLock.unlock()
-                guard !failed else {
+                guard failures == 0 else {
+                    // PEEK-286: say why, with the system's error domain and code only.
+                    Diagnostics.record(.notificationsFailed(
+                        reason: "add",
+                        failedCount: failures,
+                        errorDomain: error?.domain,
+                        errorCode: error?.code
+                    ))
                     self.complete(.failed, completion: completion)
                     return
                 }
 
                 self.notificationCenter.getPendingNotificationRequests { pendingRequests in
                     let pendingIdentifiers = Set(pendingRequests.map(\.identifier))
-                    let result: NotificationSchedulingResult = expectedIdentifiers.isSubset(of: pendingIdentifiers)
-                        ? .scheduled
-                        : .failed
-                    self.complete(result, completion: completion)
+                    let missing = expectedIdentifiers.subtracting(pendingIdentifiers).count
+                    if missing > 0 {
+                        Diagnostics.record(.notificationsFailed(
+                            reason: "missing",
+                            failedCount: missing,
+                            errorDomain: nil,
+                            errorCode: nil
+                        ))
+                    }
+                    self.complete(missing == 0 ? .scheduled : .failed, completion: completion)
                 }
             }
         }
