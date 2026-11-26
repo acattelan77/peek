@@ -109,7 +109,7 @@ final class CalendarExportTests: XCTestCase {
         let personal = store.addCalendar(title: "Personal")
         let suiteName = "com.peek.calendar-export.tests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
-        defer { UserDefaults().removeSuite(named: suiteName) }
+        defer { TestDefaults.remove(suiteName) }
 
         XCTAssertEqual(CalendarExportCalendarSelection.resolve(allCalendars: [work, personal], preferences: defaults).count, 2)
         defaults.set([work.calendarIdentifier], forKey: CalendarExportCalendarSelection.enabledCalendarIDsKey)
@@ -123,7 +123,7 @@ final class CalendarExportTests: XCTestCase {
         let store = FakeCalendarEventStore()
         let suiteName = "com.peek.calendar-export.tests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
-        defer { UserDefaults().removeSuite(named: suiteName) }
+        defer { TestDefaults.remove(suiteName) }
         let service = CalendarExportService(eventStore: store, preferences: defaults)
         XCTAssertThrowsError(try service.makePayload(request: .init(fromDays: 0, toDays: 0))) { error in
             XCTAssertEqual(error.localizedDescription, CalendarExportServiceError.calendarAccessRequired.localizedDescription)

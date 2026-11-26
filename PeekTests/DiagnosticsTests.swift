@@ -15,7 +15,7 @@ final class DiagnosticsTests: XCTestCase {
 
     override func tearDown() {
         try? FileManager.default.removeItem(at: directory)
-        UserDefaults().removePersistentDomain(forName: suiteName)
+        TestDefaults.remove(suiteName)
         super.tearDown()
     }
 

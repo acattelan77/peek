@@ -30,7 +30,7 @@ final class MenuBarAndPreferencesIntegrationTests: XCTestCase {
         preferencesStore = nil
         eventStore = nil
         if let suiteName = preferencesSuiteName {
-            UserDefaults().removeSuite(named: suiteName)
+            TestDefaults.remove(suiteName)
             preferencesSuiteName = nil
         }
         super.tearDown()

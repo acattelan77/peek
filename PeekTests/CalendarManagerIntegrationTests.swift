@@ -29,7 +29,7 @@ final class CalendarManagerIntegrationTests: XCTestCase {
         notificationScheduler = nil
         eventStore = nil
         if let suiteName = preferencesSuiteName {
-            UserDefaults().removeSuite(named: suiteName)
+            TestDefaults.remove(suiteName)
             preferencesSuiteName = nil
         }
         super.tearDown()
@@ -199,7 +199,7 @@ final class CalendarManagerIntegrationTests: XCTestCase {
         waitForExpectations(timeout: 1)
 
         XCTAssertTrue(configuredManager.upcomingEvents.isEmpty)
-        UserDefaults().removeSuite(named: suiteName)
+        TestDefaults.remove(suiteName)
     }
 
     func testFetchNextEventFiltersAllDayEvents() {

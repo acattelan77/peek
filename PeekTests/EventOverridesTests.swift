@@ -236,7 +236,7 @@ final class EventOverridesCalendarManagerTests: XCTestCase {
     }
 
     override func tearDown() {
-        UserDefaults().removeSuite(named: suiteName)
+        TestDefaults.remove(suiteName)
         eventStore = nil
         preferences = nil
         super.tearDown()
