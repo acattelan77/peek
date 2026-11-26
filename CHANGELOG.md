@@ -17,6 +17,21 @@ file grows past about 300 lines, move the oldest minor versions there.
   commits' authors and messages. `AGENTS.md` and the pull-request template say
   how to comply.
 
+## 1.16.4 - 2026-11-26
+
+### Fixed
+
+- PEEK-284: the launch line in the unified log is notice level, so
+  `log show --predicate 'subsystem == "com.peek.app"'` finds it after the fact.
+  Other routine events stay info level, which macOS does not keep on disk: watch
+  them live with `log stream --level info`, or export diagnostics.
+
+### Repository
+
+- Tests delete the UserDefaults suites they create. They used to call
+  `removeSuite(named:)`, which leaves the plist, so every test run left
+  `com.peek.app.tests.*` files in Library/Preferences.
+
 ## 1.16.3 - 2026-11-26
 
 ### Fixed

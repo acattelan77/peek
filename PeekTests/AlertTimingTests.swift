@@ -253,7 +253,7 @@ final class AlertTimingTests: XCTestCase {
         store.addEvent(title: "Lunch", startDate: start.addingTimeInterval(7200), endDate: start.addingTimeInterval(9000), calendar: shared)
 
         let suite = "com.peek.app.tests.\(UUID().uuidString)"
-        defer { UserDefaults().removeSuite(named: suite) }
+        defer { TestDefaults.remove(suite) }
         let manager = CalendarManager(eventStore: store, preferencesStore: UserDefaults(suiteName: suite)!)
         manager.hasCalendarAccess = true
 

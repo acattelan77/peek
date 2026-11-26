@@ -11,7 +11,7 @@ artifact of the "Test installer" workflow) unless a section says otherwise.
 Use fictional or test events where you can, and never paste real meeting
 content into an issue or pull request.
 
-Pending since: 1.6.0 to 1.16.3 (2026-11-23 to 2026-11-26). No check below has
+Pending since: 1.6.0 to 1.16.4 (2026-11-23 to 2026-11-26). No check below has
 been recorded as passed yet.
 
 ## Design system v2 (1.6.0)
@@ -198,6 +198,14 @@ hardware configurations.
       second click closes it. The shortcut still works.
 - [ ] With the popover open, the label keeps updating and can grow (red "soon"
       pill, a longer title) without being clipped; the popover does not move.
+
+## PEEK-284: persistent launch line and test cleanup (1.16.4)
+
+- [ ] Quit and reopen Peek, then
+      `log show --last 5m --predicate 'subsystem == "com.peek.app"'` shows one
+      `launched version=… build=…` line.
+- [ ] After a local test run, `ls ~/Library/Preferences | grep com.peek.app.tests`
+      prints nothing new.
 
 ## PEEK-AUD-07: release validation (needs hardware and a clean account)
 

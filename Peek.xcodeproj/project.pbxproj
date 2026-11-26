@@ -78,6 +78,8 @@
 		2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0000380000000000000001 /* FakeNotificationScheduler.swift */; };
 		2B00003B0000000000000001 /* CalendarManagerIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */; };
 		2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003E0000000000000001 /* FakeLaunchAtLoginController.swift */; };
+		7E0283010000000000000001 /* TestDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0283020000000000000001 /* TestDefaults.swift */; };
+		7E0283030000000000000001 /* TestDefaultsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0283040000000000000001 /* TestDefaultsTests.swift */; };
 		2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */; };
 		2C0000010000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
 		2C0000020000000000000001 /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0000110000000000000001 /* AppVersion.swift */; };
@@ -193,6 +195,8 @@
 		2B0000380000000000000001 /* FakeNotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeNotificationScheduler.swift; sourceTree = "<group>"; };
 		2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManagerIntegrationTests.swift; sourceTree = "<group>"; };
 		2B00003E0000000000000001 /* FakeLaunchAtLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeLaunchAtLoginController.swift; sourceTree = "<group>"; };
+		7E0283020000000000000001 /* TestDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDefaults.swift; sourceTree = "<group>"; };
+		7E0283040000000000000001 /* TestDefaultsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDefaultsTests.swift; sourceTree = "<group>"; };
 		2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarAndPreferencesIntegrationTests.swift; sourceTree = "<group>"; };
 		2C0000110000000000000001 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		2C0000120000000000000001 /* AppVersionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionTests.swift; sourceTree = "<group>"; };
@@ -386,6 +390,7 @@
 				6A0000030000000000000001 /* MonthGridTests.swift */,
 				2B0000160000000000000001 /* StatusBarContentBuilderTests.swift */,
 				2B0000190000000000000001 /* StatusBarSpacePolicyTests.swift */,
+				7E0283040000000000000001 /* TestDefaultsTests.swift */,
 				2B0000460000000000000001 /* StatusBarSpaceMetricsTests.swift */,
 				2B00003A0000000000000001 /* CalendarManagerIntegrationTests.swift */,
 				2B00003F0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift */,
@@ -622,6 +627,7 @@
 				2B0000360000000000000001 /* FakeCalendarEventStore.swift */,
 				2B0000380000000000000001 /* FakeNotificationScheduler.swift */,
 				2B00003E0000000000000001 /* FakeLaunchAtLoginController.swift */,
+				7E0283020000000000000001 /* TestDefaults.swift */,
 			);
 			path = Fakes;
 			sourceTree = "<group>";
@@ -863,6 +869,8 @@
 				2B0000370000000000000001 /* FakeCalendarEventStore.swift in Sources */,
 				2B0000390000000000000001 /* FakeNotificationScheduler.swift in Sources */,
 				2B00003C0000000000000001 /* FakeLaunchAtLoginController.swift in Sources */,
+				7E0283010000000000000001 /* TestDefaults.swift in Sources */,
+				7E0283030000000000000001 /* TestDefaultsTests.swift in Sources */,
 				2B00003D0000000000000001 /* MenuBarAndPreferencesIntegrationTests.swift in Sources */,
 				111000050000000000000001 /* CalendarExportTests.swift in Sources */,
 				6A0000390000000000000002 /* GlanceAndTimeZonesTests.swift in Sources */,

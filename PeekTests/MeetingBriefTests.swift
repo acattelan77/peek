@@ -213,7 +213,7 @@ final class MeetingBriefServiceSettingsTests: XCTestCase {
     }
 
     override func tearDown() {
-        defaults.removePersistentDomain(forName: suiteName)
+        TestDefaults.remove(suiteName)
         super.tearDown()
     }
 

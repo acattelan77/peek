@@ -99,6 +99,11 @@ enum DiagnosticEvent: Equatable {
 
     var level: DiagnosticLevel {
         switch self {
+        case .appLaunched:
+            // macOS keeps only default (notice) and higher in the persistent log;
+            // info lines are visible to `log stream --level info` only while they
+            // happen. The launch line is notice so `log show` always has a marker.
+            return .notice
         case .calendarAccess(let granted, _), .notificationPermission(let granted, _):
             return granted ? .info : .notice
         case .calendarRefreshFailed, .hotkeyRegistrationFailed:

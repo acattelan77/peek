@@ -1,9 +1,12 @@
 import Foundation
 import os
 
-/// Writes diagnostic events to the unified log (one `Logger` per category, so
-/// `log stream --predicate 'subsystem == "com.peek.app"'` shows them) and to a
-/// small journal in Application Support that "Export diagnostics" reads.
+/// Writes diagnostic events to the unified log (one `Logger` per category) and
+/// to a small journal in Application Support that "Export diagnostics" reads.
+/// Most events are info level, which macOS does not keep on disk: watch them
+/// live with `log stream --level info --predicate 'subsystem == "com.peek.app"'`,
+/// or read the journal. `log show` afterwards finds only notice and error lines
+/// (the launch line is always notice).
 /// Nothing leaves the Mac. Messages are built only from `DiagnosticEvent`, so
 /// they hold no meeting content and are logged as public.
 final class DiagnosticsLog {
