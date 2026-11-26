@@ -33,7 +33,8 @@ failure says why in the log.
 
 ## Validation
 
-- Linux checks; build and tests in CI (see the pull request).
+- Linux checks. Build and 304 tests passed in CI only (PR 7):
+  https://github.com/acattelan77/peek/actions/runs/45900974070
 
 ## Decisions and open questions
 
