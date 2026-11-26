@@ -169,18 +169,23 @@ been recorded as passed yet.
 
 ## PEEK-282: multi-monitor popover stability (target 1.16.2)
 
-- [ ] With the latest 1.16.2 candidate installed, repeatedly open and close
-      the popover from the built-in display and an external display to the left;
-      no jump, unexpected resize or alternate popover window.
-- [ ] Leave the popover open while menu-bar countdown or urgency changes;
-      its anchoring remains stable and alerts still behave normally.
-- [ ] Close the popover; menu-bar status text and countdown resume updating.
-- [ ] Change connected-display arrangement while the popover is open; it stays
-      usable without a stranded anchor, and opens on the correct screen next time.
+- [x] On the contributor's local 1.16.2 candidate, open/close the popover on
+      the previously problematic external display; no recurring jump or
+      unexpected resizing was observed in the later recordings.
+- [x] Keep the popover open during countdown updates: the status item remains
+      live and the popup stays visually stable in the contributor's checks.
+      Countdown minute rounding is consistent with the popup after the final fix.
+- [x] Close and reopen the popover: a fresh anchor is acquired; the countdown
+      remains live (rather than being suspended until closing).
+- [ ] Explicitly test changing the connected-display arrangement while the
+      popover is open; verify no stranded anchor and correct next opening.
+- [ ] Confirm alert/urgency transitions, notched/crowded menu bar, and a signed
+      candidate on the maintainer's target hardware.
 
-The preliminary manual check used an earlier ad-hoc 1.16.1 build of the fix
-on a MacBook and two external displays. Re-check the final 1.16.2 candidate
-before marking any item above as completed.
+Contributor validation was performed on a MacBook with external displays,
+using temporary calendar events and an ad-hoc local build on 2026-11-26.
+These checks do not replace release validation on signed builds or other
+hardware configurations.
 
 ## PEEK-AUD-07: release validation (needs hardware and a clean account)
 

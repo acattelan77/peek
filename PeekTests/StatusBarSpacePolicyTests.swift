@@ -63,15 +63,25 @@ final class StatusBarSpacePolicyTests: XCTestCase {
 
 /// Regression coverage for secondary-screen popover anchoring.
 final class PopoverMultiDisplayRegressionTests: XCTestCase {
-    func testStatusItemRenderingSuspendedWhileOpeningOrVisible() {
-        XCTAssertTrue(PopoverPresentationPolicy.shouldRenderStatusItem(
-            popoverIsShown: false, presentationPending: false))
-        XCTAssertFalse(PopoverPresentationPolicy.shouldRenderStatusItem(
-            popoverIsShown: false, presentationPending: true))
-        XCTAssertFalse(PopoverPresentationPolicy.shouldRenderStatusItem(
-            popoverIsShown: true, presentationPending: false))
-        XCTAssertFalse(PopoverPresentationPolicy.shouldRenderStatusItem(
-            popoverIsShown: true, presentationPending: true))
+    func testStatusItemWidthCanBeLockedOnlyAfterLayout() {
+        XCTAssertTrue(PopoverPresentationPolicy.canLockStatusItemWidth(38))
+        XCTAssertTrue(PopoverPresentationPolicy.canLockStatusItemWidth(273))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(0))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(-1))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(.infinity))
+        XCTAssertFalse(PopoverPresentationPolicy.canLockStatusItemWidth(.nan))
+    }
+
+    func testVisiblePopoverKeepsOpeningAnchorAcrossSameAndDifferentScreenDrift() {
+        let initial = NSRect(x: -150, y: 1050, width: 38, height: 24)
+        let sameDisplayDrift = NSRect(x: -225, y: 1050, width: 38, height: 24)
+        let otherDisplay = NSRect(x: 1300, y: 1050, width: 38, height: 24)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: sameDisplayDrift, popoverIsShown: true), initial)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: otherDisplay, popoverIsShown: true), initial)
+        XCTAssertEqual(PopoverPresentationPolicy.anchorFrame(
+            initial: initial, candidate: sameDisplayDrift, popoverIsShown: false), sameDisplayDrift)
     }
 
     func testAnchorRefreshCannotCrossToDifferentDisplay() {

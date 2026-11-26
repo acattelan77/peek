@@ -51,6 +51,14 @@ final class StatusBarContentBuilderTests: XCTestCase {
         XCTAssertTrue(content.phase.isFilled)
     }
 
+    func testSoonFractionalMinuteMatchesPopoverCountdown() {
+        let seconds: TimeInterval = 5 * 60 + 30
+        let content = make(in: seconds)
+        XCTAssertEqual(content.title, "Quarterly review · 6 min")
+        XCTAssertEqual(EventTimeFormatter.timeUntilComponents(
+            target: now.addingTimeInterval(seconds), now: now), .minutes(6))
+    }
+
     func testSoonShowsStartTimeInClockMode() {
         let content = make(in: 6 * 60, mode: .actualTime)
         XCTAssertEqual(content.title, "Quarterly review · 14:42")

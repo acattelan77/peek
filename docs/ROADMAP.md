@@ -68,9 +68,12 @@ last step and is the owner's.
 
 ## In progress — pending review
 
-* **PEEK-282 — Active (target 1.16.2):** stabilize popover positioning on
-  multiple displays during menu-bar updates. Local build and tests passed;
-  final physical validation of the updated app and PR CI are pending.
+* **PEEK-282 — Active (target 1.16.2):** stabilize the popover's opening
+  anchor on multi-display setups while keeping the menu-bar countdown live;
+  align countdown minute rounding with the popover. Local XCTest suite and
+  Release build passed; contributor's physical checks passed on the reported
+  external-display setup. Further display-arrangement checks, maintainer
+  review and PR CI verification remain open.
   Workstream: `docs/workstreams/multimonitor-popover.md`.
 
 ## Shipped, awaiting checks on a Mac

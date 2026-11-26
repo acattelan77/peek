@@ -18,11 +18,13 @@ noted under the version it belongs to.
 
 ### Fixed
 
-- Keep the menu-bar popover anchored to its opening display while it is shown,
-  avoiding jumps and size changes on multi-monitor setups when status-item
-  content changes. Resume status-item rendering after the popover closes.
-- Avoid repeatedly showing the popover just to refresh its anchor; add focused
-  regression coverage for rendering and same-display anchor decisions.
+- Keep the menu-bar popover anchored to the position and display captured when
+  it opens, even while its menu-bar countdown continues to update. Avoid jumps,
+  unnecessary repositioning and repeated popover presentation on multi-monitor
+  setups; allow fresh anchoring on the next opening.
+- Keep the countdown in the menu bar and the popover consistent by sharing
+  rounded-up minute calculations; add regression tests for fractional minutes
+  and time-boundary behavior.
 
 ## 1.16.1 - 2026-11-25
 

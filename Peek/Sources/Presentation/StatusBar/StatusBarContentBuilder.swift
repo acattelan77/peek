@@ -120,7 +120,7 @@ enum StatusBarContentBuilder {
 
     /// "6 min", rounded up so the label never reads less than the real wait.
     static func minutesText(until startDate: Date, now: Date) -> String {
-        let minutes = Int((max(0, startDate.timeIntervalSince(now)) / 60).rounded(.up))
+        let minutes = EventTimeFormatter.roundedUpMinutes(until: startDate, now: now)
         return String(format: NSLocalizedString("%d min", comment: "Menu bar: minutes until the next event"), max(minutes, 1))
     }
 

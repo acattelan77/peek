@@ -54,7 +54,10 @@ final class PopoverAnchorController {
         popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
         self.popover = popover
         self.button = button
-        startTracking()
+        // Keep the opening anchor fixed while the popover is visible.
+        // In particular, status-item layout can move when live countdown text
+        // or urgency-pill imagery changes; following that movement causes jumps.
+        // No periodic tracking is needed during this presentation.
         return true
     }
 
@@ -71,27 +74,25 @@ final class PopoverAnchorController {
         }
 
         button.layoutSubtreeIfNeeded()
-        guard
-            let screenFrame = Self.appKitStatusButtonScreenFrame(button: button),
-            screenFrame != lastAnchorScreenFrame
-        else {
+        guard let screenFrame = Self.appKitStatusButtonScreenFrame(button: button),
+              let initialFrame = lastAnchorScreenFrame else {
             return
         }
 
-        // Do not jump to the primary display while the popover is open.
-        if !PopoverPresentationPolicy.shouldAcceptAnchorRefresh(
+        // While visible the original anchor is authoritative, even when the
+        // status item moves within the *same* display. Anchoring again here
+        // caused the remaining ~75pt popover jump during countdown updates.
+        let selectedFrame = PopoverPresentationPolicy.anchorFrame(
+            initial: initialFrame,
             candidate: screenFrame,
-            presentationScreenFrame: presentationScreen?.frame
-        ) {
-            return
-        }
-        lastAnchorScreenFrame = screenFrame
+            popoverIsShown: popover.isShown
+        )
+        guard selectedFrame != initialFrame else { return }
+        lastAnchorScreenFrame = selectedFrame
         anchorWindow.setFrame(
-            PopoverAnchorGeometry.anchorWindowFrame(for: screenFrame),
+            PopoverAnchorGeometry.anchorWindowFrame(for: selectedFrame),
             display: false
         )
-        // Moving the anchor window suffices; re-showing a visible NSPopover
-        // can trigger a second placement during a live layout pass.
     }
 
     /// Stops tracking and tears down the anchor window.
