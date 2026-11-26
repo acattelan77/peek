@@ -17,7 +17,7 @@ file grows past about 300 lines, move the oldest minor versions there.
   commits' authors and messages. `AGENTS.md` and the pull-request template say
   how to comply.
 
-## 1.16.3 - 2026-11-26
+## 1.16.4 - 2026-11-26
 
 ### Fixed
 
@@ -31,6 +31,16 @@ file grows past about 300 lines, move the oldest minor versions there.
 - Tests delete the UserDefaults suites they create. They used to call
   `removeSuite(named:)`, which leaves the plist, so every test run left
   `com.peek.app.tests.*` files in Library/Preferences.
+
+## 1.16.3 - 2026-11-26
+
+### Fixed
+
+- PEEK-283: clicking Peek's menu-bar icon or label opens the popover again; only
+  the keyboard shortcut worked in 1.16.2. Opening the popover no longer pins the
+  status item to its current width: on recent macOS that resize swallowed the
+  click. The popover still keeps the position it opened at, and the menu-bar
+  label is no longer clipped while the popover is open.
 
 ## 1.16.2 - 2026-11-26
 

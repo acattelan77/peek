@@ -11,7 +11,7 @@ artifact of the "Test installer" workflow) unless a section says otherwise.
 Use fictional or test events where you can, and never paste real meeting
 content into an issue or pull request.
 
-Pending since: 1.6.0 to 1.16.1 (2026-11-23 to 2026-11-25). No check below has
+Pending since: 1.6.0 to 1.16.4 (2026-11-23 to 2026-11-26). No check below has
 been recorded as passed yet.
 
 ## Design system v2 (1.6.0)
@@ -181,10 +181,6 @@ been recorded as passed yet.
       popover is open; verify no stranded anchor and correct next opening.
 - [ ] Confirm alert/urgency transitions, notched/crowded menu bar, and a signed
       candidate on the maintainer's target hardware.
-- [ ] With the popover open, let the menu-bar label grow (entering the red
-      "soon" pill, or the next meeting's title replacing a short countdown):
-      the item keeps its opening width, so the label may be clipped until the
-      popover closes. Decide whether that is acceptable.
 - [ ] With the popover open, make a menu-bar item to Peek's right change width
       (for example one that shows and hides text): the popover keeps its opening
       position by design and no longer follows the icon. Decide whether that is
@@ -195,7 +191,15 @@ using temporary calendar events and an ad-hoc local build on 2026-11-26.
 These checks do not replace release validation on signed builds or other
 hardware configurations.
 
-## PEEK-284: persistent launch line and test cleanup (1.16.3)
+## PEEK-283: menu-bar click opens the popover (1.16.3)
+
+- [ ] On the main Mac with the external display, a click on the icon and a click
+      on the label each open the popover, on the display that was clicked; a
+      second click closes it. The shortcut still works.
+- [ ] With the popover open, the label keeps updating and can grow (red "soon"
+      pill, a longer title) without being clipped; the popover does not move.
+
+## PEEK-284: persistent launch line and test cleanup (1.16.4)
 
 - [ ] Quit and reopen Peek, then
       `log show --last 5m --predicate 'subsystem == "com.peek.app"'` shows one

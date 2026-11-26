@@ -1,7 +1,7 @@
 # Workstream: Test preference cleanup and persistent launch log
 
 - Roadmap ID: PEEK-284
-- Status: Active (pull request open, waiting for the owner's review)
+- Status: Done (merged in PR 5; Mac checks pending in `docs/MAC_CHECKS.md`)
 - Owner: Claude Code
 - Branch/worktree: `claude/test-defaults-and-logging`
 - Last updated: 2026-11-26
@@ -42,7 +42,9 @@ finds at least Peek's launch line.
       right (bundle id `com.peek.app`). The launch line is now notice. This is
       inferred; the journal in the sandbox container could not be read to
       confirm events were recorded.
-- [ ] CI green; owner runs the PEEK-284 checks.
+- [x] CI green on the first head: https://github.com/acattelan77/peek/actions/runs/45896758493
+- [x] Merged `main` after PR 4 and bumped to 1.16.4 (58).
+- [ ] Owner runs the PEEK-284 checks.
 
 ## Validation
 
@@ -55,5 +57,4 @@ finds at least Peek's launch line.
 
 ## Exact next action
 
-After PR 4 merges: rebase on `main`, take its Version.xcconfig, rerun
-`bash scripts/bump-version.sh patch`, move the changelog entry.
+Owner runs the PEEK-284 checks in `docs/MAC_CHECKS.md`.

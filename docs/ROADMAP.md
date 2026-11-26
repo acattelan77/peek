@@ -21,7 +21,7 @@ range.
 
 ## Current state
 
-Last updated 2026-11-26, with `main` at 1.16.2 (last full review 2026-11-25).
+Last updated 2026-11-26, with `main` at 1.16.4 (last full review 2026-11-25).
 
 The app is feature-complete for its first public release: phases 1 to 4 of the
 Peek 2.0 plan, the Peek 2.0 mockup alignment, App Store packaging and the
@@ -146,7 +146,10 @@ All merged to `main` between 1.6.0 and 1.16.2. Checks in `docs/MAC_CHECKS.md`.
 * **PEEK-282 — Shipped (1.16.2):** the popover keeps the anchor and display it
   opened on while the menu-bar countdown stays live; menu bar and popover round
   minutes the same way. Contributed by an outside collaborator (PR 2).
-* **PEEK-284 — Shipped (1.16.3):** the launch line reaches the persistent log
+* **PEEK-283 — Shipped (1.16.3):** clicking the menu-bar item opens the popover
+  again (1.16.2 pinned the item's width on click, which swallowed the click on
+  recent macOS); the label is no longer clipped while the popover is open.
+* **PEEK-284 — Shipped (1.16.4):** the launch line reaches the persistent log
   (`log show` found nothing because routine events are info level); tests no
   longer leave `com.peek.app.tests.*` preference files behind.
 
