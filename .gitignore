@@ -23,8 +23,9 @@ dist/
 # Coverage
 *.profraw
 
-# Local agent and editor state
-.claude/
+# Local agent and editor state (shared .claude/ config may be committed)
+.claude/settings.local.json
+.claude/worktrees/
 .vscode/
 .idea/
 

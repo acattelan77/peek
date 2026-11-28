@@ -172,8 +172,8 @@ Done and dropped items are listed in `docs/history/ROADMAP-done.md`; read it
 only to check whether an ID was already used. Their remaining physical checks are
 folded into PEEK-AUD-07.
 
-* **PEEK-AUD-07 — Blocked:** physical release validation; see step 1 above and
-  `docs/workstreams/physical-release-validation.md`.
+* **PEEK-AUD-07 — Blocked:** physical release validation; see step 1 above. The
+  checklist is in `docs/MAC_CHECKS.md`, section "PEEK-AUD-07".
 
 ## After the first release
 
