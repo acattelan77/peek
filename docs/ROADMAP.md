@@ -21,7 +21,7 @@ range.
 
 ## Current state
 
-Last updated 2026-11-26, with `main` at 1.16.6 (last full review 2026-11-25).
+Last updated 2026-11-28, with `main` at 1.16.6 (last full review 2026-11-25).
 
 The app is feature-complete for its first public release: phases 1 to 4 of the
 Peek 2.0 plan, the Peek 2.0 mockup alignment, App Store packaging and the
@@ -127,7 +127,7 @@ All merged to `main` between 1.6.0 and 1.16.6. Checks in `docs/MAC_CHECKS.md`.
 * **PEEK-264 — Shipped:** context older than 36 hours hides the day block and is
   dated on the meeting page.
 
-**Pre-release robustness (1.13.1 to 1.16.2)**
+**Pre-release robustness (1.13.1 to 1.16.6)**
 
 * **PEEK-275 — Shipped (1.13.1):** local diagnostics without meeting content,
   MetricKit, "Export diagnostics" (ADR 0006).

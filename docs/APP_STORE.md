@@ -289,8 +289,8 @@ light appearance first, with a short caption bar above each:
 5. World clocks and the meeting's time in other cities, in dark appearance:
    "Across time zones."
 
-The UI must be final first, so capture after PR 15 (mockup alignment) is
-accepted.
+The UI must be final first, so capture after the mockup alignment (PEEK-241, 1.11.0)
+passes its checks in `docs/MAC_CHECKS.md`.
 
 ## TestFlight plan
 
