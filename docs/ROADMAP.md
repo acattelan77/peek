@@ -127,7 +127,7 @@ All merged to `main` between 1.6.0 and 1.16.6. Checks in `docs/MAC_CHECKS.md`.
 * **PEEK-264 — Shipped:** context older than 36 hours hides the day block and is
   dated on the meeting page.
 
-**Pre-release robustness (1.13.1 to 1.16.2)**
+**Pre-release robustness (1.13.1 to 1.16.6)**
 
 * **PEEK-275 — Shipped (1.13.1):** local diagnostics without meeting content,
   MetricKit, "Export diagnostics" (ADR 0006).
