@@ -32,6 +32,9 @@ task needs: the last column says when.
 | Developer ID release | `docs/RELEASE.md` | Only for release work |
 | Mac App Store and owner-side Apple steps | `docs/APP_STORE.md` | Only for App Store work |
 
+Peek has no Asana or Linear project: `docs/ROADMAP.md` is its only tracker, and
+branch names carry no tracker IDs. PEEK-### IDs are roadmap IDs.
+
 History stays out of these files so they remain short. Read it only when you
 need the reasoning behind a past change:
 
