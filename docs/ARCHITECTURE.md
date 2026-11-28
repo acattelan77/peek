@@ -67,7 +67,7 @@ Peek/Sources/
     ├── DesignSystem/        PeekTheme (tokens) and PeekComponents
     ├── MenuBar/             Popover, month calendar, meeting page
     ├── HUD/                 Starting now card and full-screen start alert
-    ├── Preferences/         Settings window (Alerts, Briefs, Calendars, General)
+    ├── Preferences/         Settings page in the popover (Alerts, Briefs, Calendars, General)
     ├── Onboarding/          First-run flow
     ├── StatusBar/           Pure menu-bar content builder
     └── Formatting/          Date and time formatting
