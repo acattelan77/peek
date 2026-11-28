@@ -11,7 +11,7 @@ artifact of the "Test installer" workflow) unless a section says otherwise.
 Use fictional or test events where you can, and never paste real meeting
 content into an issue or pull request.
 
-Pending since: 1.6.0 to 1.16.4 (2026-11-23 to 2026-11-26). No check below has
+Pending since: 1.6.0 to 1.16.6 (2026-11-23 to 2026-11-26). No check below has
 been recorded as passed yet.
 
 ## Design system v2 (1.6.0)

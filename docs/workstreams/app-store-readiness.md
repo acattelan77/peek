@@ -1,10 +1,10 @@
 # Workstream: App Store readiness
 
 - Roadmap ID: PEEK-251, PEEK-252, PEEK-253, PEEK-254
-- Status: Blocked (on the owner: Apple-side setup and secrets in `docs/APP_STORE.md`; code merged in PR 16)
+- Status: Blocked (on the owner: Apple-side setup and secrets in `docs/APP_STORE.md`; code merged in 1.12.5)
 - Owner: Claude Code (cloud session)
 - Branch/worktree: `claude/project-thread-yp9eyy`
-- Last updated: 2026-11-25
+- Last updated: 2026-11-28
 
 ## Objective
 
@@ -32,7 +32,7 @@ only they can do. Submission for App Review stays last and is the owner's.
   Connect record (owner).
 - Price, final app name, bundle ID change, privacy-label stance (owner).
 - `release.yml` changes, tags, releases (owner authorization required).
-- Screenshots themselves (after the UI alignment in PR 15 is accepted).
+- Screenshots themselves (after the UI alignment, PEEK-241, is accepted).
 
 ## Claimed files and subsystems
 
@@ -47,7 +47,7 @@ only they can do. Submission for App Review stays last and is the owner's.
 
 - Owner: Apple Developer Program, App Store Connect API key (Admin), app
   record, GitHub secrets, Developer ID certificate. See `docs/APP_STORE.md`.
-- PR 15 (UI alignment, 1.11.0) for final screenshots.
+- PEEK-241 (UI alignment, 1.11.0) for final screenshots.
 
 ## Progress
 
@@ -65,9 +65,10 @@ only they can do. Submission for App Review stays last and is the owner's.
   the three touched scripts, plistlib parse of `PrivacyInfo.xcprivacy` and
   `Info.plist`, YAML parse of the new workflow.
 - CI, not local: `build-and-test` on macos-latest passed on 3e88ae3 (1.11.1,
-  rebased on PR 15; now 1.12.5 (47) on top of PR 20, rerun on the PR): unsigned build, 187 tests, and "App bundle checks
+  rebased on the UI alignment; rerun at 1.12.5 (47)): unsigned build, 187 tests, and "App bundle checks
   passed" on the Debug app.
-  https://github.com/acattelan77/peek/actions/runs/45369944374
+  (run in the repository before the 2026-11-25 history cleanup; its Actions
+  history no longer exists.)
 - Not run: `scripts/app-store.sh` and `scripts/release.sh` signed paths. They
   need the owner's secrets; the first App Store workflow run with Upload off
   is the test.

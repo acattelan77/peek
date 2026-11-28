@@ -21,7 +21,7 @@ range.
 
 ## Current state
 
-Last updated 2026-11-26, with `main` at 1.16.6 (last full review 2026-11-25).
+Last updated 2026-11-28, with `main` at 1.16.6 (last full review 2026-11-25).
 
 The app is feature-complete for its first public release: phases 1 to 4 of the
 Peek 2.0 plan, the Peek 2.0 mockup alignment, App Store packaging and the
