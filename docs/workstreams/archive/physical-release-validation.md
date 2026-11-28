@@ -1,6 +1,6 @@
 # Physical release validation
 
-- **Status:** Blocked
+- **Status:** Abandoned (2026-11-28: superseded by the PEEK-AUD-07 checklist in `docs/MAC_CHECKS.md`; the checks are the owner's, tracked in `docs/ROADMAP.md`)
 - **Roadmap ID:** PEEK-AUD-07
 - **Owner:** Codex
 - **Scope:** Execute physical macOS checks that cannot be established by unit tests: menu-bar/popover behavior, permissions, notifications, VoiceOver, contrast, motion, displays, and macOS 13 compatibility.
